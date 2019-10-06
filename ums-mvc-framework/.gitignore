@@ -1,0 +1,7 @@
+.settings
+/public/bootstrap/*
+/public/ckeditor/*
+/public/fontawesome/*
+/public/js/crypt/*
+/public/js/jquery/*
+/public/css/technofriend/*
