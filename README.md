@@ -1,4 +1,4 @@
-# ums-framework
+# UMS-Framework
 User Management System - PHP Framework
 
 <hr>
