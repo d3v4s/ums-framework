@@ -1,355 +1,408 @@
 <?php
 namespace app\controllers;
 
-use app\models\User;
-use app\models\Email;
 use \PDO;
-
-require_once __DIR__.'/../../autoload.php';
-require_once __DIR__.'/../../helpers/functions.php';
+use app\models\User;
+use app\controllers\verifiers\UMSVerifier;
+use app\controllers\verifiers\Verifier;
+use app\controllers\data\UMSDataFactory;
 
 class UMSController extends Controller {
-    public function __construct(PDO $conn, string $layout = 'ums') {
-        parent::__construct($conn, $layout);
+    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+        parent::__construct($conn, $appConfig, $layout);
     }
 
-    public function showNewEmail() {
-        $this->redirectIfNotAdmin();
-        $this->isNewEmail = TRUE;
-        $data = [
-            'token' => $this->generateToken()
-        ];
-        $this->content = view('new-email', $data);
-    }
+    public function showUsersList(string $orderBy = 'id', string $orderDir = 'desc', int $page = 1, int $usersForPage = 10) {
+        $this->redirectIfCanNotUpdate();
 
-    public function sendEmail() {
-        $this->redirectIfNotAdmin();
-        $this->setLayout('email');
-        $from = $_POST['from'];
-        $to = $_POST['to'];
-        $subject = $_POST['subject'];
-        $token = $_POST['_xf'] ?? 'tkn';
-        $tokenSess = $_SESSION['csrf'] ?? '';
-        unset($_SESSION['csrf']);
-
-        $res = $this->verifyEmail($from, $to, $token, $tokenSess);
-        if ($res['success']) {
-            $this->content = $_POST['content'];
-            $headers = "MIME-Version: 1.0" . "\r\n";
-            $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-            $email = isset($subject) ? new Email($to, $from, $subject) : new Email($to, $from);
-            $email->setHeaders($headers);
-            $email->content = $this->getHtmlEmail();
-            $res = $email->send();
-            var_dump($res);
-            dd($email);
-        } else {
-            dd($res);
-            redirect("/ums/email/new");
-        }
-    }
-
-    private function verifyEmail($from, $to, $token, $tokenSess) {
-        $res = [
-            'success' => FALSE,
-            'message' => 'FAIL SEND EMAIL'
-        ];
-
-        if ($token !== $tokenSess)
-            return $res;
-
-        if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            $res['message'] = 'WRONG FROM EMAIL';
-            return $res;
-        }
-        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $res['message'] = 'WRONG TO EMAIL';
-            return $res;
-        }
-
-        unset($res['message']);
-        $res['success'] = TRUE;
-        return $res;
-    }
-
-    private function getHtmlEmail() {
-        ob_start();
-        require $this->layout;
-        $content = ob_get_contents();
-        ob_end_clean();
-        
-        return $content;
-    }
-
-    private function getStart(int $totUsers, int &$userForPage, int &$page) {
-        $userForPage = in_array($userForPage, getConfig('app')['usersForPageList']) ? $userForPage : 10;
-        $maxPages = ceil($totUsers/$userForPage);
-        $page = $page > $maxPages ? $maxPages : $page;
-        return $userForPage * ($page - 1);
-    }
-
-    public function showUsers(string $orderBy = 'id', string $orderDir = 'desc', int $page = 1, int $usersForPage = 10) {
-        $this->redirectIfNotCanUpdate();
-        $user = new User($this->conn);
+        $this->isUsersList = TRUE;
         $search = $_GET['search'] ?? '';
-        $totUsers = $user->countUsers($search);
-        $orderDir = strtoupper($orderDir);
-        $uri = isset($_SERVER['QUERY_STRING']) ? str_replace('?'.$_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']) : $_SERVER['REQUEST_URI'];
-        $usersForPage = in_array($usersForPage, getConfig('app')['usersForPageList']) ? $usersForPage : 10;
-        $maxPages = (int) ceil($totUsers/$usersForPage);
-        $page = $page > $maxPages ? $maxPages : $page;
-        $page = $page <= 0 ? 1 : $page;
-        $start = $usersForPage * ($page - 1);
-        $nlinkPagination = getConfig('app')['linkPagination'] - 1;
-//         $extrLink = (int) $nlinkPagination / 2; 
-        $startPage = $page - intdiv($nlinkPagination, 2);
-        $startPage = (int) $startPage > ($maxPages - $nlinkPagination) ? $maxPages - $nlinkPagination : $startPage;
-        $startPage = $startPage <= 0 ? 1 : $startPage;
-        $stopPage = $startPage + $nlinkPagination;
-        $stopPage = $stopPage >= $maxPages ? $maxPages : $stopPage;
-//         dd($maxPages);
-        $data = [
-            'users' => $user->getUsers($orderBy, $orderDir, $search, $start, $usersForPage),
-            'orderBy' => $orderBy,
-            'orderDir' => strtolower($orderDir),
-            'orderDirRev' => $orderDir === 'ASC' ? 'desc' : 'asc',
-            'orderDirClass' => $orderDir === 'ASC' ? 'down' : 'up',
-            'search' => $search,
-            'page' => $page,
-            'usersForPage' => $usersForPage,
-            'totUsers' => $totUsers,
-            'usersForPageList' => getConfig('app')['usersForPageList'],
-            'uri' => $uri,
-            'maxPages' => $maxPages,
-            'startPage' => $startPage,
-            'stopPage' => $stopPage
-            
-        ];
-        $this->content = view('users-list', $data);
+        $data = UMSDataFactory::getInstance($this->appConfig, $this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search);
+
+        $this->content = view('ums/admin-users-list', $data);
     }
 
     public function showUser($username) {
-        $this->redirectIfNotCanUpdate();
-        $user = new User($this->conn);
+        $this->redirectIfCanNotUpdate();
+
+        $user = new User($this->conn, $this->appConfig);
         if (is_numeric($username)) $usr = $user->getUser($username);
         else $usr = $user->getUserByUsername($username);
-        $data = [
-            'user' => $usr,
-            'token' => $this->generateToken()
-        ];
-        $this->content = view('user-info', $data);
+
+        if (!$usr) {
+            $this->showMessage('USER NOT FOUND');
+            return;
+        }
+
+        array_push($this->jsSrcs,
+            ['src' => '/js/utils/ums/adm-usrinf.js']
+        );
+        $data = UMSDataFactory::getInstance($this->appConfig)->getUserData($usr);
+
+        $this->content = view('ums/admin-user-info', $data);
+    }
+
+    public function resetWrongPasswords() {
+        $this->redirectIfCanNotUpdate();
+
+        $tokens = $this->getPostSessionTokens('_xf-rwp', 'csrfResetWrongPass');
+        $id = $_POST['id'];
+
+        $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
+        $resReset = $verifier->verifyResetWrongPasswords($id, $tokens);
+        if ($resReset['success']) {
+            $user = new User($this->conn, $this->appConfig);
+            $resReset = $user->resetDatetimeAndNWrongPassword($id);
+            $resReset['message'] = $resReset['success'] ? 'Wrong passwords succesfully reset' : 'Reset wrong passwords failed';
+        }
+
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                $resJSON = [
+                    'success' => $resReset['success'],
+                    'message' => $resReset['message'] ?? NULL
+                ];
+                if (!$resReset['success']) $resJSON['ntk'] = generateToken('csrfResetWrongPass');
+                echo json_encode($resJSON);
+                exit;
+            default:
+                if (isset($resReset['message'])) {
+                    $_SESSION['message'] = $resReset['message'];
+                    $_SESSION['success'] = $resReset['success'];
+                }
+                redirect('/ums/user/'.$id);
+                break;
+        }
+    }
+
+    public function resetLockUser() {
+        $this->redirectIfCanNotUpdate();
+
+        $tokens = $this->getPostSessionTokens('_xf-rlu', 'csrfResetLockUser');
+        $id = $_POST['id'];
+        
+        $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
+        $resReset = $verifier->verifyResetLockUser($id, $tokens);
+        if ($resReset['success']) {
+            $user = new User($this->conn, $this->appConfig);
+            $resReset = $user->resetLockUser($id);
+            $resReset['message'] = $resReset['success'] ? 'Lock user succesfully reset' : 'Reset lock user failed';
+        }
+
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                $resJSON = [
+                    'success' => $resReset['success'],
+                    'message' => $resReset['message'] ?? NULL
+                ];
+                if (!$resReset['success']) $resJSON['ntk'] = generateToken('csrfResetLockUser');
+                echo json_encode($resJSON);
+                exit;
+            default:
+                if (isset($resReset['message'])) {
+                    $_SESSION['message'] = $resReset['message'];
+                    $_SESSION['success'] = $resReset['success'];
+                }
+                redirect('/ums/user/'.$id);
+                break;
+        }
     }
 
     public function showUpdatePasswordUser($username) {
-        $this->redirectIfNotAdmin();
-        $user = new User($this->conn);
+        $this->redirectIfCanNotChangePassword();
+
+        $user = new User($this->conn, $this->appConfig);
         if (is_numeric($username)) $usr = $user->getUser($username);
         else $usr = $user->getUserByUsername($username);
+
+        if (!$usr) {
+            $this->showMessage('USER NOT FOUND');
+            return;
+        }
+
+        array_push($this->jsSrcs,
+            ['src' => '/js/crypt/jsbn.js'],
+            ['src' => '/js/crypt/prng4.js'],
+            ['src' => '/js/crypt/rng.js'],
+            ['src' => '/js/crypt/rsa.js'],
+            ['src' => '/js/utils/req-key.js'],
+            ['src' => '/js/utils/validate.js'],
+            ['src' => '/js/utils/ums/adm-updpass.js']
+        );
         $data = [
             'user' => $usr,
-            'token' => $this->generateToken()
+            'token' => generateToken()
         ];
-        $this->content = view('update-pass', $data);
+        $this->content = view('ums/admin-update-pass', $data);
     }
 
     public function updatePasswordUser() {
-        $this->redirectIfNotAdmin();
-        $id = $_POST['id'];
-        $token = $_POST['_xf'] ?? 'tkn';
-        $tokenSess = $_SESSION['csrf'] ?? '';
+        $this->redirectIfCanNotChangePassword();
+
+        $id = $_POST['id'] ?? '';
+        $this->redirectIfNotXMLHTTPRequest("/ums/user/$id/update/pass");
+
+        $tokens = $this->getPostSessionTokens();
         $pass = $_POST['pass'] ?? '';
-        unset($_SESSION['csrf']);
-        
-        $res = $this->verifyUpdatePass($id, $pass, $token, $tokenSess);
-        if($res['success']) {
-            $user = new User($this->conn);
+        $cpass = $_POST['cpass'] ?? 'x';
+
+        $pass = $this->decryptData($pass);
+        $cpass = $this->decryptData($cpass);
+
+        $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
+        $resPass = $verifier->verifyUpdatePass($id, $pass, $cpass, $tokens);
+        if($resPass['success']) {
+            $user = new User($this->conn, $this->appConfig);
             $resUser = $user->updateUserPass($id, $pass);
-            if (!$resUser['success']) {
-                $res['message'] = $resUser['message'];
-                $res['success'] = $resUser['success'];
-            }
-        }
-        $res['success'] ? redirect('/ums/user/'.$id) : redirect('/ums/user/'.$id.'/update/pass');
-    }
-
-    private function verifyUpdatePass($id, $pass, $token, $tokenSess) {
-        $user = new User($this->conn);
-        $result = [
-            'message' => 'FAIL UPDATE',
-            'success' => false
-        ];
-        
-        if ($token !== $tokenSess) {
-            //             $result['message'] = 'TOKEN MISMATCH';
-            return $result;
-        }
-        if ($user->getUser($id) === FALSE) {
-            $result['message'] = 'WRONG ID';
-            return $result;
-        }
-        if (strlen($pass) < 4) {
-            $result['message'] = 'PASSWORD TOO SMALL';
-            return $result;
-        }
-
-        unset($result['message']);
-        $result['success'] = true;
-        
-        return $result;
-    }
-
-    public function showUpdateUser($username) {
-        $this->redirectIfNotCanUpdate();
-        $user = new User($this->conn);
-        if (is_numeric($username)) $usr = $user->getUser($username);
-        else $usr = $user->getUserByUsername($username);
-        $data = [
-            'user' => $usr,
-            'token' => $this->generateToken()
-        ];
-        $this->content = view('user-update', $data);
-    }
-
-    public function updateUser() {
-        $this->redirectIfNotCanUpdate();
-        $id = $_POST['id'];
-        $token = $_POST['_xf'] ?? 'tkn';
-        $tokenSess = $_SESSION['csrf'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $username = $_POST['username'] ?? '';
-        $name = $_POST['name'] ?? '';
-        $roletype = isUserAdmin() ? $_POST['role'] : '';
-        $enabled = isUserAdmin() && isset($_POST['enabled']) ? $_POST['enabled'] : '';
-        $enabled = $enabled === 'true' ? TRUE : FALSE;
-        unset($_SESSION['csrf']);
-        
-        $res = $this->verifyUpdate($id, $email, $username, $token, $tokenSess);
-        if($res['success']) {
-            $user = new User($this->conn);
-            $data = compact('email', 'username', 'name', 'roletype', 'enabled');
-            $resUser = $user->updateUser($id, $data);
-            if (!$resUser['success']) {
-                $res['message'] = $resUser['message'];
-                $res['success'] = $resUser['success'];
-            }
-        }
-        $res['success'] ? redirect('/ums/users') : redirect('/ums/user/'.$id.'/update');
-//         dd($res);
-    }
-
-    private function verifyUpdate($id, $email, $username, $token, $tokenSess) {
-        $user = new User($this->conn);
-        $result = [
-            'message' => 'FAIL UPDATE',
-            'success' => false
-        ];
-        
-        if ($token !== $tokenSess) {
-            //             $result['message'] = 'TOKEN MISMATCH';
-            return $result;
-        }
-        if ($user->getUser($id) === FALSE) {
-            $result['message'] = 'WRONG ID';
-            return $result;
-        }
-        if (!($email = filter_var($email, FILTER_VALIDATE_EMAIL))) {
-            $result['message'] = 'WRONG EMAIL';
-            return $result;
-        }
-        
-        unset($result['message']);
-        $result['success'] = true;
-        
-        return $result;
-    }
-
-    public function showNewUser() {
-        $this->redirectIfNotCanCreate();
-        $this->isNewUser = TRUE;
-        $this->content = view('new-user', ['token' => $this->generateToken()]);
-    }
-
-    public function newUser() {
-        $this->redirectIfNotCanCreate();
-        $token = $_POST['_xf'] ?? 'tkn';
-        $tokenSess = $_SESSION['csrf'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $username = $_POST['username'] ?? '';
-        $name = $_POST['name'] ?? '';
-        $pass = $_POST['pass'] ?? '';
-        $roletype = $_POST['role'] ?? 'user';
-        $enabled = isset($_POST['enabled']) && $_POST['enabled'] === 'true' ? TRUE : FALSE;
-        unset($_SESSION['csrf']);
-        
-        $res = $this->verifySignup($email, $username, $pass, $token, $tokenSess);
-        if($res['success']) {
-            $user = new User($this->conn);
-            $data = compact('email', 'username', 'name', 'pass', 'roletype', 'enabled');
-            $resUser = $user->saveUser($data);
-            if (!$resUser['success']) {
-                $res['message'] = $resUser['message'];
-                $res['success'] = $resUser['success'];
-            } 
+            $resPass['message'] = $resUser['message'];
+            $resPass['success'] = $resUser['success'];
         }
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
         switch ($header) {
             case 'XMLHTTPREQUEST':
-                echo json_encode($res);
+                $resJSON = [
+                    'success' => $resPass['success'],
+                    'error' => $resPass['error'] ?? NULL,
+                    'message' => $resPass['message'] ?? NULL,
+                    'userId' => $id
+                ];
+                if (!$resPass['success']) $resJSON['ntk'] = generateToken();
+                echo json_encode($resJSON);
                 exit;
             default:
-                if (isset($res['message'])) $_SESSION['message'] = $res['message'];
-                $res['success'] ? redirect('/ums/users') : redirect('/ums/user/new');
+                if (isset($resPass['message'])) {
+                    $_SESSION['message'] = $resPass['message'];
+                    $_SESSION['success'] = $resPass['success'];
+                }
+                $resPass['success'] ? redirect('/ums/user/'.$id) : redirect('/ums/user/'.$id.'/update/pass');
+                break;
+        }
+    }
+
+    public function showUpdateUser($username) {
+        $this->redirectIfCanNotUpdate();
+
+        $data = UMSDataFactory::getInstance($this->appConfig, $this->conn)->getUpdateUserData($username);
+
+        if (!$data['user']) {
+            $this->showMessage('USER NOT FOUND');
+            return;
+        }
+
+        array_push($this->jsSrcs,
+            ['src' => '/js/utils/validate.js'],
+            ['src' => '/js/utils/ums/adm-updusr.js']
+        );
+
+        $this->content = view('ums/admin-update-user', $data);
+    }
+
+    public function updateUser() {
+        $this->redirectIfCanNotUpdate();
+
+        $id = $_POST['id'];
+        $tokens = $this->getPostSessionTokens('_xf', 'csrfUMSUpdateUser');
+        $email = $_POST['email'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $name = $_POST['name'] ?? '';
+
+        $user = new User($this->conn, $this->appConfig);
+        if (isUserAdmin()) {
+            $roletype = isset($_POST['role']) ? $_POST['role'] : '';
+            $enabled = isset($_POST['enabled']) ? 1 : 0;
+        } else {
+            $usr = $user->getUser($id);
+            $roletype = $usr->roletype;
+            $enabled = $usr->enabled;
+            unset($usr);
+        }
+
+        $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
+        $resUpdate = $verifier->verifyUpdateUser($id, $name, $email, $username, $roletype, $tokens);
+        if($resUpdate['success']) {
+            if (isset($resUpdate['deleteUser'])) $user->deleteUser($resUpdate['deleteUser']);
+            $data = compact('email', 'username', 'name', 'roletype', 'enabled');
+            $resUser = $user->updateUser($id, $data);
+            $resUpdate['message'] = $resUser['message'];
+            $resUpdate['success'] = $resUser['success'];
+        }
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                $resJSON = [
+                    'success' => $resUpdate['success'],
+                    'error' => $resUpdate['error'] ?? NULL,
+                    'message' => $resUpdate['message'] ?? NULL,
+                    'userId' => $id
+                ];
+                if (!$resUpdate['success']) $resJSON['ntk'] = generateToken('csrfUMSUpdateUser');
+                echo json_encode($resJSON);
+                exit;
+            default:
+                if (isset($resUpdate['message'])) {
+                    $_SESSION['message'] = $resUpdate['message'];
+                    $_SESSION['success'] = $resUpdate['success'];
+                }
+                $resUpdate['success'] ? redirect("/ums/user/$id") : redirect("/ums/user/$id/update");
+                break;
+        }
+    }
+
+    public function showNewUser() {
+        $this->redirectIfCanNotCreate();
+        $this->isNewUser = TRUE;
+
+        array_push($this->jsSrcs,
+            ['src' => '/js/crypt/jsbn.js'],
+            ['src' => '/js/crypt/prng4.js'],
+            ['src' => '/js/crypt/rng.js'],
+            ['src' => '/js/crypt/rsa.js'],
+            ['src' => '/js/utils/req-key.js'],
+            ['src' => '/js/utils/validate.js'],
+            ['src' => '/js/utils/ums/adm-nusr.js']
+        );
+        $data = UMSDataFactory::getInstance($this->appConfig)->getNewUserData();
+        $this->content = view('ums/admin-new-user', $data);
+    }
+
+    public function newUser() {
+        $this->redirectIfCanNotCreate();
+        $this->redirectIfNotXMLHTTPRequest('/ums/user/new');
+
+        $tokens = $this->getPostSessionTokens();
+        $email = $_POST['email'] ?? '';
+        $username = $_POST['username'] ?? '';
+        $name = $_POST['name'] ?? '';
+        $pass = $_POST['pass'] ?? '';
+        $cpass =$_POST['cpass'] ?? 'x';
+        $roletype = $_POST['role'] ?? 'user';
+        $enabled = isset($_POST['enabled']);
+
+        $pass = $this->decryptData($pass);
+        $cpass = $this->decryptData($cpass);
+
+        $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
+        $resSignup = $verifier->verifyNewUser($name, $email, $username, $pass, $cpass, $roletype, $tokens);
+        if($resSignup['success']) {
+            $user = new User($this->conn, $this->appConfig);
+            if (isset($resSignup['deleteUser'])) foreach ($resSignup['deleteUser'] as $userId) $user->deleteUser($userId);
+            $data = compact('email', 'username', 'name', 'pass', 'roletype', 'enabled');
+            $resUser = $user->saveUser($data);
+            $resSignup['message'] = $resUser['message'];
+            $resSignup['success'] = $resUser['success'];
+        }
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                $resJSON = [
+                    'success' => $resSignup['success'],
+                    'error' => $resSignup['error'] ?? NULL,
+                    'message' => $resSignup['message'] ?? NULL
+                ];
+                if (!$resSignup['success']) $resJSON['ntk'] = generateToken();
+                echo json_encode($resJSON);
+                exit;
+            default:
+                if (isset($resSignup['message'])) {
+                    $_SESSION['message'] = $resSignup['message'];
+                    $_SESSION['success'] = $resSignup['success'];
+                }
+                $resSignup['success'] ? redirect('/ums/users') : redirect('/ums/user/new');
+                break;
+        };
+    }
+
+    public function showDeleteUser($username) {
+        $this->redirectIfCanNotDelete();
+
+        $user = new User($this->conn, $this->appConfig);
+        if (is_numeric($username)) $usr = $user->getUser($username);
+        else $usr = $user->getUserByUsername($username);
+        
+        if (!$usr) {
+            $this->showMessage('USER NOT FOUND');
+            return;
+        }
+
+        $data = [
+            'user' => $usr,
+            'token' => generateToken('csrfDeleteUser')
+        ];
+        $this->content = view('ums/admin-user-delete', $data);
+    }
+
+    public function deleteNewEmail() {
+        $this->redirectIfCanNotUpdate();
+
+        $tokens = $this->getPostSessionTokens('_xf-dnm', 'csrfDeleteNewEmail');
+        $id = $_POST['id'];
+
+        $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
+        $resDelete = $verifier->verifyDeleteNewEmail($id, $tokens);
+        if ($resDelete['success']) {
+            $user = new User($this->conn, $this->appConfig);
+            $resDelete['success'] = $user->removeNewEmailAndToken($id);
+            $resDelete['message'] = $resDelete['success'] ? 'New email succesfully deleted' : 'Delete new email failed';
+        }
+
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                $resJSON = [
+                    'success' => $resDelete['success'],
+                    'message' => $resDelete['message'] ?? NULL
+                ];
+                if (!$resDelete['success']) $resJSON['ntk'] = generateToken('csrfDeleteNewEmail');
+                echo json_encode($resJSON);
+                exit;
+            default:
+                if (isset($resDelete['message'])) {
+                    $_SESSION['message'] = $resDelete['message'];
+                    $_SESSION['success'] = $resDelete['success'];
+                }
+                redirect("/ums/user/$id");
+                break;
         };
     }
 
     public function deleteUser() {
-        $this->redirectIfNotCanDelete();
-        $id = $_POST['id'];
-        $token = $_POST['_xf'] ?? 'tkn';
-        $tokenSess = $_SESSION['csrf'] ?? '';
-        unset($_SESSION['csrf']);
+        $this->redirectIfCanNotDelete();
 
-        $res = $this->verifyDelete($id, $token, $tokenSess);
-        if($res['success']) {
-            $user = new User($this->conn);
+        $tokens = $this->getPostSessionTokens('_xf-du', 'csrfDeleteUser');
+        $id = $_POST['id'];
+
+        $verifier = Verifier::getInstance($this->appConfig, $this->conn);
+        $resDelete = $verifier->verifyDelete($id, $tokens);
+        if($resDelete['success']) {
+            $user = new User($this->conn, $this->appConfig);
             $resUser = $user->deleteUser($id);
-            if (!$resUser['success']) {
-                $res['message'] = $resUser['message'];
-                $res['success'] = $resUser['success'];
-            }
+            $resDelete['message'] = $resUser['message'];
+            $resDelete['success'] = $resUser['success'];
         }
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
         switch ($header) {
             case 'XMLHTTPREQUEST':
-                echo json_encode($res);
+                $resJSON = [
+                    'success' => $resDelete['success'],
+                    'error' => $resDelete['error'] ?? NULL,
+                    'message' => $resDelete['message'] ?? NULL
+                ];
+                if (!$resDelete['success']) $resJSON['ntk'] = generateToken('csrfDeleteUser');
+                echo json_encode($resJSON);
                 exit;
             default:
-                if (isset($res['message'])) $_SESSION['message'] = $res['message'];
-                $res['success'] ? redirect('/ums/users') : redirect("/ums/user/$id");
+                if (isset($resDelete['message'])) {
+                    $_SESSION['message'] = $resDelete['message'];
+                    $_SESSION['success'] = $resDelete['success'];
+                }
+                $resDelete['success'] ? redirect('/ums/users') : redirect("/ums/user/$id");
+                break;
         };
-        
     }
-    
-    private function verifyDelete($id, $token, $tokenSess) {
-        $user = new User($this->conn);
-        $result = [
-            'message' => 'FAIL DELETE',
-            'success' => false
-        ];
 
-        if ($token !== $tokenSess) {
-            //             $result['message'] = 'TOKEN MISMATCH';
-            return $result;
-        }
-
-        if ($user->getUser($id) === FALSE) {
-            $result['messsage'] = 'WRONG ID';
-            return $result;
-        }
-
-        unset($result['message']);
-        $result['success'] = true;
-        
-        return $result;
+    private function redirectIfCanNotChangePassword() {
+        if (!userCanChangePasswords()) redirect();
     }
 }

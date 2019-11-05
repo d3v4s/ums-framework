@@ -6,8 +6,9 @@ class DbPdo {
     protected $conn;
     static protected $instance;
 
-    static public function getInstance(array $options) {
-        return static::$instance = (static::$instance) ? static::$instance : new static($options);
+    static public function getInstance(array $options): DbPdo {
+        if (!isset(static::$instance)) static::$instance = new static($options);
+        return static::$instance; // = (static::$instance) ? static::$instance : new static($options);
     }
 
     protected function __construct(array $options) {
@@ -18,7 +19,7 @@ class DbPdo {
         }
     }
 
-    public function getConn() {
+    public function getConn(): PDO {
         return $this->conn;
     }
 }

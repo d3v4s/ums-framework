@@ -1,8 +1,8 @@
 <html>
     <head>
-    	<title>HTML email</title>
+    	<title>UMS Email</title>
     </head>
     <body>
-    	<?=$this->content?>
+    	<?=$content?>
 	</body>
 </html>

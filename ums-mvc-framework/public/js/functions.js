@@ -1,211 +1,107 @@
-function validatePassword() {
-	var $pass = $('#pass');
-	var $cpass = $('#cpass');
-	var pass = $pass.val();
-	var cpass = $cpass.val();
-	$pass.css('border', '');
-	$cpass.css('border', '');
-	if (pass.length < 4) $pass.css('border', '1px solid red');
-	else if (pass !== cpass) $cpass.css('border', '1px solid red');
-	else {
-		$pass.css('border', '1px solid green');
-		$cpass.css('border', '1px solid green');
+var isMessageShow = false,
+	idTimeout = 0;
+
+String.prototype.lines = function() {
+	return this.split(/\r*\n/);
+}
+String.prototype.lineCount = function() {
+	return this.lines().length;
+}
+String.prototype.ucFirst = function() {
+    return this.charAt(0).toUpperCase() + this.substr(1);
+}
+
+function focusError(jsonRes) {
+	removeEvidence($('.evidence-error'));
+	if (jsonRes.error != null) {
+		var $error = $('#' + jsonRes.error + '.evidence-error');
+		evidenceError($error);
+		$error.focus();
 	}
 }
 
-function validateFullname() {
-	var $name = $('#name');
-	var name = $name.val();
-	if (name.length < 2) $name.css('border', '1px solid red');
-	else $name.css('border', '1px solid green')
+function evidenceError($elem) {
+	if ($elem[0].tagName !== 'SELECT') $elem.css('border', '1px solid red');
+	$elem.css('box-shadow', '0 0 5px red');
 }
 
-function validateUsername() {
-	var $username = $('#username');
-	var username = $username.val();
-	if (username.length < 5) $username.css('border', '1px solid red');
-	else $username.css('border', '1px solid green');
+function evidenceRight($elem) {
+	$elem.css('border', '1px solid green');
+	$elem.css('box-shadow', '0 0 5px green');
+}
+
+function removeEvidence($elem) {
+	$elem.css('border', '');
+	$elem.css('box-shadow', '');
+}
+
+function showMessage(message, isError = false) {
+	clearTimeout(idTimeout);
+	isMessageShow = true;
+	var $messgBox = $('#message-box'),
+		scrollTop = $(window).scrollTop();
+	$messgBox.find('#txt-message').text(message);
+	if (isError) {
+		$messgBox.removeClass('bg-blue');
+		$messgBox.addClass('bg-red');
+	} else {
+		$messgBox.removeClass('bg-red');
+		$messgBox.addClass('bg-blue');
+	}
+	$messgBox.animate({top: scrollTop + 'px'});
+	idTimeout = setTimeout(closeMessage, 5000);
+}
+
+function closeMessage() {
+	isMessageShow = false;
+	$('#message-box').animate({
+		top: '-100px'
+	});
+}
+
+function positionMessageBox() {
+	if (isMessageShow) $('#message-box').css('top', $(window).scrollTop() + 'px');
+}
+
+function disableElement($elem) {
+	$elem.attr("disabled", "disabled");
+}
+
+function enableElement($elem) {
+	$elem.removeAttr("disabled");
+}
+
+function redirect(url) {
+	location.href = url;
+}
+
+function showLoading($btn) {
+	$btn.attr("disabled", "disabled");
+	$btn.children('#ico-btn').addClass('d-none');
+	$btn.children('#spinner').removeClass('d-none');
+	$btn.children('#text-btn').text(' Loading...');
+}
+
+function removeLoading($btn, text) {
+	$btn.removeAttr("disabled");
+	$btn.children('#spinner').addClass('d-none');
+	$btn.children('#ico-btn').removeClass('d-none');
+	$btn.children('#text-btn').text(text);
 }
 
 $(document).ready(function () {
-	$('#name', '#signup-form').on('keyup', function () {
-		validateFullname();
-	});
-	$('#username', '#signup-form').on('keyup', function () {
-		validateUsername();
-	});
-	$('#cpass', '#signup-form').on('keyup', function () {
-		validatePassword();
+	$('#message.fade-out').fadeOut(7000);
+
+	$('#close-message-box.btn-close-msg').click(function(event) {
+		event.preventDefault();
+		closeMessage();
+	})
+
+	$(window).resize(function() {
+		positionMessageBox();
 	});
 
-	$('#name', '#newuser-form').on('keyup', function () {
-		validateFullname();
+	$(window).scroll(function() {
+		positionMessageBox();
 	});
-	$('#username', '#newuser-form').on('keyup', function () {
-		validateUsername();
-	});
-	$('#cpass', '#newuser-form').on('keyup', function () {
-		validatePassword();
-	});
-
-	$('#name', '#user-update-form').on('keyup', function () {
-		validateFullname();
-	});
-	$('#username', '#user-update-form').on('keyup', function () {
-		validateUsername();
-	});
-	$('#cpass', '#user-update-form').on('keyup', function () {
-		validatePassword();
-	});
-
-	$('#cpass', '#update-pass-form').on('keyup', function () {
-		validatePassword();
-	});
-	
-//	$("#signup-form").validate({
-//		rules: {
-//			name: "required",
-//			username: {
-//				required: true,
-//				minlength: 5
-//			},
-//			email: {
-//				required: true,
-//				email: true
-//			},
-//			pass: {
-//				required: true,
-//				minlength: 4
-//			},
-//			cpass: {
-//				minlength: 4,
-//				equalTo: "#pass"
-//			},
-//		}
-//	});
 });
-
-
-//$("#pass").passwordValidation({"confirmField": "#conf-pass"}, function(element, valid, match, failedCases) {
-//  $("#errors").html("<pre>" + failedCases.join("\n") + "</pre>");
-//   if(valid) $(element).css("border","2px solid green");
-//   if(!valid) $(element).css("border","2px solid red");
-//   if(valid && match) $("#conf-pass").css("border","2px solid green");
-//   if(!valid || !match) $("#conf-pass").css("border","2px solid red");
-//});
-
-
-//$( document ).ready(function() {
-//    console.log( "ready!" );
-//    jQuery.validator.setDefaults({
-//    	debug: true,
-//    	success: "valid"
-//	});
-//
-//	$('#form1').validate({
-//		rules:{
-//			Email:{
-//				required:true,
-//				email:true
-//			},
-//			password:{
-//				required:true,
-//				minlength:3,
-//			},
-//			password_again:{
-//				equalTo:"#password"
-//			}
-//		},
-//	
-//		highlight: function(element) {
-//			$(element).closest('.form-group').addClass('has-error');
-//		},
-//		unhighlight: function(element) {
-//			$(element).closest('.form-group').removeClass('has-error');
-//		},
-//		errorElement: 'span',
-//		errorClass: 'help-block',
-//		errorPlacement: function(error, element) {
-//			if(element.parent('.input-group').length) {
-//				error.insertAfter(element.parent());
-//			} else {
-//				error.insertAfter(element);
-//			}
-//		}
-//	})
-//});
-
-//$(document).ready(function () {
-//	$("#signup-form").validate( {
-//		onkeyup: true,
-//		rules: {
-//			name: "required",
-//			username: {
-//				required: true,
-//				minlength: 5
-//			},
-//			email: {
-//				required: true,
-//				email: true
-//			},
-//			pass: {
-//				required: true,
-//				minlength: 4
-//			},
-//			cpass: {
-//				minlength: 4,
-//				equalTo: "#pass"
-//			},
-//		},
-//		messages: {
-//			name: "Please enter your full name",
-//			username: {
-//				required: "Please enter a username",
-//				minlength: "Your username must consist of at least 5 characters"
-//			},
-//			email: "Please enter a valid email address",
-//			pass: {
-//				required: "Please provide a password",
-//				minlength: "Your password must be at least 4 characters long"
-//			},
-//			cpass: {
-//				minlength: "Your password must be at least 4 characters long",
-//				equalTo: "Please enter the same password as above"
-//			},
-//		},
-//		errorElement: "em",
-//		errorPlacement: function (error, element) {
-//			// Add the `help-block` class to the error element
-//			error.addClass("help-block");
-//
-//			// Add `has-feedback` class to the parent div.form-group
-//			// in order to add icons to inputs
-//			element.parents(".col-sm-5").addClass("has-feedback");
-//
-//			error.insertAfter(element);
-////			if (element.prop("type") === "checkbox") {
-////				error.insertAfter(element.parent("label"));
-////			} else {
-////			}
-//
-//			// Add the span element, if doesn't exists, and apply the icon classes to it.
-//			if (!element.next("span")[0]) {
-//				$("<span class='glyphicon glyphicon-remove form-control-feedback'></span>").insertAfter(element);
-//			}
-//		},
-//		success: function (label, element) {
-//			// Add the span element, if doesn't exists, and apply the icon classes to it.
-//			if (!$( element).next("span")[0]) {
-//				$("<span class='glyphicon glyphicon-ok form-control-feedback'></span>").insertAfter($(element));
-//			}
-//		},
-//		highlight: function (element, errorClass, validClass) {
-//			$(element).parents(".col-sm-5").addClass("has-error").removeClass("has-success");
-//			$(element).next("span").addClass("glyphicon-remove").removeClass("glyphicon-ok");
-//		},
-//		unhighlight: function (element, errorClass, validClass) {
-//			$(element).parents(".col-sm-5").addClass("has-success").removeClass("has-error");
-//			$(element).next("span").addClass("glyphicon-ok").removeClass("glyphicon-remove");
-//		}
-//	});
-//});

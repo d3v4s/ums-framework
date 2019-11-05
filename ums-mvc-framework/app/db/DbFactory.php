@@ -1,10 +1,8 @@
 <?php
 namespace app\db;
-require_once __DIR__.'/../../autoload.php';
-// require __DIR__.'DbPdo.php';
 
 class DbFactory {
-    public static function create(array $options) {
+    public static function create(array $options): DbPdo {
         if(!array_key_exists('driver', $options)) throw new \InvalidArgumentException('Nessun driver predefinito');
         if (!isset($options['dsn'])) {
             $dsn = '';

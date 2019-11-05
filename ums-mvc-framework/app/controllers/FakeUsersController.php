@@ -3,59 +3,83 @@ namespace app\controllers;
 
 use app\models\User;
 use \PDO;
-
-require_once __DIR__.'/../../autoload.php';
-require_once __DIR__.'/../../helpers/functions.php';
+use app\controllers\verifiers\FakeUsersVerifier;
 
 class FakeUsersController extends Controller {
-    protected $names = ['Andrea', 'Francesco', 'Giuseppe', 'John', 'Elena', 'Kayle'];
-    protected $lastnames = ['Serra', 'Rossi', 'da Vinci', 'Smith', 'Cruz', 'Waters'];
+    protected $names = ['Andrea', 'Francesco', 'Giuseppe', 'John', 'Elena', 'Kayle', 'Stan', 'Erik', 'Kenny', 'Butters', 'Roger', 'David'];
+    protected $lastnames = ['Serra', 'Rossi', 'da Vinci', 'Smith', 'Cruz', 'Waters', 'Gilmour', 'Marsh', 'Cartman', 'Stoch'];
     protected $domains = ['protonmail.com', 'gmail.com', 'yahoo.com', 'mail.com', 'hotmail.it', 'libero.it', 'andreaserra.it'];
 
-    public function __construct(PDO $conn, string $layout = 'ums') {
-        parent::__construct($conn, $layout);
+    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+        parent::__construct($conn, $appConfig, $layout);
     }
 
     public function showAddFakeUsers() {
         $this->redirectIfNotAddFakeUsers();
-        $this->redirectIfNotCanCreate();
-        $this->isAddFakeUsers = TRUE;
-        $data = [
-            'token' => $this->generateToken()
-        ];
-        $this->content = view('add-fake-users', $data);
-    }
+        $this->redirectIfCanNotCreate();
 
-    private function redirectIfNotAddFakeUsers() {
-        if (!$this->addFakeUsers) redirect('/');
+        array_push($this->jsSrcs,
+            ['src' => '/js/utils/ums/adm-fkusrs.js']
+        );
+        $this->content = view('ums/admin-add-fake-users', ['token' => generateToken('csrfFakeUser')]);
     }
 
     public function addFakeUsers() {
         $this->redirectIfNotAddFakeUsers();
-        $this->redirectIfNotCanCreate();
-        $token = $_POST['_xf'] ?? 'tkn';
-        $tokenSess = $_SESSION['csrf'] ?? '';
-        $nFakeUsers = $_POST['n-users'] ?? '';
-        if ($this->verifyToken($token, $tokenSess)) {
-            $user = new User($this->conn);
+        $this->redirectIfCanNotCreate();
+
+        $tokens = $this->getPostSessionTokens('_xf', 'csrfFakeUser');
+        $nFakeUsers = $_POST['n-users'];
+        $enabled = isset($_POST['enabled']);
+        
+        $verifier = FakeUsersVerifier::getInstance($this->appConfig);
+        $resAddFakeUsers = $verifier->verifyAddFakeUsers($nFakeUsers, $tokens);
+        if ($resAddFakeUsers['success']) {
+            $pass = $this->appConfig['app']['passDefault'];
+            $roletype = 'user';
+            $user = new User($this->conn, $this->appConfig);
+            $usersAdded = 0;
             while ($nFakeUsers-- > 0) {
                 $name = $this->getRandomName();
                 $username = $this->getRandomUsername($name);
                 $email = $this->getRandomEmail($name);
-                $pass = 'test';
-                $roletype = 'user';
-                $enabled = FALSE;
                 $data = compact('email', 'username', 'name', 'pass', 'roletype', 'enabled');
-                $user->saveUser($data);
+                if ($user->saveUser($data)['success']) $usersAdded++;
             }
+            $resAddFakeUsers['message'] = "$usersAdded fake users added successfully";
+            $resAddFakeUsers['success'] = TRUE;
+            $resAddFakeUsers['userAdded'] = $usersAdded;
         }
-        redirect('/ums/users');
+
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                $resJSON = [
+                    'success' => $resAddFakeUsers['success'],
+                    'message' => $resAddFakeUsers['message'] ?? NULL,
+                    'error' => $resAddFakeUsers['error'] ?? NULL
+                ];
+                if (!$resAddFakeUsers['success']) $resJSON['ntk'] = generateToken('csrfFakeUser');
+                echo json_encode($resJSON);
+                exit;
+            default:
+                if (isset($resAddFakeUsers['message'])) {
+                    $_SESSION['message'] = $resAddFakeUsers['message'];
+                    $_SESSION['success'] = $resAddFakeUsers['success'];
+                }
+                $resAddFakeUsers['success'] ? redirect('/ums/users') : redirect('ums/users/fake');
+                break;
+        }
+    }
+
+    private function redirectIfNotAddFakeUsers() {
+        if (!$this->appConfig['app']['addFakeUsersPage']) redirect();
     }
 
     private function getRandomName(): string {
         $randName = mt_rand(0, count($this->names) - 1);
         $randLastname = mt_rand(0, count($this->lastnames) - 1);
-        
+
         return $this->names[$randName].' '.$this->lastnames[$randLastname];
     }
 

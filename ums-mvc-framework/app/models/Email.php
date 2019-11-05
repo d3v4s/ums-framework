@@ -7,6 +7,8 @@ class Email {
     protected $headers = "";
     protected $subject;
     protected $cc;
+    protected $layout;
+    protected $data = [];
     public $content;
 
     public function __construct(string $to, string $from,string $subject = 'No Subject') {
@@ -23,7 +25,23 @@ class Email {
         $this->cc = $cc;
     }
 
-    function send() {
+    public function setLayout(string $layout) {
+        $this->layout = getLayoutPath().'/'.getConfig('layout')[$layout].'.tpl.php';
+    }
+
+    public function setData(array $data) {
+        $this->data = $data;
+    }
+
+    public function generateContentWithLayout() {
+        extract($this->data);
+        ob_start();
+        require $this->layout;
+        $this->content = ob_get_contents();
+        ob_end_clean();
+    }
+
+    function send(): bool {
         $this->headers .= 'From: '.$this->from."\r\n";
         $this->headers .= 'To: '.$this->from."\r\n";
         if (isset($this->cc)){
