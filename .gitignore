@@ -1,5 +1,8 @@
 /public/bootstrap/*
-/public/ckeditor/*
 /public/fontawesome/*
+/public/js/ckeditor/*
 /public/js/crypt/*
 /public/js/jquery/*
+/public/css/technofriend/*
+/layout/technofriend.tpl.php
+/config/rsa/*
