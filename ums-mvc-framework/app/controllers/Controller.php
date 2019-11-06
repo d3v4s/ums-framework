@@ -16,9 +16,9 @@ class Controller {
     protected $tokenLogout = '';
     protected $setCSPHeader = TRUE;
     protected $CSPDefaultSrc = '';
-    protected $CSPScriptSrc = "'self'";// https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" ;
+    protected $CSPScriptSrc = "'self'";
     protected $CSPObjectSrc = "'none'";
-    protected $CSPStyleSrc = "'self'"; // https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css ";
+    protected $CSPStyleSrc = "'self'";
     protected $CSPImgSrc = "'self'";
     protected $CSPMediaSrc = "'self'";
     protected $CSPFrameSrc = "'none'";
@@ -110,6 +110,12 @@ class Controller {
 
     public function display() {
         if (isUserLoggedin()) $this->tokenLogout = generateToken('csrfLogout');
+        if ($this->setCSPHeader) {
+            $this->cspContent = $this->getCSPContent();
+            header("Content-Security-Policy: $this->cspContent");
+            header("X-Content-Security-Policy: $this->cspContent");
+            header("X-WebKit-CSP: $this->cspContent");
+        }
         require_once $this->layout;
     }
 

@@ -10,8 +10,10 @@
     		<input id="subject" placeholder="Subject" class="form-control send-ajax-crypt" type="text" name="subject">
     	</div>
     	<div class="form-group text-md-left">
-    		<label for="content">Text</label>
-    		<textarea id="content" name="content" class="form-control send-ajax-crypt" rows="10"></textarea>
+    		<label for="editor">Text</label>
+    		<span class="text-left text-dark">
+	    		<textarea id="editor" name="content" class="form-control send-ajax-crypt" rows="10"></textarea>
+    		</span>
     	</div>
     	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
     	<noscript>

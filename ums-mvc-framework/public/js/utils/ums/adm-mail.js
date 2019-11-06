@@ -1,7 +1,9 @@
 $(document).ready(function(){
-	ClassicEditor.create(document.querySelector('#content')).catch(error => {
-		console.error(error);
-	});
+	try {
+		ClassicEditor.create(document.querySelector('#editor')).catch(error => {
+			console.error(error);
+		});
+	} catch (e) {}
 
 	$('#send-email-form').on('submit', function(event) {
 		const $btn = $(this).find('#btn-send'),

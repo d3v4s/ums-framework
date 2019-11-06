@@ -1,18 +1,20 @@
-3<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 	<head>
+		<?php if ($this->setCSPHeader): ?>
+			<meta http-equiv="Content-Security-Policy" content="<?=$this->cspContent?>">
+			<meta http-equiv="X-Content-Security-Policy" content="<?=$this->cspContent?>">
+    		<meta http-equiv="X-WebKit-CSP" content="<?=$this->cspContent?>">
+		<?php endif; ?>
+
 		<meta charset="utf-8"/>
-		<meta http-equiv="Content-Type" content="<?=$this->contentType?>" />
+		<meta http-equiv="Content-Type" content="<?=$this->contentType?>"/>
+
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 		<meta name="description" content="<?=$this->description?>"/>
 		<meta name="keywords" content="<?=$this->keywords?>"/>
 		<meta name="robots" content="<?=$this->robots?>"/>
 		<meta name="googlebot" content="<?=$this->googlebot?>"/>
-		<?php if ($this->setCSPHeader): ?>
-			<meta http-equiv="Content-Security-Policy" content="<?=($cont = $this->getCSPContent())?>">
-			<meta http-equiv="X-Content-Security-Policy" content="<?=$cont?>">
-    		<meta http-equiv="X-WebKit-CSP" content="<?=$cont?>">
-		<?php endif; ?>
 		
 		<!-- Tells Google not to show the sitelinks search box -->
 		<!-- <meta name="google" content="nositelinkssearchbox"/> -->

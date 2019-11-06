@@ -16,6 +16,9 @@ class EmailController extends Controller {
         $this->isNewEmail = TRUE;
 //         $keys = $this->getKey();
 
+        $this->CSPScriptSrc .= " 'unsafe-inline'";
+        $this->CSPStyleSrc .= " 'unsafe-inline'";
+        $this->CSPImgSrc .= ' data:';
         array_push($this->jsSrcs,
             ['src' => '/js/ckeditor/ckeditor.js'],
             ['src' => '/js/crypt/jsbn.js'],
@@ -26,6 +29,7 @@ class EmailController extends Controller {
             ['src' => '/js/utils/validate.js'],
             ['src' => '/js/utils/ums/adm-mail.js']
         );
+        
         $this->content = view('ums/admin-new-email', ['token' => generateToken()]);
     }
 
