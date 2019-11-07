@@ -1,3 +1,5 @@
+CREATE SCHEMA `ums` DEFAULT CHARACTER SET utf8mb4;
+
 CREATE TABLE `ums`.`users` (
 	`id` INT(15) UNSIGNED NOT NULL AUTO_INCREMENT ,
 	`name` VARCHAR(255) NOT NULL ,
@@ -20,15 +22,17 @@ CREATE TABLE `ums`.`users` (
 	PRIMARY KEY (`id`),
 	UNIQUE `u_username` (`username`),
 	UNIQUE `u_email` (`email`),
-	UNIQUE `idu_token_reset_pass` (`token_reset_pass`)
+	UNIQUE `idu_token_reset_pass` (`token_reset_pass`),
 	UNIQUE `idu_token_account_enabler` (`token_account_enabler`),
 	UNIQUE `u_new_email` (`new_email`),
-	UNIQUE `idu_token_confirm_email` (`token_confirm_email`),
+	UNIQUE `idu_token_confirm_email` (`token_confirm_email`)
 ) ENGINE = InnoDB;
 
-INSERT INTO `users` (`name`, `username`, `email`, `password`, `roletype`) VALUES ('ums', 'ums', 'ums@ums.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin');
+INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`) VALUES ('Andrea Serra', 'andreaserra', 'info@andreaserra.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin');
 
-CREATE USER 'ums'@'localhost' IDENTIFIED BY PASSWORD 'ums';
+INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`) VALUES ('ums', 'ums', 'ums@ums.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin');
+
+CREATE USER 'ums'@'localhost' IDENTIFIED BY 'ums';
 
 GRANT ALL PRIVILEGES ON `ums`.* TO 'ums'@'localhost';
 
