@@ -28,9 +28,9 @@ CREATE TABLE `ums`.`users` (
 	UNIQUE `idu_token_confirm_email` (`token_confirm_email`)
 ) ENGINE = InnoDB;
 
-INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`) VALUES ('Andrea Serra', 'andreaserra', 'info@andreaserra.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin');
+INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`, `enabled`) VALUES ('Andrea Serra', 'andreaserra', 'info@andreaserra.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin', 1);
 
-INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`) VALUES ('ums', 'ums', 'ums@ums.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin');
+INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`, `enabled`) VALUES ('ums', 'ums', 'ums@ums.it', '$2y$10$0k8fCuGXuwSODy1Ts6XjWeaFF1RfslHiDOuj6dBpYvsRiX2ba0DHa', 'admin', 1);
 
 CREATE USER 'ums'@'localhost' IDENTIFIED BY 'ums';
 
