@@ -19,7 +19,10 @@ class SiteMapVerifier extends Verifier {
             'success' => FALSE
         ];
 
-        if (!$this->verifyTokens($tokens)) return $result;
+        if (!$this->verifyTokens($tokens)) {
+//             $result['message'] = 'FUCK';
+            return $result;
+        }
 
         if (!$this->isValidDomain($urlServer)) {
             $result['message'] = 'Invalid url server';

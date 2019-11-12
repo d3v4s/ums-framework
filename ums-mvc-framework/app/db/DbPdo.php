@@ -8,7 +8,7 @@ class DbPdo {
 
     static public function getInstance(array $options): DbPdo {
         if (!isset(static::$instance)) static::$instance = new static($options);
-        return static::$instance; // = (static::$instance) ? static::$instance : new static($options);
+        return static::$instance;
     }
 
     protected function __construct(array $options) {

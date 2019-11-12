@@ -44,7 +44,7 @@ class SiteMapGeneratorController extends Controller {
     public function siteMapGenerate() {
         $this->redirectIfCanNotGenerateSiteMap();
 
-        $tokens = $this->getPostSessionTokens('csrfSitemap');
+        $tokens = $this->getPostSessionTokens('_xf', 'csrfSitemap');
         $urlServer = $_POST['url-server'];
         unset($_POST['url-server']);
         $data = $_POST;
@@ -64,7 +64,7 @@ class SiteMapGeneratorController extends Controller {
                     'message' => $resSiteMapGen['message'] ?? NULL,
                     'error'=> $resSiteMapGen['error'] ?? NULL
                 ];
-                if (!$resSiteMapGen['success']) $resJSON['ntk'] = generateToken('');
+                if (!$resSiteMapGen['success']) $resJSON['ntk'] = generateToken('csrfSitemap');
                 echo json_encode($resJSON);
                 exit;
             default:

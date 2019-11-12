@@ -39,16 +39,11 @@ class Router {
         $routes = $this->routes[$method];
         
         foreach ($routes as $route => $callback) {
-//             $nameParams = array();
-//             preg_match('/:([a-zA-Z0-9\_\-]+)/', $route, $nameParams);
-//             var_dump($nameParams); die;
             $subPattern = preg_replace('/:[a-zA-Z0-9\_\-]+/', '([a-zA-Z0-9\_\-]+)', $route);
             $pattern = '@^'.$subPattern.'$@D';
             $matches = array();
             if (preg_match($pattern, $uri, $matches)) {
-//                 var_dump($matches);
                 array_shift($matches);
-//                 dd($matches);
                 return $this->route($callback, $matches);
             }
         }
