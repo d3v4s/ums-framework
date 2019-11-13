@@ -115,7 +115,7 @@ class Controller {
     }
 
     public function display() {
-        if (isUserLoggedin()) $this->tokenLogout = generateToken('csrfLogout');
+        if (isUserLoggedin()) $this->tokenLogout = $this->tokenLogout ?? generateToken('csrfLogout');
         if ($this->setCSPHeader) {
             $this->cspContent = $this->getCSPContent();
             header("Content-Security-Policy: $this->cspContent");
@@ -299,7 +299,6 @@ class Controller {
         return $res;
     }
 
-    // TODO not recover token already generate
     protected function getPostSessionTokens(string $postTokenName = '_xf', string $sessionTokenName = 'csrf'): array {
         $postToken = $_POST[$postTokenName] ?? 'tkn';
         $sessionToken = $_SESSION[$sessionTokenName] ?? '';

@@ -63,7 +63,7 @@ class USerController extends Controller {
             ['src' => '/js/utils/user/user-settings.js']
         );
 
-        $data = UserDataFactory::getInstance($this->appConfig)->getUserData();
+        $data = UserDataFactory::getInstance($this->appConfig)->getUserData($this->tokenLogout);
         if ($data['confirmNewEmail']) $this->jsSrcs[] = ['/js/utils/user/user-new-email-settings.js'];
 
         $this->content = view('user/user-settings', $data);

@@ -13,9 +13,9 @@ class UserDataFactory extends DataFactory {
         $this->userRoles = $userRoles;
     }
 
-    public function getUserData(): array {
+    public function getUserData(&$tokenLogout): array {
         return [
-            'tokenLogout' => generateToken('csrfLogout'),
+            'tokenLogout' => ($tokenLogout = generateToken('csrfLogout')),
             'token' => generateToken('csrfUserSettings'),
             'user' => getUserLogged(),
             'userRoles' => $this->userRoles,
