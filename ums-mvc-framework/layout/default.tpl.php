@@ -3,12 +3,13 @@
 	<head>
 		<?php if ($this->setCSPHeader): ?>
 			<meta http-equiv="Content-Security-Policy" content="<?=$this->cspContent?>">
-			<meta http-equiv="X-Content-Security-Policy" content="<?=$this->cspContent?>">
-    		<meta http-equiv="X-WebKit-CSP" content="<?=$this->cspContent?>">
+		<!-- 
+			<meta http-equiv="X-Content-Security-Policy" content="< ?=$this->cspContent?>">
+    		<meta http-equiv="X-WebKit-CSP" content="< ?=$this->cspContent?>">
+		-->
 		<?php endif; ?>
-
 		<meta charset="utf-8"/>
-		<meta http-equiv="Content-Type" content="<?=$this->contentType?>"/>
+		<meta http-equiv="Content-Type" content="< ?=$this->contentType?>"/>
 
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 		<meta name="description" content="<?=$this->description?>"/>
@@ -31,13 +32,13 @@
 		
 
 		<meta name="author" content="Andrea Serra"/>
-		<link rel="icon" href="/favicon.ico"/>
+		<link rel="icon" href="/favicon.ico" nonce="<?=$this->CSPImgNonce?>"/>
 		<title><?=$this->title?></title>
 
 		<!-- USE INTERNAL FILE -->
-		<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css"/>
-		<link rel="stylesheet" href="/fontawesome/css/all.css"/>
-		<link rel="stylesheet" href="/msg-box/messagebox.min.css"/>
+		<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" nonce="<?=$this->CSPStyleNonce?>"/>
+		<link rel="stylesheet" href="/fontawesome/css/all.css" nonce="<?=$this->CSPStyleNonce?>"/>
+		<link rel="stylesheet" href="/msg-box/messagebox.min.css" nonce="<?=$this->CSPStyleNonce?>"/>
 		<!-- USE EXETERNAL FILE -->
 		<!--
 		<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -45,15 +46,10 @@
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-message-box@3.2.1/dist/messagebox.min.css">
 		-->
 
-		<link rel="stylesheet" href="/css/default.css"/>
+		<link rel="stylesheet" href="/css/default.css" nonce="<?=$this->CSPStyleNonce?>"/>
 
-		<?php foreach ($this->cssSrcs as $cssSrc): ?>
-        	<link
-        		rel="stylesheet"
-        		href="<?=$cssSrc['src']?>"
-        		<?=isset($cssSrc['intgr']) ? 'integrity="'.$cssSrc['intgr'].'"' : ''?>
-        		<?=isset($cssSrc['crossorigin']) ? 'crossorigin="'.$cssSrc['crossorigin'].'"' : ''?>
-    		/>
+		<?php foreach ($this->cssSrcs as $css): ?>
+        	<link rel="stylesheet" <?=$this->getAttributeCss($css)?>/>
         <?php endforeach; ?>
 	</head>
 	<body>
@@ -173,10 +169,10 @@
 			</div>
 		</footer>
 		<!-- USE INTERNAL FILE -->
-        <script type="text/javascript" src="/js/jquery/jquery-3.4.1.min.js"></script>
-        <script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
-        <script type="text/javascript" src="/bootstrap/js/popper.min.js"></script>
-    	<script type="text/javascript" src="/msg-box/messagebox.min.js"></script>
+        <script type="text/javascript" src="/js/jquery/jquery-3.4.1.min.js" nonce="<?=$this->CSPScriptNonce?>"></script>
+        <script type="text/javascript" src="/bootstrap/js/bootstrap.min.js" nonce="<?=$this->CSPScriptNonce?>"></script>
+        <script type="text/javascript" src="/bootstrap/js/popper.min.js" nonce="<?=$this->CSPScriptNonce?>"></script>
+    	<script type="text/javascript" src="/msg-box/messagebox.min.js" nonce="<?=$this->CSPScriptNonce?>"></script>
         <!-- USE EXTERNAL FILE -->
     	<!--
     	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
@@ -184,10 +180,10 @@
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-message-box@3.2.1/dist/messagebox.min.js"></script>
         -->
 
-    	<script type="text/javascript" src="/js/functions.js"></script>
+    	<script type="text/javascript" src="/js/functions.js" nonce="<?=$this->CSPScriptNonce?>"></script>
 
-        <?php foreach ($this->jsSrcs as $jsSrc): ?>
-        	<script type="text/javascript" <?=$this->getStringTagJS($jsSrc)?>></script>
+        <?php foreach ($this->jsSrcs as $js): ?>
+        	<script type="text/javascript" <?=$this->getAttributeJS($js)?>></script>
         <?php endforeach; ?>
 	</body>
 </html>

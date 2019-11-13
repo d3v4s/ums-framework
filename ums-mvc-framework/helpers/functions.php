@@ -141,10 +141,13 @@ function redirect(string $url = '/') {
 function generateToken(string $name = 'csrf'): string {
     if (isset($_SESSION[$name])) return $_SESSION[$name];
 
-    $bytes = random_bytes(32);
-    $token = bin2hex($bytes);
+    $token = getSecureRandomString();
     $_SESSION[$name] = $token;
     return $token;
+}
+
+function getSecureRandomString(): string {
+    return bin2hex(random_bytes(32));
 }
 
 function getDomain(string $url): string {

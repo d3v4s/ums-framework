@@ -64,7 +64,7 @@ class USerController extends Controller {
         );
 
         $data = UserDataFactory::getInstance($this->appConfig)->getUserData();
-        if ($data['confirmNewEmail']) $this->jsSrcs[] = ['src' => '/js/utils/user/user-new-email-settings.js'];
+        if ($data['confirmNewEmail']) $this->jsSrcs[] = ['/js/utils/user/user-new-email-settings.js'];
 
         $this->content = view('user/user-settings', $data);
     }

@@ -15,23 +15,29 @@ class Controller {
     protected $layout;
     protected $tokenLogout = '';
     protected $setCSPHeader = TRUE;
-    protected $CSPDefaultSrc = '';
     protected $CSPScriptSrc = "'self'";
-    protected $CSPObjectSrc = "'none'";
+    protected $CSPScriptNonce;
     protected $CSPStyleSrc = "'self'";
+    protected $CSPStyleNonce;
     protected $CSPImgSrc = "'self'";
-    protected $CSPMediaSrc = "'self'";
-    protected $CSPFrameSrc = "'none'";
-    protected $CSPChildSrc = "'none'";
+    protected $CSPImgNonce;
+    protected $CSPMediaSrc = "'none'";
+    protected $CSPMediaNonce;
     protected $CSPFontSrc = "'self'";
     protected $CSPConnectSrc = "'self'";
     protected $CSPFormAction = "'self'";
-    protected $CSPSandbox = '';
-    protected $CSPScriptNonce = '';
-    protected $CSPPluginTypes = "'none'";
-    protected $CSPReflectedXss = '';
-    protected $CSPReportUri = '';
     protected $CSPFrameAncestors = "'none'";
+    protected $CSPPluginTypes = "'none'";
+    protected $CSPObjectSrc = "'none'";
+    protected $CSPWorkerSrc = "'none'";
+    protected $CSPFrameSrc = "'none'";
+    protected $CSPChildSrc = "'none'";
+    protected $CSPBaseUri = "'none'";
+    protected $CSPSandbox = '';
+    protected $CSPReportUri = '';
+    protected $XFrameOptions = 'block';
+    protected $XXSSProtection = '1; mode=block';
+    protected $XContentTypeOptions = 'nosniff';
     protected $jsSrcs = [];
     protected $cssSrcs = [];
     protected $isHome = FALSE;
@@ -116,6 +122,10 @@ class Controller {
             header("X-Content-Security-Policy: $this->cspContent");
             header("X-WebKit-CSP: $this->cspContent");
         }
+        header("Content-Type: $this->contentType");
+        header("X-Content-Type-Options: $this->XContentTypeOptions");
+        header("X-XSS-Protection: $this->XXSSProtection");
+        header("X-Frame-Options: $this->XFrameOptions");
         require_once $this->layout;
     }
 
@@ -289,6 +299,7 @@ class Controller {
         return $res;
     }
 
+    // TODO not recover token already generate
     protected function getPostSessionTokens(string $postTokenName = '_xf', string $sessionTokenName = 'csrf'): array {
         $postToken = $_POST[$postTokenName] ?? 'tkn';
         $sessionToken = $_SESSION[$sessionTokenName] ?? '';
@@ -297,29 +308,50 @@ class Controller {
     }
 
     protected function getCSPContent(): string {
-        $content = $this->CSPDefaultSrc ? 'default-src '.$this->CSPDefaultSrc.';': '';
-        $content .= $this->CSPScriptSrc ? 'script-src '.$this->CSPScriptSrc.';': '';
-        $content .= $this->CSPObjectSrc ? 'object-src '.$this->CSPObjectSrc.';': '';
-        $content .= $this->CSPStyleSrc ? 'style-src '.$this->CSPStyleSrc.';': '';
-        $content .= $this->CSPImgSrc ? 'img-src '.$this->CSPImgSrc.';': '';
-        $content .= $this->CSPMediaSrc ? 'media-src '.$this->CSPMediaSrc.';': '';
-        $content .= $this->CSPFrameSrc ? 'frame-src '.$this->CSPFrameSrc.';': '';
-        $content .= $this->CSPChildSrc ? 'child-src '.$this->CSPChildSrc.';': '';
-        $content .= $this->CSPFontSrc ? 'font-src '.$this->CSPFontSrc.';': '';
-        $content .= $this->CSPConnectSrc ? 'connect-src '.$this->CSPConnectSrc.';': '';
-        $content .= $this->CSPFormAction ? 'form-action '.$this->CSPFormAction.';': '';
-        $content .= $this->CSPSandbox ? 'sandbox '.$this->CSPSandbox.';': '';
-        $content .= $this->CSPScriptNonce ? 'script-nonce '.$this->CSPScriptNonce.';': '';
-        $content .= $this->CSPPluginTypes ? 'plugin-types '.$this->CSPPluginTypes.';': '';
-        $content .= $this->CSPReflectedXss ? 'reflected-xss '.$this->CSPReflectedXss.';': '';
-        $content .= $this->CSPReportUri ? 'report-uri '.$this->CSPReportUri.';': '';
-        $content .= $this->CSPFrameAncestors ? 'frame-ancestors '.$this->CSPFrameAncestors.';': '';
+//         $content = $this->CSPDefaultSrc ? 'default-src '.$this->CSPDefaultSrc.';': '';
+        $this->CSPScriptNonce = $this->getNonce();
+        $this->CSPScriptSrc = 'script-src '.($this->CSPScriptSrc ? "$this->CSPScriptSrc, script-src " : '')."'nonce-$this->CSPScriptNonce'";
+//         $this->CSPScriptSrc = "script-src $this->CSPScriptSrc";
+        $this->CSPStyleNonce = $this->getNonce();
+        $this->CSPStyleSrc = 'style-src '.($this->CSPStyleSrc ? "$this->CSPStyleSrc, style-src " : '')."'nonce-$this->CSPStyleNonce'";
+//         $this->CSPStyleSrc = "style-src $this->CSPStyleSrc";
+        $this->CSPImgNonce = $this->getNonce();
+        $this->CSPImgSrc = 'img-src '.($this->CSPImgSrc ? "$this->CSPImgSrc, img-src " : '')."'nonce-$this->CSPImgNonce'";
+//         $this->CSPImgSrc = "img-src $this->CSPImgSrc";
+        $this->CSPMediaNonce = $this->getNonce();
+        $this->CSPMediaSrc = 'media-src '.($this->CSPMediaSrc ? "$this->CSPMediaSrc, media-src " : '')."'nonce-$this->CSPMediaNonce'";
+        $content = "$this->CSPScriptSrc; $this->CSPStyleSrc; $this->CSPImgSrc; $this->CSPMediaSrc; ";
+        $content .= $this->CSPFontSrc ? 'font-src '.$this->CSPFontSrc.'; ': '';
+        $content .= $this->CSPConnectSrc ? 'connect-src '.$this->CSPConnectSrc.'; ': '';
+        $content .= $this->CSPFormAction ? 'form-action '.$this->CSPFormAction.'; ': '';
+        $content .= $this->CSPFrameAncestors ? 'frame-ancestors '.$this->CSPFrameAncestors.'; ': '';
+        $content .= $this->CSPPluginTypes ? 'plugin-types '.$this->CSPPluginTypes.'; ': '';
+        $content .= $this->CSPObjectSrc ? 'object-src '.$this->CSPObjectSrc.'; ': '';
+        $content .= $this->CSPWorkerSrc ? 'worker-src '.$this->CSPWorkerSrc.'; ': '';
+        $content .= $this->CSPFrameSrc ? 'frame-src '.$this->CSPFrameSrc.'; ': '';
+        $content .= $this->CSPChildSrc ? 'child-src '.$this->CSPChildSrc.'; ': '';
+        $content .= $this->CSPBaseUri ? 'base-uri '.$this->CSPBaseUri.'; ': '';
+        $content .= $this->CSPSandbox ? 'sandbox '.$this->CSPSandbox.'; ': '';
+        $content .= $this->CSPReportUri ? 'report-uri '.$this->CSPReportUri.'; ': '';
         return $content;
     }
 
-    protected function getStringTagJS(array $js):string {
-        $str = 'src="'.$js['src'].'"';
-        $str .= isset($js['intgrity']) ? ' integrity="'.$js['intgr'].'"' : '';
+    protected function getNonce(): string {
+        return getSecureRandomString();
+    }
+
+    protected function getAttributeCss(array $css): string {
+        $str = 'href="'.$css['src'].'" ';
+        $str .= "nonce=\"$this->CSPStyleNonce\"";
+        $str .= isset($css['integrity']) ? ' integrity="'.$css['integrity'].'"' : '';
+        $str .= isset($css['crossorigin']) ? ' crossorigin="'.$css['crossorigin'].'"' : '';
+        return $str;
+    }
+
+    protected function getAttributeJS(array $js): string {
+        $str = 'src="'.$js['src'].'" ';
+        $str .= "nonce=\"$this->CSPScriptNonce\"";
+        $str .= isset($js['integrity']) ? ' integrity="'.$js['integrity'].'"' : '';
         $str .= isset($js['crossorigin']) ? ' crossorigin="'.$js['crossorigin'].'"' : '';
         return $str;
     }

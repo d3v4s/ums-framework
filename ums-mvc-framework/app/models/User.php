@@ -485,21 +485,21 @@ class User {
     }
 
     private function getNewTokenResetPassword(): string {
-        do $token = bin2hex(random_bytes(32));
+        do $token = getSecureRandomString();
         while ($this->getUserByTokenResetPassword($token));
         
         return $token;
     }
 
     private function getNewTokenEnabler(): string {
-        do $token = bin2hex(random_bytes(32));
+        do $token = getSecureRandomString();
         while ($this->getUserByTokenEnabler($token));
 
         return $token;
     }
 
     private function getNewTokenConfirmEmail(): string {
-        do $token = bin2hex(random_bytes(32));
+        do $token = getSecureRandomString();
         while ($this->getUserByTokenConfirmEmail($token));
 
         return $token;
