@@ -64,6 +64,8 @@ class UMSController extends Controller {
                     'message' => $resReset['message'] ?? NULL
                 ];
                 if (!$resReset['success']) $resJSON['ntk'] = generateToken('csrfResetWrongPass');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -98,6 +100,8 @@ class UMSController extends Controller {
                     'message' => $resReset['message'] ?? NULL
                 ];
                 if (!$resReset['success']) $resJSON['ntk'] = generateToken('csrfResetLockUser');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -169,6 +173,8 @@ class UMSController extends Controller {
                     'userId' => $id
                 ];
                 if (!$resPass['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -238,6 +244,8 @@ class UMSController extends Controller {
                     'userId' => $id
                 ];
                 if (!$resUpdate['success']) $resJSON['ntk'] = generateToken('csrfUMSUpdateUser');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -302,6 +310,8 @@ class UMSController extends Controller {
                     'message' => $resSignup['message'] ?? NULL
                 ];
                 if (!$resSignup['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -355,6 +365,8 @@ class UMSController extends Controller {
                     'message' => $resDelete['message'] ?? NULL
                 ];
                 if (!$resDelete['success']) $resJSON['ntk'] = generateToken('csrfDeleteNewEmail');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -390,6 +402,8 @@ class UMSController extends Controller {
                     'message' => $resDelete['message'] ?? NULL
                 ];
                 if (!$resDelete['success']) $resJSON['ntk'] = generateToken('csrfDeleteUser');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:

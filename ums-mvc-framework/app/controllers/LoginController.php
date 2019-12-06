@@ -33,6 +33,8 @@ class LoginController extends Controller {
                     'message' => $resLogout['message'] ?? NULL
                 ];
                 if (!$resLogout['success']) $resJSON['ntk'] = generateToken('csrfLogout');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -142,6 +144,8 @@ class LoginController extends Controller {
                     'message' => $resResetPassReq['message'] ?? NULL
                 ];
                 if (!$resResetPassReq['success']) $resJSON['ntk'] = generateToken('csrfResPassReq');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -215,6 +219,8 @@ class LoginController extends Controller {
                     'message' => $resResetPass['message'] ?? NULL
                 ];
                 if (!$resResetPass['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -274,6 +280,8 @@ class LoginController extends Controller {
                     'message' => $resLogin['message'] ?? NULL
                 ];
                 if (!$resLogin['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -355,6 +363,8 @@ class LoginController extends Controller {
                     'message' => $resSignup['message'] ?? NULL
                 ];
                 if (!$resSignup['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -409,6 +419,8 @@ class LoginController extends Controller {
                     'error' => $resResendEmail['error'] ?? NULL
                 ];
                 $resJSON['ntk'] = generateToken('csrfResendEmail');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:

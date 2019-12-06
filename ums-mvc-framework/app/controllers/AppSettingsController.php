@@ -70,6 +70,8 @@ class AppSettingsController extends Controller {
                     'error' => $resUpdate['error'] ?? NULL
                 ];
                 $resJSON['ntk'] = generateToken('csrfSettings');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:

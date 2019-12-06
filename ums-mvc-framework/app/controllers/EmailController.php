@@ -71,6 +71,8 @@ class EmailController extends Controller {
                     'error' => $resSendEmail['error'] ?? NULL
                 ];
                 if (!$resSendEmail['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
