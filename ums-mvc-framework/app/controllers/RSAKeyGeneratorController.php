@@ -79,6 +79,8 @@ class RSAKeyGeneratorController extends Controller {
                     'error'=> $resKeySave['error'] ?? NULL,
                     'ntk' => generateToken('csrfGenSave')
                 ];
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:

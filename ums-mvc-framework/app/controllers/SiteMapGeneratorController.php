@@ -66,6 +66,8 @@ class SiteMapGeneratorController extends Controller {
                 ];
                 if (!$resSiteMapGen['success']) $resJSON['ntk'] = generateToken('csrfSitemap');
                 echo json_encode($resJSON);
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 exit;
             default:
                 if (isset($resSiteMapGen['message'])) {

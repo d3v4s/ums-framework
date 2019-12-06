@@ -42,6 +42,8 @@ class USerController extends Controller {
                     'error' => $resDelete['error'] ?? NULL
                 ];
                 if (!$resDelete['success']) $resJSON['ntk'] = generateToken('csrfUserSettings');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -103,6 +105,8 @@ class USerController extends Controller {
                     'message' => $resUpdate['message'] ?? NULL
                 ];
                 if (!$resUpdate['success']) $resJSON['ntk'] = generateToken('csrfUserSettings');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -164,6 +168,8 @@ class USerController extends Controller {
                     'message' => $resPass['message'] ?? NULL
                 ];
                 if (!$resPass['success']) $resJSON['ntk'] = generateToken();
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -202,6 +208,8 @@ class USerController extends Controller {
                     'message' => $resDeleteEmail['message'] ?? NULL
                 ];
                 if (!$resDeleteEmail['success']) $resJSON['ntk'] = generateToken('csrfUserSettings');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
@@ -237,6 +245,8 @@ class USerController extends Controller {
                     'message' => $resResendEmail['message'] ?? NULL
                 ];
                 $resJSON['ntk'] = generateToken('csrfUserSettings');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:

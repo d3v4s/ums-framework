@@ -8,5 +8,6 @@ ums-mvc-framework/public/css/technofriend/*
 ums-mvc-framework/layout/technofriend.tpl.php
 ums-mvc-framework/config/rsa/*
 ums-mvc-framework/.settings/*
+ums-mvc-framework/newsql.sql
 LICENSE
 README.md

@@ -31,6 +31,8 @@ return [
         'user/settings/pass' => 'app\controllers\UserController@showChangePassword',
         'user/settings/delete' => 'app\controllers\UserController@showDeleteAccount',
         'app/config/get/json' => function () {
+            header("Content-Type: application/json");
+            header("X-Content-Type-Options: nosniff");
             $confApp = getConfig('app');
             
             if ($confApp['useRegex']) {

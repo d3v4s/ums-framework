@@ -9,7 +9,7 @@
 		-->
 		<?php endif; ?>
 		<meta charset="utf-8"/>
-		<meta http-equiv="Content-Type" content="< ?=$this->contentType?>"/>
+		<meta http-equiv="Content-Type" content="<?=$this->contentType?>"/>
 
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 		<meta name="description" content="<?=$this->description?>"/>
@@ -42,7 +42,6 @@
 		<!-- USE EXETERNAL FILE -->
 		<!--
 		<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-		<link rel="stylesheet" href="/fontawesome/css/all.css"/>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-message-box@3.2.1/dist/messagebox.min.css">
 		-->
 
@@ -163,7 +162,7 @@
 					<span>
     					<a href="#">Back to top</a>
     					<br><br>
-    					UMS - User Management System &bull; by Andrea Serra &bull; <a target="_blank" href="https:/github.com/z4X0r">Github</a>
+    					UMS - User Management System &bull; by Andrea Serra &bull; <a target="_blank" href="https:/github.com/d3v4s">Github</a>
 					</span>
 				</div>
 			</div>
@@ -175,6 +174,7 @@
     	<script type="text/javascript" src="/msg-box/messagebox.min.js" nonce="<?=$this->CSPScriptNonce?>"></script>
         <!-- USE EXTERNAL FILE -->
     	<!--
+    	<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o" crossorigin="anonymous"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-message-box@3.2.1/dist/messagebox.min.js"></script>

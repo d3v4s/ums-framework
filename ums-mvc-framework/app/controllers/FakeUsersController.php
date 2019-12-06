@@ -60,6 +60,8 @@ class FakeUsersController extends Controller {
                     'error' => $resAddFakeUsers['error'] ?? NULL
                 ];
                 if (!$resAddFakeUsers['success']) $resJSON['ntk'] = generateToken('csrfFakeUser');
+                header("Content-Type: application/json");
+                header("X-Content-Type-Options: nosniff");
                 echo json_encode($resJSON);
                 exit;
             default:
