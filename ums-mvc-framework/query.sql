@@ -35,3 +35,5 @@ INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`, 
 CREATE USER 'ums'@'localhost' IDENTIFIED BY 'ums';
 
 GRANT ALL PRIVILEGES ON `ums`.* TO 'ums'@'localhost';
+
+FLUSH PRIVILEGES;
