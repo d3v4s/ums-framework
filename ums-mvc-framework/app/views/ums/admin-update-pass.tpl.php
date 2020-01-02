@@ -21,7 +21,7 @@
   				<span id="text-btn">Change</span>
 	    	</button>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<input id="id" type="hidden" name="id" value="<?=$user->id?>" class="send-ajax">
     </form>
 </div>

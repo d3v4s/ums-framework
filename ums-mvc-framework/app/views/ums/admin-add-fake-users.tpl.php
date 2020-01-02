@@ -5,7 +5,7 @@
     		<label for="n-users">N. fake users</label>
     		<input id="n-users" placeholder="N. Fake Users" class="form-control send-ajax evidence-error" type="number" name="n-users" required="required" autofocus="autofocus">
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<div class="custom-control custom-switch text-md-left">
 			<input id="enabled" name="enabled" type="checkbox" class="custom-control-input send-ajax" value="true" checked="checked">
 			<label class="custom-control-label" for="enabled">Enabled</label>

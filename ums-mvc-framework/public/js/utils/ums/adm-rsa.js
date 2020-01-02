@@ -1,42 +1,44 @@
 $(document).ready(function() {
+	/* submit event on rsa key pair generator form to send XML HTTP request */
 	$('#rsa-generator-form').on('submit', function(event) {
-		const $btn = $(this).find('#btn-generate'),
+		/* get button, token, private and public key, and serialize data */
+		const $xf = $(this).find('#_xf'),
+			$btn = $(this).find('#btn-generate'),
 			$privK = $(this).find('#priv-key'),
 			$publK = $(this).find('#publ-key'),
-			$xf = $(this).find('#_xf.send-ajax'),
 			data = $(this).find('.send-ajax').serialize();
 
+		/* block default submit form and disable button */
 		event.preventDefault();
 		showLoading($btn);
-		$.ajax({
-			method: 'post',
-			url: '/ums/generator/rsa/get',
-			data: data,
-			success: function(response) {
-				removeLoading($btn, 'Generate');
-				try {
-					const rsaKeyRes = JSON.parse(response);
+
+		/* success function */
+		funcSuccess = function(response) {
+			removeLoading($btn, 'Generate');
+			try {
+				if (response.success) {
+					const privKey = response.keyPair.privKey,
+						publKey = response.keyPair.publKey;
 					
-					if (rsaKeyRes.success) {
-						const privKey = rsaKeyRes.keyPair.privKey,
-							publKey = rsaKeyRes.keyPair.publKey;
-						
-						$privK.attr('rows', privKey.lineCount());
-						$publK.attr('rows', publKey.lineCount());
-						$privK.val(privKey);
-						$publK.val(publKey);
-					}
-					showMessage(rsaKeyRes.message, !rsaKeyRes.success);
-					
-					$xf.val(rsaKeyRes.ntk);
-				} catch (e) {
-					showMessage('Key pair generation failed', true);
+					$privK.attr('rows', privKey.lineCount());
+					$publK.attr('rows', publKey.lineCount());
+					$privK.val(privKey);
+					$publK.val(publKey);
 				}
-			},
-			failure: function() {
-				removeLoading($btn, 'Generate');
-				showMessage('Problem to contact server', true);
+				showMessage(response.message, !response.success);
+				
+				$xf.val(response.ntk);
+			} catch (e) {
+				showMessage('Key pair generation failed', true);
 			}
-		});
+		};
+
+		/* fail function */
+		funcFail = function() {
+			removeLoading($btn, 'Generate');
+			showMessage('Problem to contact server', true);
+		}
+
+		sendAjaxReq('/ums/generator/rsa/get', data, $xf.val(), funcSuccess, funcFail);
 	});
 });

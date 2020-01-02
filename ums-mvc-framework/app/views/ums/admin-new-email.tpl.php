@@ -12,10 +12,10 @@
     	<div class="form-group text-md-left">
     		<label for="editor">Text</label>
     		<span class="text-left text-dark">
-	    		<textarea id="editor" name="content" class="form-control send-ajax-crypt" rows="10"></textarea>
+	    		<textarea id="content" name="content" class="form-control send-ajax-crypt" rows="10"></textarea>
     		</span>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<noscript>
     		<div class="container-fluid">
     			<h3 class="text-danger">ENABLE JAVASCRIPT TO SEND EMAIL</h3>

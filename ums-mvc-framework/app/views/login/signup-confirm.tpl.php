@@ -7,6 +7,6 @@
 				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
   				<span id="text-btn">Resend email</span>
 			</button>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
 	</form>
 </div>

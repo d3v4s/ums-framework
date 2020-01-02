@@ -1,33 +1,37 @@
 $(document).ready(function () {
+	/* submit event on logut form to send XML HTTP request */
 	$('#logout-form').on('submit', function(event) {
-		const $btn = $(this).find('#btn-logout'),
+		/* get button, token, and serialize data */
+		const $xf = $(this).find('#_xf-out'),
+			$btn = $(this).find('#btn-logout'),
 			data = $(this).find('.send-ajax').serialize();
 
+		/* block default submit form and disable button */
 		event.preventDefault();
 		disableElement($btn);
-		$.ajax({
-			method: 'post',
-			data: data,
-			url: '/auth/logout',
-			success: function(response) {
-				enableElement($btn);
-				try {
-					const userRes = JSON.parse(response);
-					
-					showMessage(userRes.message, !userRes.success);
-					if(userRes.success) setTimeout(redirect, 2000, '/');
-					else {
-						focusError(userRes);
-						$(this).find('#_xf-out.send-ajax').val(userRes.ntk);
-					}
-				} catch (e) {
-					showMessage('Logout failed', true);
+
+		/* success function */
+		funcSuccess = function(response) {
+			console.log(response);
+			enableElement($btn);
+			try {
+				showMessage(response.message, !response.success);
+				if(response.success) setTimeout(redirect, 2000, '/');
+				else {
+					focusError(response);
+					$xf.val(response.ntk);
 				}
-			},
-			failure: function() {
-				enbleElement($btn);
-    			showMessage('Problem to contact server', true);
+			} catch (e) {
+				showMessage('Logout failed', true);
 			}
-		});
+		};
+
+		/* fail function */
+		funcFail = function() {
+			enbleElement($btn);
+			showMessage('Problem to contact server', true);
+		};
+		
+		sendAjaxReq('/auth/logout', data, $xf.val(), funcSuccess, funcFail, 'XS-TKN-OUT');
 	});
 });

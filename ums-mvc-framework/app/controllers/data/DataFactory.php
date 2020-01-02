@@ -3,6 +3,10 @@ namespace app\controllers\data;
 
 use PDO;
 
+/**
+ * Class data factory, used for generate and manage the data of response
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class DataFactory {
     protected $conn;
     protected $appConfig = [];

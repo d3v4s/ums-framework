@@ -22,7 +22,7 @@
   				<span id="text-btn">Reset</span>
 	    	</button>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<input type="hidden" name="token" value="<?=$tokenReset?>" class="send-ajax">
     </form>
 </div>

@@ -1,34 +1,38 @@
 $(document).ready(function (){
+	/* submit event on reset password request form to send XML HTTP request */
 	$('#reset-pass-req-form').on('submit', function(event) {
-    	const $btn = $(this).find('#btn-reset-pass'),
-    		$xf = $(this).find('#_xf.send-ajax'),
+		/* get button, token, and serialize data */
+    	const $xf = $(this).find('#_xf'),
+    		$btn = $(this).find('#btn-reset-pass'),
     		data = $(this).find('.send-ajax').serialize();
 
+    	/* block default submit form and show loading */
     	event.preventDefault();
     	showLoading($btn);
-		$.ajax({
-			method: 'post',
-			data: data,
-			url: '/auth/reset/password',
-			success: function(response) {
-				removeLoading($btn, 'Reset Password');
-				try {
-					const userRes = JSON.parse(response);
-					
-					showMessage(userRes.message, !userRes.success);
-					if(userRes.success) setTimeout(redirect, 2000, '/');
-					else {
-						focusError(userRes);
-						$xf.val(userRes.ntk);
-					}
-				} catch (e) {
-					showMessage('Request failed', true);
+
+    	/* success function */
+    	funcSuccess = function(response) {
+    		console.log(response)
+			removeLoading($btn, 'Reset Password');
+			try {
+				showMessage(response.message, !response.success);
+				if(response.success) setTimeout(redirect, 2000, '/');
+				else {
+					focusError(response);
+					$xf.val(response.ntk);
 				}
-			},
-			failure: function() {
-    			removeLoading($btn, 'Reset Password');
-    			showMessage('Problem to contact server', true);
+			} catch (e) {
+				console.log(e)
+				showMessage('Request failed', true);
 			}
-		});
+		};
+
+		/* fail function */
+		funcFail = function() {
+			removeLoading($btn, 'Reset Password');
+			showMessage('Problem to contact server', true);
+		};
+
+    	sendAjaxReq('/auth/reset/password', data, $xf.val(), funcSuccess, funcFail);
 	});
 });

@@ -5,7 +5,7 @@
     		<label for="email">Email</label>
     		<input id="email" placeholder="Email" class="form-control evidence-error send-ajax validate-email" type="text" name="email" required="required" autofocus="autofocus">
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-reset-pass" class="btn btn-primary px-3 py-1" type="submit">
 	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
