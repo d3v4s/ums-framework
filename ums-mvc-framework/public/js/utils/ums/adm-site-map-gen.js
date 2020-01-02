@@ -1,34 +1,36 @@
 $(document).ready(function (){
+	/* submit event on sitemap genrator form to send XML HTTP request */
 	$('#site-map-generator-form').on('submit', function(event) {
-		const $btn = $(this).find('#btn-generate'),
-			$xf = $(this).find('#_xf.send-ajax'),
+		/* get button, token, and serialize data */
+		const $xf = $(this).find('#_xf'),
+			$btn = $(this).find('#btn-generate'),
 			data = $(this).find('.send-ajax').serialize();
 
+		/* block default submit form and disable button */
 		event.preventDefault();
 		showLoading($btn);
-		$.ajax({
-			method: 'post',
-			data: data,
-			url: '/ums/generator/site/map',
-			success: function(response) {
-    			removeLoading($btn, 'Generate');
-    			try {
-    				const sitemapRes = JSON.parse(response);
-    				
-    				showMessage(sitemapRes.message, !sitemapRes.success);
-    				if (!sitemapRes.success) focusError(sitemapRes);
-    				else setTimeout(redirect, 2000, '/ums/generator/site/map/update');
 
-    				$xf.val(sitemapRes.ntk);
-				} catch (e) {
-					showMessage('Generation sitemap failed', true);
-				}
-			},
-			failure: function() {
-				removeLoading($btn, 'Generate');
-				showMessage('Problem to contact server', true);
+		/* success function */
+		funcSuccess = function(response) {
+			removeLoading($btn, 'Generate');
+			try {
+				showMessage(response.message, !response.success);
+				if (!response.success) focusError(response);
+				else setTimeout(redirect, 2000, '/ums/generator/site/map/update');
+
+				$xf.val(response.ntk);
+			} catch (e) {
+				showMessage('Generation sitemap failed', true);
 			}
-		});
+		};
+
+		/* fail function */
+		funcFail = function() {
+			removeLoading($btn, 'Generate');
+			showMessage('Problem to contact server', true);
+		};
+
+		sendAjaxReq('/ums/generator/site/map', data, $xf.val(), funcSuccess, funcFail);
 	});
 
 });

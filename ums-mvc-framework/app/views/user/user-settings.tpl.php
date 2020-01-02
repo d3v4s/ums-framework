@@ -55,6 +55,6 @@
   				<span id="text-btn">Update</span>
 	    	</button>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     </form>
 </div>

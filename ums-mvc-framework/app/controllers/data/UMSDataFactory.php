@@ -5,6 +5,12 @@ use \PDO;
 use \DateTime;
 use \app\models\User;
 
+/**
+ * Class data factory, used for generate
+ * and manage the data of response of user
+ * management system
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class UMSDataFactory extends DataFactory {
     protected $userRoles = [];
     protected $orderByList = [];

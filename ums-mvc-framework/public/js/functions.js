@@ -11,6 +11,25 @@ String.prototype.ucFirst = function() {
     return this.charAt(0).toUpperCase() + this.substr(1);
 }
 
+/* function to send XML HTTP request */
+function sendAjaxReq(url, data, token, funcSuccess, funcFail=null, headerToken="XS-TKN") {
+	funcFail = funcFail === null ? function() {
+		showMessage('Problem to contact server', true);
+	} : funcFail;
+	$.ajax({
+		method: 'post',
+		data: data,
+		url: url,
+		beforeSend: function(request) {
+			request.setRequestHeader(headerToken, token);
+		},
+		success: funcSuccess,
+		failure: funcFail
+	});
+	
+}
+
+/* function to focus and evidence a error on form */
 function focusError(jsonRes) {
 	removeEvidence($('.evidence-error'));
 	if (jsonRes.error != null) {
@@ -20,6 +39,7 @@ function focusError(jsonRes) {
 	}
 }
 
+/* fucntion to evidence a error of a element of form */
 function evidenceError($elem) {
 	if ($elem[0].tagName !== 'SELECT') $elem.css('border', '1px solid red');
 	$elem.css('box-shadow', '0 0 5px red');

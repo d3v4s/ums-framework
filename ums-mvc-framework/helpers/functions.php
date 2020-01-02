@@ -1,5 +1,15 @@
 <?php
 
+/* function to send a json response */
+function sendJsonResponse(array $data) {
+    /* set headers for application json and no sniff content */
+    header("Content-Type: application/json");
+    header("X-Content-Type-Options: nosniff");
+    /* print json format and exit */
+    echo json_encode($data);
+    exit;
+}
+
 function isSecureConnection(): bool {
     return isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
 }

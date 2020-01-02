@@ -5,7 +5,7 @@
     		<label for="user">Email/Username</label>
     		<input id="user" placeholder="Email or Username" class="form-control evidence-error send-ajax" type="text" name="user" required="required" autofocus="autofocus">
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<div class="form-group text-md-left">
     		<label for="pass">Password</label>
     		<input id="pass" placeholder="Password" class="form-control evidence-error send-ajax-crypt mb-1" type="password" name="pass" required="required">

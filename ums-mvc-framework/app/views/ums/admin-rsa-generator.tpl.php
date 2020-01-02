@@ -9,7 +9,7 @@
     		<label for="publ-key">Public Key</label>
     		<textarea id="publ-key" class="form-control" readonly="readonly"></textarea>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>" class="send-ajax">
+    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<noscript>
     		<div class="container-fluid">
     			<h3 class="text-danger">ENABLE JAVASCRIPT TO GENERATE KEY PAIR</h3>

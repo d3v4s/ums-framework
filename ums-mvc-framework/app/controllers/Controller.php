@@ -8,13 +8,19 @@ use app\models\Email;
 use app\models\User;
 use app\controllers\verifiers\Verifier;
 
+/**
+ * Class controller to implement principal properties and functions
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class Controller {
     protected $content;
     protected $conn;
     protected $appConfig;
     protected $layout;
     protected $tokenLogout = '';
+    /* CSP properties */
     protected $setCSPHeader = TRUE;
+    protected $CSPDefaultSrc = "'self'";
     protected $CSPScriptSrc = "'self'";
     protected $CSPScriptNonce;
     protected $CSPStyleSrc = "'self'";
@@ -35,11 +41,16 @@ class Controller {
     protected $CSPBaseUri = "'none'";
     protected $CSPSandbox = '';
     protected $CSPReportUri = '';
+    /* x-frame-options hedaer */
     protected $XFrameOptions = 'block';
+    /* x-xss-protection hedaer */
     protected $XXSSProtection = '1; mode=block';
+    /* x-content-type-options header */
     protected $XContentTypeOptions = 'nosniff';
+    /* js and css sources */
     protected $jsSrcs = [];
     protected $cssSrcs = [];
+    /* current location properties */
     protected $isHome = FALSE;
     protected $isLogin = FALSE;
     protected $isSignup = FALSE;
@@ -47,10 +58,14 @@ class Controller {
     protected $isNewEmail = FALSE;
     protected $isSettings = FALSE;
     protected $isUsersList = FALSE;
+    /* search  engine robots properties */
     protected $robots = '';
     protected $googlebot = '';
+    /* title page */
     protected $title = 'UMS Framework';
+    /* content type */
     protected $contentType = 'text/html; charset=utf-8';
+    /* keywords and description of page */
     protected $keywords = 'php, ums, framework, programming, development, users, management, system, user, mvc, model, view, controller';
     protected $description = 'PHP FRAMEWORK UMS - This is a framework for user management, which implements the design pattern MVC (Model-view-controller) - Developed by Andrea Serra - DevAS';
 
@@ -58,32 +73,43 @@ class Controller {
         $this->appConfig = $appConfig ?? getConfig();
         if ($this->appConfig['app']['onlyHttps']) $this->redirectIfNotSecureConnection();
         if ($this->appConfig['app']['blockChangeIp']) $this->resetSessionIfChangeIp();
-        if ($this->appConfig['app']['checkConnectTimeLoginSession']) $this->manageSession();
+        if ($this->appConfig['app']['checkConnectTimeLoginSession']) $this->handlerSession();
         if (isUserLoggedin()) array_push($this->jsSrcs, ['src' => '/js/utils/login/logout.js']);
         $this->conn = $conn;
         $this->layout = getLayoutPath().'/'.$this->appConfig['layout'][$layout].'.tpl.php';
     }
-    
+
+    /* ##################################### */
+    /* PUBLIC FUNCTIONS */
+    /* ##################################### */
+
+    /* funciton to set layout */
     public function setLayout(string $layout) {
         $this->layout = getLayoutPath().'/'.$this->appConfig['layout'][$layout].'.tpl.php';
     }
 
+    /* function to view the home page */
     public function showHome() {
         $this->isHome = TRUE;
         $this->keywords .= ', home';
         $this->content = view('home');
     }
 
+    /* function to show a message on page */
     public function showMessage(string $message) {
         $this->content = view('show-message', ['message' => $message]);
     }
 
+    /* function to send 404 code and show page not found */
     public function showPageNotFound() {
+        header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
         $this->content = view($this->appConfig['app']['pageNotFound']);
     }
 
+    /* function to view error page */
     public function showPageError(Exception $exception) {
         $data = [];
+        /* if is set show exception, then view info about it */
         if ($data['showMessageException'] = $this->appConfig['app']['showMessageException']) {
             $data['exception'] = [
                 'toString' => $exception->__toString(),
@@ -99,6 +125,7 @@ class Controller {
         $this->content = view($this->appConfig['app']['pageException'], $data);
     }
 
+    /* function to send public key on json format */
     public function showKeyJSON() {
         $this->redirectIfNotXMLHTTPRequest();
 
@@ -110,8 +137,7 @@ class Controller {
             $resJSON['keyE'] = $keys['keyE'];
         }
 
-        echo json_encode($resJSON);
-        exit;
+        sendJsonResponse($resJSON);
     }
 
     public function display() {
@@ -129,25 +155,73 @@ class Controller {
         require_once $this->layout;
     }
 
-    private function manageSession() {
-        if (isUserLoggedin()) {
-            if (isset($_SESSION['expireTime']) && new DateTime($_SESSION['expireTime']) < new DateTime()) {
-                $this->resetSession();
-                $_SESSION['message'] = 'SESSION EXPIRED';
-                $_SESSION['success'] = FALSE;
-                redirect();
-            }
-            $expireTime = new DateTime();
-            $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
-            $_SESSION['expireTime'] = $expireTime;
+    /* ##################################### */
+    /* PROTECTED FUNCTIONS */
+    /* ##################################### */
+    
+    /* function to send response json (XML HTTP) or default */
+    protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken='csrf') {
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        switch ($header) {
+            case 'XMLHTTPREQUEST':
+                if ($generateNewToken) $data['ntk'] = generateToken($nameToken);
+                sendJsonResponse($data);
+                break;
+            default:
+                $funcDefault($data);
+                break;
         }
     }
     
-    protected function manageWrongPassword(int $id) {
+    /* function to get tokens of session and post */
+    protected function getPostSessionTokens(string $headerToken = 'XS_TKN', string $sessionTokenName = 'csrf'): array {
+        //         $postToken = $_POST[$postTokenName] ?? 'tkn';
+        $headerToken = str_replace('-', '_', $headerToken);
+        $headerToken = mb_strtoupper($headerToken);
+        $postToken = $_SERVER['HTTP_'.$headerToken] ?? 'tkn';
+        $sessionToken = $_SESSION[$sessionTokenName] ?? '';
+        unset($_SESSION[$sessionTokenName]);
+        return [$postToken, $sessionToken];
+    }
+    
+    /* function to get CPS content by properties */
+    protected function getCSPContent(): string {
+        /* generate nonces for scripts, styles, images and medias
+         * and create the CSP specifications
+         */
+        $this->CSPScriptNonce = getSecureRandomString();
+        $CSPScriptSrc = 'script-src '.($this->CSPScriptSrc ? $this->CSPScriptSrc : '')." 'nonce-$this->CSPScriptNonce'";
+        $this->CSPStyleNonce = getSecureRandomString();
+        $CSPStyleSrc = 'style-src '.($this->CSPStyleSrc ? $this->CSPStyleSrc : '')." 'nonce-$this->CSPStyleNonce'";
+        $this->CSPImgNonce = getSecureRandomString();
+        $CSPImgSrc = 'img-src '.($this->CSPImgSrc ? $this->CSPImgSrc : '')." 'nonce-$this->CSPImgNonce'";
+        $this->CSPMediaNonce = getSecureRandomString();
+        $CSPMediaSrc = 'media-src '.($this->CSPMediaSrc ? $this->CSPMediaSrc : '')." 'nonce-$this->CSPMediaNonce'";
+        
+        /* create a CSP content and return it */
+        $content = $this->CSPDefaultSrc ? 'default-src '.$this->CSPDefaultSrc.'; ' : '';
+        $content .= "$CSPScriptSrc; $CSPStyleSrc; $CSPImgSrc; $CSPMediaSrc; ";
+        $content .= $this->CSPFontSrc ? 'font-src '.$this->CSPFontSrc.'; ': '';
+        $content .= $this->CSPConnectSrc ? 'connect-src '.$this->CSPConnectSrc.'; ': '';
+        $content .= $this->CSPFormAction ? 'form-action '.$this->CSPFormAction.'; ': '';
+        $content .= $this->CSPFrameAncestors ? 'frame-ancestors '.$this->CSPFrameAncestors.'; ': '';
+        $content .= $this->CSPPluginTypes ? 'plugin-types '.$this->CSPPluginTypes.'; ': '';
+        $content .= $this->CSPObjectSrc ? 'object-src '.$this->CSPObjectSrc.'; ': '';
+        $content .= $this->CSPWorkerSrc ? 'worker-src '.$this->CSPWorkerSrc.'; ': '';
+        $content .= $this->CSPFrameSrc ? 'frame-src '.$this->CSPFrameSrc.'; ': '';
+        $content .= $this->CSPChildSrc ? 'child-src '.$this->CSPChildSrc.'; ': '';
+        $content .= $this->CSPBaseUri ? 'base-uri '.$this->CSPBaseUri.'; ': '';
+        $content .= $this->CSPSandbox ? 'sandbox '.$this->CSPSandbox.'; ': '';
+        $content .= $this->CSPReportUri ? 'report-uri '.$this->CSPReportUri.'; ': '';
+        return $content;
+    }
+
+    /* function handler for wrong passwords */
+    protected function handlerWrongPassword(int $id) {
         $user = new User($this->conn, $this->appConfig);
         $usrWrongPass = $user->getUser($id);
         if (!isset($usrWrongPass->datetime_reset_wrong_password) || new DateTime($usrWrongPass->datetime_reset_wrong_password) < new DateTime()) $user->setDatetimeResetWrongPassword($id);
-
+        
         $user->incrementWrongPass($id);
         $usrWrongPass = $user->getUser($id);
         $verifier = Verifier::getInstance($this->appConfig, $this->conn);
@@ -158,11 +232,15 @@ class Controller {
         } else if ($res['disable']) $user->disabledUser($id);
     }
 
+    /* SESSION FUNCTIONS */
+
+    /* function to reset session */
     protected function resetSession() {
         session_regenerate_id();
         $_SESSION = [];
     }
 
+    /* function to create a login session */
     protected function createSessionLogin($user) {
         $this->resetSession();
         unset($user->password);
@@ -175,6 +253,7 @@ class Controller {
         }
     }
 
+    /* function to reset session if client change ip address */
     protected function resetSessionIfChangeIp() {
         if (!isset($_SESSION['ipAddr'])) $_SESSION['ipAddr'] = $_SERVER['REMOTE_ADDR'];
         if ($_SESSION['ipAddr'] !== $_SERVER['REMOTE_ADDR']) {
@@ -184,30 +263,39 @@ class Controller {
         }
     }
 
+    /* REDIRECTS */
+
+    /* function to redirect if client is not loggin */
     protected function redirectIfNotLoggin() {
         if (!isUserLoggedin()) redirect("/auth/login");
     }
-    
+
+    /* function to redirect if client is not admin user */
     protected function redirectIfNotAdmin() {
         if (!isUserAdmin()) redirect();
     }
 
+    /* function to redirect if client is not loggin */
     protected function redirectIfCanNotCreate() {
         if (!userCanCreate()) redirect();
     }
 
+    /* function to redirect if user can not update */
     protected function redirectIfCanNotUpdate() {
         if (!userCanUpdate()) redirect();
     }
 
+    /* function to redirect if user can not delete */
     protected function redirectIfCanNotDelete() {
         if (!userCanCreate()) redirect();
     }
 
+    /* function to redirect if user is loggin */
     protected function redirectIfLoggin() {
         if (isUserLoggedin()) redirect();
     }
 
+    /* function to redirect if not SSL connection */
     protected function redirectIfNotSecureConnection() {
         if (!isSecureConnection()) {
             $urlServer = str_replace("www.", "", $_SERVER['HTTP_HOST']);
@@ -216,6 +304,7 @@ class Controller {
         }
     }
 
+    /* function to redirect if not XML HTTP request */
     protected function redirectIfNotXMLHTTPRequest(string $url = '/') {
         if (!isXmlhttpRequest()) {
             $_SESSION['message'] = 'TO CONTINUE ENABLE JAVASCRIPT';
@@ -224,10 +313,14 @@ class Controller {
         }
     }
 
+    /* redirect if email confirm is not require */
     protected function redirectIfNotEmailConfirmRequire() {
         if (!$this->appConfig['app']['requireConfirmEmail']) redirect();
     }
 
+    /* EMAIL SENDER FUNCTIONS */
+
+    /* function to send the validation email */
     protected function sendEmailValidation(string $to, string $token, string $message = 'ACTIVATE YOUR ACCOUNT', bool $newEmail = FALSE): bool {
         $link = $this->appConfig['app']['useServerDomainEmailValidationLink'] ? getUrlServer() : $this->appConfig['app']['urlDomainEmailValidationLink'];;
         $link .= $newEmail ? '/validate/new/email/' : '/account/enable/';
@@ -245,6 +338,7 @@ class Controller {
         return $email->send();
     }
 
+    /* function to send email for password reset */
     protected function sendEmailResetPassword(string $to, string $token, string $message = 'RESET YOUR PASSWORD'): bool {
         $link = $this->appConfig['app']['useServerDomainResetPassLink'] ? getUrlServer() : $this->appConfig['app']['urlDomainResetPasswordLink'];
         $link .= '/user/reset/password/' . $token;
@@ -261,6 +355,7 @@ class Controller {
         return $email->send();
     }
 
+    /* function to get private and public key */
     protected function getKey(string $nameKey = 'privKey'): array {
         $configRsa = $this->appConfig['rsa'];
         if ($configRsa['rsaKeyStatic']) {
@@ -285,60 +380,24 @@ class Controller {
         return compact('privKey', 'keyN', 'keyE');
     }
 
+    /* function to decrypt data */
     protected function decryptData(string $data, string $nameKeySession = 'privKey'): string {
         $confApp = $this->appConfig['rsa'];
         if ($confApp['rsaKeyStatic']) {
             $pathFile = getcwd() . '/config/rsa/' . $confApp['rsaPrivKeyFile'];
             $privKey = safeFileRead($pathFile);
-        } else $privKey =  $_SESSION[$nameKeySession]; 
+        } else $privKey =  $_SESSION[$nameKeySession];
         $key = openssl_pkey_get_private($privKey);
-        // conversione da annotazione hex
+        /* conversione da annotazione hex */
         $data = pack('H*', $data);
         $res = '';
         openssl_private_decrypt($data, $res, $key);
         return $res;
     }
 
-    protected function getPostSessionTokens(string $postTokenName = '_xf', string $sessionTokenName = 'csrf'): array {
-        $postToken = $_POST[$postTokenName] ?? 'tkn';
-        $sessionToken = $_SESSION[$sessionTokenName] ?? '';
-        unset($_SESSION[$sessionTokenName], $_POST[$postTokenName]);
-        return [$postToken, $sessionToken];
-    }
+    /* SOURCES FUNCTIONS */
 
-    protected function getCSPContent(): string {
-//         $content = $this->CSPDefaultSrc ? 'default-src '.$this->CSPDefaultSrc.';': '';
-        $this->CSPScriptNonce = $this->getNonce();
-        $this->CSPScriptSrc = 'script-src '.($this->CSPScriptSrc ? "$this->CSPScriptSrc, script-src " : '')."'nonce-$this->CSPScriptNonce'";
-//         $this->CSPScriptSrc = "script-src $this->CSPScriptSrc";
-        $this->CSPStyleNonce = $this->getNonce();
-        $this->CSPStyleSrc = 'style-src '.($this->CSPStyleSrc ? "$this->CSPStyleSrc, style-src " : '')."'nonce-$this->CSPStyleNonce'";
-//         $this->CSPStyleSrc = "style-src $this->CSPStyleSrc";
-        $this->CSPImgNonce = $this->getNonce();
-        $this->CSPImgSrc = 'img-src '.($this->CSPImgSrc ? "$this->CSPImgSrc, img-src " : '')."'nonce-$this->CSPImgNonce'";
-//         $this->CSPImgSrc = "img-src $this->CSPImgSrc";
-        $this->CSPMediaNonce = $this->getNonce();
-        $this->CSPMediaSrc = 'media-src '.($this->CSPMediaSrc ? "$this->CSPMediaSrc, media-src " : '')."'nonce-$this->CSPMediaNonce'";
-        $content = "$this->CSPScriptSrc; $this->CSPStyleSrc; $this->CSPImgSrc; $this->CSPMediaSrc; ";
-        $content .= $this->CSPFontSrc ? 'font-src '.$this->CSPFontSrc.'; ': '';
-        $content .= $this->CSPConnectSrc ? 'connect-src '.$this->CSPConnectSrc.'; ': '';
-        $content .= $this->CSPFormAction ? 'form-action '.$this->CSPFormAction.'; ': '';
-        $content .= $this->CSPFrameAncestors ? 'frame-ancestors '.$this->CSPFrameAncestors.'; ': '';
-        $content .= $this->CSPPluginTypes ? 'plugin-types '.$this->CSPPluginTypes.'; ': '';
-        $content .= $this->CSPObjectSrc ? 'object-src '.$this->CSPObjectSrc.'; ': '';
-        $content .= $this->CSPWorkerSrc ? 'worker-src '.$this->CSPWorkerSrc.'; ': '';
-        $content .= $this->CSPFrameSrc ? 'frame-src '.$this->CSPFrameSrc.'; ': '';
-        $content .= $this->CSPChildSrc ? 'child-src '.$this->CSPChildSrc.'; ': '';
-        $content .= $this->CSPBaseUri ? 'base-uri '.$this->CSPBaseUri.'; ': '';
-        $content .= $this->CSPSandbox ? 'sandbox '.$this->CSPSandbox.'; ': '';
-        $content .= $this->CSPReportUri ? 'report-uri '.$this->CSPReportUri.'; ': '';
-        return $content;
-    }
-
-    protected function getNonce(): string {
-        return getSecureRandomString();
-    }
-
+    /* function to get attributes of css by info array */
     protected function getAttributeCss(array $css): string {
         $str = 'href="'.$css['src'].'" ';
         $str .= "nonce=\"$this->CSPStyleNonce\"";
@@ -347,6 +406,7 @@ class Controller {
         return $str;
     }
 
+    /* function to get attribute of javascript by info array */
     protected function getAttributeJS(array $js): string {
         $str = 'src="'.$js['src'].'" ';
         $str .= "nonce=\"$this->CSPScriptNonce\"";
@@ -354,4 +414,25 @@ class Controller {
         $str .= isset($js['crossorigin']) ? ' crossorigin="'.$js['crossorigin'].'"' : '';
         return $str;
     }
+
+    /* ##################################### */
+    /* PRIVATE FUNCTIONS */
+    /* ##################################### */
+
+    /* function to manage login session */
+    private function handlerSession() {
+        if (isUserLoggedin()) {
+            /* check if session is expire, then reset it */
+            if (isset($_SESSION['expireTime']) && new DateTime($_SESSION['expireTime']) < new DateTime()) {
+                $this->resetSession();
+                $_SESSION['message'] = 'SESSION EXPIRED';
+                $_SESSION['success'] = FALSE;
+                redirect();
+            }
+            $expireTime = new DateTime();
+            $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
+            $_SESSION['expireTime'] = $expireTime;
+        }
+    }
+
 }

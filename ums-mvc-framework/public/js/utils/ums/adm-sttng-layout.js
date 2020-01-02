@@ -1,12 +1,17 @@
+/* var to count layouts */ 
 var newLayout = 0;
 
+/* function to delete a input layout */
 function deleteInputLayout(nameLayout) {
 	$('#form-layout-' + nameLayout).remove();
 }
 
+/* function to add a input layuot */
 function addInputNewLayout() {
+	/* define const last input */
 	const $divInputLast = $('#layout-settings-form').find('div.input-new-layout').last()
 
+	/* init and define vars */
 	var $div = $(document.createElement('div')),
 		$label = $(document.createElement('label')),
 		$inputName = $(document.createElement('input')),
@@ -14,16 +19,20 @@ function addInputNewLayout() {
 		$divBtn = $(document.createElement('div')),
 		$btn = $(document.createElement('button'));
 
+	/* increment count layouts */
 	window.newLayout++;
 
+	/* set attribute for div container */
 	$div.attr('id', 'form-layout-' + window.newLayout);
 	$div.attr('class', 'form-group justify-content-center row input-new-layout p-2');
 
+	/* set attribute for label and append it on div */
 	$label.attr('for', 'name-layout-' + window.newLayout);
 	$label.attr('class', 'col-md-10');
 	$label.text('New Layout ' + window.newLayout);
 	$div.append($label);
 
+	/* set attribute for input name and append it on div */
 	$inputName.attr('id', 'name-layout-' + window.newLayout);
 	$inputName.attr('name', 'name-layout-' + window.newLayout);
 	$inputName.attr('placeholder', 'Name layout');
@@ -32,6 +41,7 @@ function addInputNewLayout() {
 	$inputName.attr('required', 'required');
 	$div.append($inputName);
 
+	/* set attribute for input value and append it on div */
 	$inputVal.attr('id', 'val-layout-' + window.newLayout);
 	$inputVal.attr('name', 'val-layout-' + window.newLayout);
 	$inputVal.attr('placeholder', 'Value layout');
@@ -40,6 +50,7 @@ function addInputNewLayout() {
 	$inputVal.attr('required', 'required');
 	$div.append($inputVal);
 
+	/* set attribute for button and append it on div */
 	$divBtn.attr('class', 'col-md-8 col-sm-10 text-right');
 	$btn.attr('type', 'button');
 	$btn.attr('class', 'btn btn-link link-danger mt-0 p-0 btn-delete-input-layout');
@@ -48,10 +59,12 @@ function addInputNewLayout() {
 	$divBtn.append($btn);
 	$div.append($divBtn);
 
+	/* append div after last input layputs */
 	$div.append('<br><br>');
 	$divInputLast.after($div);
 }
 
+/* function to add listener on button delete */
 function clickListenerOnBtnDelete() {
 	$('#layout-settings-form button.btn-delete-input-layout').click(function(event) {
 		event.preventDefault();
@@ -62,45 +75,47 @@ function clickListenerOnBtnDelete() {
 $(document).ready(function (){
 	clickListenerOnBtnDelete();
 
+	/* click event to add new input layout */
 	$('#layout-settings-form button.btn-add-input-layout').click(function(event) {
 		event.preventDefault();
 		addInputNewLayout();
 		clickListenerOnBtnDelete();
 	});
 
+	/* function to send XML HTTP request when submit logout form */
 	$('#layout-settings-form').on('submit', function(event) {
-		const $btn = $(this).find('#btn-save'),
-			$xf = $(this).find('#_xf.send-ajax'),
+		/* get button, token, and serialize data */
+		const $xf = $(this).find('#_xf'),
+			$btn = $(this).find('#btn-save'),
 			data = $(this).find('.send-ajax').serialize();
 
+		/* block default submit form and show loading */
 		event.preventDefault();
 		showLoading($btn);
-		$.ajax({
-			method: 'post',
-			data: data,
-			url: '/ums/app/settings/layout/update',
-			success: function(response) {
-    			removeLoading($btn, 'Save');
-    			try {
-    				const settingsRes = JSON.parse(response);
-    				
-    				showMessage(settingsRes.message, !settingsRes.success);
-    				
-    				if (!settingsRes.success) {
-    					focusError(settingsRes);
-    					$xf.val(settingsRes.ntk);
-    				}
-    				else setTimeout(function() {location.reload();}, 2000); 
-				} catch (e) {
-					showMessage('Settings update failed', true);
-				}
 
-			},
-			failure: function() {
-				removeLoading($btn, 'Save');
-				showMessage('Problem to contact server', true);
+		/* success function */
+		funcSuccess = function(response) {
+			removeLoading($btn, 'Save');
+			try {
+				showMessage(response.message, !response.success);
+				if (!response.success) {
+					focusError(response);
+					$xf.val(response.ntk);
+				}
+				else setTimeout(function() {location.reload();}, 2000); 
+			} catch (e) {
+				showMessage('Settings update failed', true);
 			}
-		});
+
+		};
+
+		/* fail function */
+		funcFail = function() {
+			removeLoading($btn, 'Save');
+			showMessage('Problem to contact server', true);
+		};
+
+		sendAjaxReq('/ums/app/settings/layout/update', data, $xf.val(), funcSuccess, funcFail);
 	});
 
 });

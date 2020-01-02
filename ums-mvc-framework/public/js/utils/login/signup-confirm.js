@@ -1,31 +1,33 @@
 $(document).ready(function() {
+	/* submit event on confirm signup form to send XML HTTP request */
 	$('#signup-confirm-form').on('submit', function(event) {
-		const $btn = $(this).find('#btn-resend-email'),
-			$xf = $(this).find('#_xf.send-ajax'),
+		/* get button, token, and serialize data */
+		const $xf = $(this).find('#_xf'),
+			$btn = $(this).find('#btn-resend-email'),
 			data = $(this).find('.send-ajax').serialize();
 
+		/* block default submit form and show loading */
 		event.preventDefault();
     	showLoading($btn);
-		$.ajax({
-			method: 'post',
-			url: '/auth/signup/confirm/email/resend',
-			data: data,
-			success: function(response) {
-				removeLoading($btn, 'Resend email');
-				try {
-					const signupRes = JSON.parse(response);
-					
-					showMessage(signupRes.message, !signupRes.success);
-					
-					$xf.val(signupRes.ntk);
-				} catch (e) {
-					showMessage('Resend email failed', true);
-				}
-			},
-			failure: function() {
-				removeLoading($btn, 'Resend email');
-				showMessage('Problem to contact server', true);
+
+    	/* success function */
+    	funcSuccess = function(response) {
+			removeLoading($btn, 'Resend email');
+			try {
+				showMessage(response.message, !response.success);
+				
+				$xf.val(response.ntk);
+			} catch (e) {
+				showMessage('Resend email failed', true);
 			}
-		});
+		};
+
+		/* fail function */
+		funcFail = function() {
+			removeLoading($btn, 'Resend email');
+			showMessage('Problem to contact server', true);
+		};
+
+    	sendAjaxReq('/auth/signup/confirm/email/resend', data, $xf.val(), funcSuccess, funcFail);
 	});
 });

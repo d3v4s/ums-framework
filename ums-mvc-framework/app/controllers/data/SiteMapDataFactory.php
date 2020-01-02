@@ -1,6 +1,11 @@
 <?php
 namespace app\controllers\data;
 
+/**
+ * Class data factory,
+ * used for generate and manage the data of response of app settings
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class SiteMapDataFactory extends DataFactory {
     protected $changefreqList = [];
 

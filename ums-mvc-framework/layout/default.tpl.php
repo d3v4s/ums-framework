@@ -2,7 +2,7 @@
 <html lang="it">
 	<head>
 		<?php if ($this->setCSPHeader): ?>
-			<meta http-equiv="Content-Security-Policy" content="<?=$this->cspContent?>">
+<!-- 			<meta http-equiv="Content-Security-Policy" content="< ?=$this->cspContent?>"> -->
 		<!-- 
 			<meta http-equiv="X-Content-Security-Policy" content="< ?=$this->cspContent?>">
     		<meta http-equiv="X-WebKit-CSP" content="< ?=$this->cspContent?>">
@@ -108,7 +108,7 @@
     							<div class="container justify-content-center text-center p-2 row mx-auto">
     								<a href="/user/settings" class="btn btn-warning m-2"><i class="fas fa-cog"></i> Settings</a>
     								<form id="logout-form" action="/auth/logout" method="post">
-    									<input id="_xf-out" type="hidden" name="_xf-out" value="<?=$this->tokenLogout?>" class="send-ajax">
+    									<input id="_xf-out" type="hidden" name="_xf-out" value="<?=$this->tokenLogout?>">
     	    							<button id="btn-logout" class="btn btn-danger m-2" type="submit"><i id="ico-btn" class="fas fa-sign-out-alt"></i> Logout</button>
     								</form>
     							</div>

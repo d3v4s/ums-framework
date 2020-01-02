@@ -15,7 +15,6 @@ class LoginVerifier extends Verifier {
             'message' => 'Logout failed',
             'success' => FALSE
         ];
-
         $user = new User($this->conn, $this->appConfig);
         if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
 
