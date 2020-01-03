@@ -1,6 +1,10 @@
 <?php
 namespace app\controllers\data;
 
+/**
+ * Class data factory, to manage response data of user request
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class UserDataFactory extends DataFactory {
     protected $userRoles = [];
 
@@ -9,11 +13,14 @@ class UserDataFactory extends DataFactory {
         $this->userRoles = getList('userRoles');
     }
 
+    /* function to set user roles */
     public function setUserRoles(array $userRoles) {
         $this->userRoles = $userRoles;
     }
 
+    /* function to get user data */
     public function getUserData(&$tokenLogout): array {
+        /* return data */
         return [
             'tokenLogout' => ($tokenLogout = generateToken('csrfLogout')),
             'token' => generateToken('csrfUserSettings'),

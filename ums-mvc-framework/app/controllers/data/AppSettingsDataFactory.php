@@ -15,10 +15,16 @@ class AppSettingsDataFactory extends DataFactory {
         $this->unitsTimeList = getList('unitsTime');
     }
 
+    /* ##################################### */
+    /* PUBLIC FUNCTIONS */
+    /* ##################################### */
+
+    /* function to set the list of unit times */
     public function setUnitTimeList(array $unitsTimeList) {
         $this->unitsTimeList = $unitsTimeList;
     }
 
+    /* function to get data by section */
     public function getAppSettingsData(string $section): array {
         $data = $this->appConfig[$section];
         switch ($section) {
@@ -36,6 +42,11 @@ class AppSettingsDataFactory extends DataFactory {
         return $data;
     }
 
+    /* ##################################### */
+    /* PRIVATE FUNCTIONS */
+    /* ##################################### */
+
+    /* function to mangae the data of app settings */
     private function manageDataAppSettings(array &$data) {
         $data['urlServer'] = getUrlServer();
         $data['_checkedOnlyHttps'] = $data['onlyHttps'] ? 'checked="checked"' : '';
@@ -64,13 +75,15 @@ class AppSettingsDataFactory extends DataFactory {
         $data['_checkedAddFakeUsersPage'] = $data['addFakeUsersPage'] ? 'checked="checked"' : '';
         $data['unitsTimeList'] = $this->unitsTimeList;
     }
-    
+
+    /* function to mangae the data of rsa settings */
     private function menageDataRsaSettings(array &$data) {
         $data['_checkedRsaKeyStatic'] = $data['rsaKeyStatic'] ? 'checked="checked"' : '';
         $data['pathPrivKey'] = getcwd() . '/config/rsa/';
         $data['tokenGenSave'] = generateToken('csrfGenSave');
     }
-    
+
+    /* function to mangae the data of layout settings */
     private function menageDataLayoutSettings(array &$data) {
         $data = [
             'layout' => $data

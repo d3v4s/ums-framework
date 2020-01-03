@@ -12,6 +12,7 @@ class DataFactory {
     protected $appConfig = [];
     static protected $instance;
 
+    /* singleton */
     static public function getInstance(array $appConfig, PDO $conn = NULL): DataFactory {
         if (!isset(static::$instance)) static::$instance = new static($appConfig, $conn);
         return static::$instance;
