@@ -405,8 +405,8 @@ class LoginController extends Controller {
             /* init user model */
             $user = new User($this->conn, $this->appConfig);
 
-            /* check if need to delete user, and delete it */
-            if (isset($resSignup['deleteUser'])) foreach ($resSignup['deleteUser'] as $userId) $user->deleteUser($userId);
+//             /* check if need to delete user, and delete it */
+//             if (isset($resSignup['deleteUser'])) foreach ($resSignup['deleteUser'] as $userId) $user->deleteUser($userId);
 
             /* check if is require confirm email, and set account enable */
             $requireConfirmEmail = $this->appConfig['app']['requireConfirmEmail'];

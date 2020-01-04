@@ -33,20 +33,20 @@ class Verifier {
     public function verifyWrongPassword(int $nWrongPass, int $nLock): array {
         /* set result */
         $result = [
-            'lock' => FALSE,
-            'disable' => FALSE
+            LOCK => FALSE,
+            DISABLE => FALSE
         ];
 
         /* check if user has reached max wrong passwords */
-        if ($nWrongPass >= $this->appConfig['app']['maxWrongPassword']) {
-            $result['lock'] = TRUE;
-            $nLock++;
+        if ($nWrongPass >= $this->appConfig[SECURITY][MAX_WRONG_PASSWORDS]) {
+            $result[LOCK] = TRUE;
+            ++$nLock;
         }
 
         /* check if user has reached max locks */
-        if ($nLock >= $this->appConfig['app']['maxLocks']) {
-            $result['disable'] = TRUE;
-            $result['lock'] = FALSE;
+        if ($nLock >= $this->appConfig[SECURITY][MAX_LOCKS]) {
+            $result[DISABLE] = TRUE;
+            $result[LOCK] = FALSE;
         }
 
         /* return result */
@@ -57,27 +57,27 @@ class Verifier {
     public function verifySignup(string $name, string $email, string $username, string $pass, string $cpass, array $tokens): array {
         /* set fail function */
         $result = [
-            'message' => 'Signup failed',
-            'success' => false
+            MESSAGE => 'Signup failed',
+            SUCCESS => false
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
 
         /* get app configurations */
-        $confApp = $this->appConfig['app'];
+        $confUMS = $this->appConfig[UMS];
 
         /* validate name */
-        if (!$this->isValidInput($name, $confApp['minLengthName'], $confApp['maxLengthName'], $confApp['useRegex'], $confApp['regexName'])) {
-            $result['message'] = 'Invalid name';
-            $result['error'] = 'name';
+        if (!$this->isValidInput($name, $confUMS[MIN_LENGHT_NAME], $confUMS[MAX_LENGTH_NAME], $confUMS[USE_REGEX], $confUMS[REGEX_NAME])) {
+            $result[MESSAGE] = 'Invalid name';
+            $result[ERROR] = 'name';
             return $result;
         }
 
         /* validate username */
-        if (!$this->isValidInput($username, $confApp['minLengthUsername'], $confApp['maxLengthUsername'], $confApp['useRegex'], $confApp['regexUsername'])) {
-            $result['message'] = 'Invalid username';
-            $result['error'] = 'username';
+        if (!$this->isValidInput($username, $confUMS[MIN_LENGHT_USERNAME], $confUMS[MAX_LENGTH_USERNAME], $confUMS[USE_REGEX], $confUMS[REGEX_USERNAME])) {
+            $result[MESSAGE] = 'Invalid username';
+            $result[ERROR] = 'username';
             return $result;
         }
 
@@ -85,49 +85,49 @@ class Verifier {
         $user = new User($this->conn, $this->appConfig);
 
         /* check if username already exists */
-        if ($usr = $user->getUserByUsername($username)) {
-            if ($this->isValidUser($usr, $confApp['requireConfirmEmail'])) {
-                $result['message'] = 'User already exist with this username';
-                $result['error'] = 'username';
-                return $result;
-            }
-            $result['deleteUser'][] = $usr->id;
+        if ($user->getUserByUsername($username)) {
+            $result[MESSAGE] = 'User already exist with this username';
+            $result[ERROR] = 'username';
+            return $result;
+//             if ($this->isValidUser($usr, $confApp['requireConfirmEmail'])) {
+//             }
+//             $result['deleteUser'][] = $usr->id;
         }
 
         /* validate email */
-        if (!$this->isValidEmail($email, $confApp['useRegexEmail'], $confApp['regexEmail'])) {
-            $result['message'] = 'Invalid email';
-            $result['error'] = 'email';
+        if (!$this->isValidEmail($email, $confUMS['useRegexEmail'], $confUMS['regexEmail'])) {
+            $result[MESSAGE] = 'Invalid email';
+            $result[ERROR] = 'email';
             return $result;
         }
 
         /* check if email already exists */
-        if ($usr = $user->getUserByEmail($email)) {
-            if ($this->isValidUser($usr, $confApp['requireConfirmEmail'])) {
-                $result['message'] = 'User already exist with this email';
-                $result['error'] = 'email';
-                return $result;
-            }
-            $result['deleteUser'][] = $usr->id;
+        if ($user->getUserByEmail($email)) {
+            $result[MESSAGE] = 'User already exist with this email';
+            $result[ERROR] = 'email';
+            return $result;
+//             if ($this->isValidUser($usr, $confApp['requireConfirmEmail'])) {
+//             }
+//             $result['deleteUser'][] = $usr->id;
         }
 
         /* validate password */
-        if (!$this->isValidPassword($pass, $confApp['minLengthPassword'], $confApp['checkMaxLengthPassword'], $confApp['maxLengthPassword'], $confApp['requireHardPassword'], $confApp['useRegex'], $confApp['regexPassword'])) {
-            $result['message'] = 'Invalid password';
-            $result['error'] = 'pass';
+        if (!$this->isValidPassword($pass, $confUMS['minLengthPassword'], $confUMS['checkMaxLengthPassword'], $confUMS['maxLengthPassword'], $confUMS['requireHardPassword'], $confUMS['useRegex'], $confUMS['regexPassword'])) {
+            $result[MESSAGE] = 'Invalid password';
+            $result[ERROR] = 'pass';
             return $result;
         }
 
         /* confirm password */
         if ($pass !== $cpass) {
-            $result['message'] = 'Passwords mismatch';
-            $result['error'] = 'cpass';
+            $result[MESSAGE] = 'Passwords mismatch';
+            $result[ERROR] = 'cpass';
             return $result;
         }
 
         /* unset errorm messagge and set success */
-        unset($result['message']);
-        $result['success'] = true;
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = true;
 
         /* return result */
         return $result;
@@ -138,8 +138,8 @@ class Verifier {
         /* set fail result */
         $result = [
             'changeEmail' => FALSE,
-            'message' => 'User update failed',
-            'success' => FALSE
+            MESSAGE => 'User update failed',
+            SUCCESS => FALSE
         ];
 
         /* init user model */
@@ -296,10 +296,10 @@ class Verifier {
         return is_numeric($number) && verifyNumVarRange($number, $minValue, $maxValue);
     }
 
-    /* function to check if user is a valid user */
-    protected function isValidUser($user, bool $requireConfirmEmail): bool {
-        return $user->enabled || !$requireConfirmEmail || !$user->token_account_enabler;
-    }
+//     /* function to check if user is a valid user */
+//     protected function isValidUser($user, bool $requireConfirmEmail): bool {
+//         return $user->enabled || !$requireConfirmEmail || !$user->token_account_enabler;
+//     }
 
     /* function to check if is user enabled */
     protected function isUserEnable($user): bool {

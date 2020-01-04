@@ -1,6 +1,96 @@
 <?php
 
-/* function to send a json response */
+/* function for debug print vardump with stack trace, and exit */
+function dd($data) {
+    /* print variable dump */
+    var_dump($data);
+    /* print stack trace */
+    debug_print_backtrace();
+    die;
+}
+
+/* functions that create a path for OS */
+function getPath(string $pathstart, string ...$others) {
+    /* iterate others and create a path */
+    foreach ($others as $val) $pathstart .= DIRECTORY_SEPARATOR . $val;
+    /* return path */
+    return $pathstart;
+}
+
+/* function that get a url of server */
+function getUrlServer(): string {
+    return (isSecureConnection() ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'];
+}
+
+/* function to check if is XML HTTP request */
+function isXmlhttpRequest(): bool {
+    return strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHTTPREQUEST';
+}
+
+/* function that check if is a secure connection */
+function isSecureConnection(): bool {
+    return isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+}
+
+/* function to redirect at new url */
+function redirect(string $url = '/') {
+    header('Location: '.$url);
+    exit;
+}
+
+/* function to calculate expire time */
+function getExpireDatetime(string $addTime) {
+    $datetime = new DateTime();
+    $datetime->modify($addTime);
+    return $datetime->format('Y-m-d H:i:s');
+}
+
+/* function to read a file using lock */
+function safeFileRead(string $filename) {
+    $text = FALSE;
+    if ($fHandle = fopen($filename, 'r')) {
+        do {
+            $canWrite = flock($fHandle, LOCK_EX);
+            if (!$canWrite) usleep(round(rand(0, 10)*1000));
+        } while (!$canWrite);
+        
+        $text = fread($fHandle, filesize($filename));
+        flock($fHandle, LOCK_UN);
+        fclose($fHandle);
+    }
+    return $text;
+}
+
+/* function to write a file using lock */
+function safeFileRewrite(string $filename, $dataToSave): bool {
+    $success = FALSE;
+    if ($fHandle = fopen($filename, 'w')) {
+        do {
+            $canWrite = flock($fHandle, LOCK_EX);
+            if (!$canWrite) usleep(round(rand(0, 10)*1000));
+        } while (!$canWrite);
+        
+        fwrite($fHandle, $dataToSave);
+        flock($fHandle, LOCK_UN);
+        $success = TRUE;
+        fclose($fHandle);
+    }
+    return $success;
+}
+
+/* fucntion to send 404 code error and exit*/
+function send404() {
+    http_response_code(404);
+    exit;
+}
+
+/* fucntion to send code and exit */
+function sendCode(int $code) {
+    http_response_code($code);
+    exit;
+}
+
+/* function to send a json response and exit */
 function sendJsonResponse(array $data) {
     /* set headers for application json and no sniff content */
     header("Content-Type: application/json");
@@ -8,14 +98,6 @@ function sendJsonResponse(array $data) {
     /* print json format and exit */
     echo json_encode($data);
     exit;
-}
-
-function isSecureConnection(): bool {
-    return isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
-}
-
-function isXmlhttpRequest(): bool {
-    return strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHTTPREQUEST';
 }
 
 function verifyNumVarRange(int $var, int $min, int $max): bool {
@@ -35,36 +117,6 @@ function writeFileIni(array $data, string $filename): bool {
     return safeFileRewrite($filename, implode("\r\n", $res));
 }
 
-function safeFileRewrite(string $filename, $dataToSave): bool {
-    $success = FALSE;
-    if ($fHandle = fopen($filename, 'w')) {
-        do {
-            $canWrite = flock($fHandle, LOCK_EX);
-            if (!$canWrite) usleep(round(rand(0, 10)*1000));
-        } while (!$canWrite);
-    
-        fwrite($fHandle, $dataToSave);
-        flock($fHandle, LOCK_UN);
-        $success = TRUE;
-        fclose($fHandle);
-    }
-    return $success;
-}
-
-function safeFileRead(string $filename) {
-    $text = FALSE;
-    if ($fHandle = fopen($filename, 'r')) {
-        do {
-            $canWrite = flock($fHandle, LOCK_EX);
-            if (!$canWrite) usleep(round(rand(0, 10)*1000));
-        } while (!$canWrite);
-
-        $text = fread($fHandle, filesize($filename));
-        flock($fHandle, LOCK_UN);
-        fclose($fHandle);
-    }
-    return $text;
-}
 
 function modifyRegexJS(string &$phpRegex) {
     $phpRegex = trim($phpRegex, '/');
@@ -138,20 +190,14 @@ function getConfig(string $section = NULL): array {
     return $configApp[$section];
 }
 
-function dd($data) {
-    var_dump($data);
-    die;
-}
-
-function redirect(string $url = '/') { 
-    header('Location: '.$url);
-    exit;
-}
-
-function generateToken(string $name = 'csrf'): string {
+/* function to genetate csrf token */
+function generateToken(string $name = CSRF): string {
 //     if (isset($_SESSION[$name])) return $_SESSION[$name];
+    /* get token */
     $token = getSecureRandomString();
+    /* set token on session */
     $_SESSION[$name] = $token;
+    /* return token */
     return $token;
 }
 
@@ -178,10 +224,6 @@ function getViewsPath(): string {
 
 function getLayoutPath(): string {
     return getcwd().'/layout';
-}
-
-function getUrlServer(): string {
-    return (isSecureConnection() ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'];
 }
 
 function isUserLoggedin(): bool {

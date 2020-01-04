@@ -100,26 +100,6 @@ class UMSController extends Controller {
         };
 
         $this->switchResponse($dataOut, !$resReset['success'], $funcDefault, 'csrfResetWrongPass');
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = [
-//                     'success' => $resReset['success'],
-//                     'message' => $resReset['message'] ?? NULL
-//                 ];
-//                 if (!$resReset['success']) $resJSON['ntk'] = generateToken('csrfResetWrongPass');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-//                 if (isset($resReset['message'])) {
-//                     $_SESSION['message'] = $resReset['message'];
-//                     $_SESSION['success'] = $resReset['success'];
-//                 }
-//                 redirect('/ums/user/'.$id);
-//                 break;
-//         }
     }
 
     /* function to reset counter of user lock */
@@ -159,23 +139,6 @@ class UMSController extends Controller {
         };
 
         $this->switchResponse($dataOut, !$resReset['success'], $funcDefault, 'csrfResetLockUser');
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON
-//                 if (!$resReset['success']) $resJSON['ntk'] = generateToken('csrfResetLockUser');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-//                 if (isset($resReset['message'])) {
-//                     $_SESSION['message'] = $resReset['message'];
-//                     $_SESSION['success'] = $resReset['success'];
-//                 }
-//                 redirect('/ums/user/'.$id);
-//                 break;
-//         }
     }
 
     /* function to view update password user page */

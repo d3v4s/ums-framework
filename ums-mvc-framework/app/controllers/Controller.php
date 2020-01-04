@@ -7,6 +7,7 @@ use \Exception;
 use app\models\Email;
 use app\models\User;
 use app\controllers\verifiers\Verifier;
+use app\models\Session;
 
 /**
  * Class controller to implement principal properties and functions
@@ -68,15 +69,18 @@ class Controller {
     /* keywords and description of page */
     protected $keywords = 'php, ums, framework, programming, development, users, management, system, user, mvc, model, view, controller';
     protected $description = 'PHP FRAMEWORK UMS - This is a framework for user management, which implements the design pattern MVC (Model-view-controller) - Developed by Andrea Serra - DevAS';
+    protected $loginSession = NULL;
 
-    public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout = 'default') {
+    public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout = DEFAULT_LAYOUT) {
         $this->appConfig = $appConfig ?? getConfig();
-        if ($this->appConfig['app']['onlyHttps']) $this->redirectIfNotSecureConnection();
-        if ($this->appConfig['app']['blockChangeIp']) $this->resetSessionIfChangeIp();
-        if ($this->appConfig['app']['checkConnectTimeLoginSession']) $this->handlerSession();
-        if (isUserLoggedin()) array_push($this->jsSrcs, ['src' => '/js/utils/login/logout.js']);
+        if ($this->appConfig[SECURITY][ONLY_HTTPS]) $this->redirectIfNotSecureConnection();
+        $this->loginSession = $this->getLoginSession();
+        if ($this->loginSession) {
+            $this->handlerSession();
+            array_push($this->jsSrcs, ['src' => '/js/utils/login/logout.js']);
+        }
         $this->conn = $conn;
-        $this->layout = getLayoutPath().'/'.$this->appConfig['layout'][$layout].'.tpl.php';
+        $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
     }
 
     /* ##################################### */
@@ -85,33 +89,33 @@ class Controller {
 
     /* funciton to set layout */
     public function setLayout(string $layout) {
-        $this->layout = getLayoutPath().'/'.$this->appConfig['layout'][$layout].'.tpl.php';
+        $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
     }
 
     /* function to view the home page */
     public function showHome() {
         $this->isHome = TRUE;
-        $this->keywords .= ', home';
+        $this->keywords .= ', home, homepage, index, welcome';
         $this->content = view('home');
     }
 
     /* function to show a message on page */
     public function showMessage(string $message) {
-        $this->content = view('show-message', ['message' => $message]);
+        $this->content = view('show-message', [MESSAGE => $message]);
     }
 
     /* function to send 404 code and show page not found */
     public function showPageNotFound() {
         header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
-        $this->content = view($this->appConfig['app']['pageNotFound']);
+        $this->content = view($this->appConfig[APP][PAGE_NOT_FOUND]);
     }
 
     /* function to view error page */
     public function showPageError(Exception $exception) {
         $data = [];
         /* if is set show exception, then view info about it */
-        if ($data['showMessageException'] = $this->appConfig['app']['showMessageException']) {
-            $data['exception'] = [
+        if ($data[SHOW_MESSAGE_EXCEPTION] = $this->appConfig[APP][SHOW_MESSAGE_EXCEPTION]) {
+            $data[EXCEPTION] = [
                 'toString' => $exception->__toString(),
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage(),
@@ -122,51 +126,71 @@ class Controller {
                 'traceString' => $exception->getTraceAsString()
             ];
         }
-        $this->content = view($this->appConfig['app']['pageException'], $data);
+        $this->content = view($this->appConfig[APP][PAGE_EXCEPTION], $data);
     }
 
     /* function to send public key on json format */
     public function showKeyJSON() {
+        /* redirect */
         $this->redirectIfNotXMLHTTPRequest();
 
+        /* get tokens and init json result */
         $tokens = $this->getPostSessionTokens();
-        $resJSON = ['ntk' => generateToken()];
+        $resJSON = [];
+        /* if valide token, then send key */
         if ($tokens[0] === $tokens[1]) {
+            /* generate new token */
+            $resJSON['ntk'] = generateToken();
+            /* get key and set on result */
             $keys = $this->getKey();
             $resJSON['keyN'] = $keys['keyN'];
             $resJSON['keyE'] = $keys['keyE'];
         }
 
+        /* send json response */
         sendJsonResponse($resJSON);
     }
 
+    /* display content on layout */
     public function display() {
-        if (isUserLoggedin()) $this->tokenLogout = $this->tokenLogout ?? generateToken('csrfLogout');
+        /* if is user loggin, then generate logout token */
+        if (isUserLoggedin()) $this->tokenLogout = $this->tokenLogout ?? generateToken(CSRF_LOGOUT);
+        /* if CSP (Content Security Policy) is require */
         if ($this->setCSPHeader) {
+            /* get CSP content and create CSP headers */
             $this->cspContent = $this->getCSPContent();
             header("Content-Security-Policy: $this->cspContent");
             header("X-Content-Security-Policy: $this->cspContent");
             header("X-WebKit-CSP: $this->cspContent");
         }
+        /* set content type header */
         header("Content-Type: $this->contentType");
+        /* set content type option header */
         header("X-Content-Type-Options: $this->XContentTypeOptions");
+        /* set XSS (Cross Site Script) protection header */
         header("X-XSS-Protection: $this->XXSSProtection");
+        /* set frame option header */
         header("X-Frame-Options: $this->XFrameOptions");
+        /* view layout */
         require_once $this->layout;
     }
 
     /* ##################################### */
     /* PROTECTED FUNCTIONS */
     /* ##################################### */
-    
+
     /* function to send response json (XML HTTP) or default */
-    protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken='csrf') {
+    protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken = CSRF) {
+        /* get request with header */
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        /* switc the response according to the header */
         switch ($header) {
+            /* if response is XMLHTTP, then send json response */
             case 'XMLHTTPREQUEST':
                 if ($generateNewToken) $data['ntk'] = generateToken($nameToken);
                 sendJsonResponse($data);
                 break;
+            /* default function */
             default:
                 $funcDefault($data);
                 break;
@@ -174,13 +198,13 @@ class Controller {
     }
     
     /* function to get tokens of session and post */
-    protected function getPostSessionTokens(string $headerToken = 'XS_TKN', string $sessionTokenName = 'csrf'): array {
-        //         $postToken = $_POST[$postTokenName] ?? 'tkn';
-        $headerToken = str_replace('-', '_', $headerToken);
+    protected function getPostSessionTokens(string $nameToken = CSRF): array {
+//         $postToken = $_POST[$postTokenName] ?? 'tkn';
+        $headerToken = str_replace('-', '_', $nameToken);
         $headerToken = mb_strtoupper($headerToken);
         $postToken = $_SERVER['HTTP_'.$headerToken] ?? 'tkn';
-        $sessionToken = $_SESSION[$sessionTokenName] ?? '';
-        unset($_SESSION[$sessionTokenName]);
+        $sessionToken = $_SESSION[$nameToken] ?? '';
+        unset($_SESSION[$nameToken]);
         return [$postToken, $sessionToken];
     }
     
@@ -218,18 +242,39 @@ class Controller {
 
     /* function handler for wrong passwords */
     protected function handlerWrongPassword(int $id) {
+        /* init user model, and get user id */
         $user = new User($this->conn, $this->appConfig);
-        $usrWrongPass = $user->getUser($id);
-        if (!isset($usrWrongPass->datetime_reset_wrong_password) || new DateTime($usrWrongPass->datetime_reset_wrong_password) < new DateTime()) $user->setDatetimeResetWrongPassword($id);
-        
-        $user->incrementWrongPass($id);
-        $usrWrongPass = $user->getUser($id);
+        $usrLock = $user->getUserLock($id);
+        /* if wrong password expire datetime is not set or is expire,
+         * then set new expire datetime and resest count wrong password
+         */
+        if (!isset($usrLock->{EXPIRE_WRONG_PASSWORD}) || new DateTime($usrLock->{EXPIRE_WRONG_PASSWORD}) < new DateTime()){
+            /* set expire time and reset wrong passwords*/
+            $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASSWORD_TRY_TIME]);
+            $user->resetWrongPasswords($id, $expireDatetime);
+        }
+
+        /* increment counter wrong password and set on user */
+        $user->setCountWrongPass($id, ++$usrLock->{COUNT_WRONG_PASSWORDS});
+
+        /* init verifier and verify user lock */
         $verifier = Verifier::getInstance($this->appConfig, $this->conn);
-        $res = $verifier->verifyWrongPassword($usrWrongPass->n_wrong_password, $usrWrongPass->n_locks);
-        if ($res['lock']) {
-            $user->resetDatetimeAndNWrongPassword($id);
-            $user->lockUser($id);
-        } else if ($res['disable']) $user->disabledUser($id);
+        $res = $verifier->verifyWrongPassword($usrLock->{COUNT_WRONG_PASSWORDS}, $usrLock->{COUNT_LOCKS});
+
+        /* if require lock */
+        if ($res[LOCK]) {
+            /* reset wrong password */
+            $user->resetWrongPasswords($id);
+            /* get lock expire time */
+            $expireLock = getExpireDatetime($this->appConfig[SECURITY][USER_LOCK_TIME]);
+            $user->lockUser($id, $expireLock);
+//             $nLocks = (int) $this->getUserLock($id)->{COUNT_LOCKS};
+//             ++$nLocks;
+            /* increment count locks and set on user */
+            $user->setCountUserLocks($id, ++$usrLock->{COUNT_LOCKS});
+
+        /* else if is require disable, then disable the user */
+        } else if ($res[DISABLE]) $user->disabledUser($id);
     }
 
     /* SESSION FUNCTIONS */
@@ -240,26 +285,73 @@ class Controller {
         $_SESSION = [];
     }
 
-    /* function to create a login session */
-    protected function createSessionLogin($user) {
+    /* function to reset login session */
+    protected function removeLoginSession(string $sessionToken): bool {
+        /* reset session */
         $this->resetSession();
-        unset($user->password);
-        $_SESSION['loggedin'] = TRUE;
-        $_SESSION['user'] = $user;
-        if ($this->appConfig['app']['checkConnectTimeLoginSession']) {
-            $expireTime = new DateTime();
-            $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
-            $_SESSION['expireTime'] = $expireTime;
+        /* init session model and remove lgin session token */
+        $session = new Session($this->conn);
+        return $session->removeLoginSessionToken($sessionToken);
+    }
+
+    /* function to create a login session */
+    protected function createLoginSession(int $userId) {
+        /* reset session */
+        $this->resetSession();
+        /* init session model and calc session expire time */
+        $session = new Session($this->conn);
+        $expireDatetime = getExpireDatetime($this->appConfig[SECURITY][MAX_TIME_UNCONNECTED_LOGIN_SESSION]);
+        /* create login session */
+        $res = $session->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
+        /* calc expire in unix time and set login session cookie */
+        $expireUnixTime =  date_timestamp_get($expireDatetime);
+        setcookie(CK_LOGIN_SESSION, $res[TOKEN], time, '/',  $expireUnixTime, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
+
+//         $_SESSION['loggedin'] = TRUE;
+//         $_SESSION['user'] = $userId;
+//         if ($this->appConfig['app']['checkConnectTimeLoginSession']) {
+//             $expireTime = new DateTime();
+//             $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
+//             $_SESSION['expireTime'] = $expireTime;
+//         }
+    }
+
+    /* function to get a loggin session */
+    protected function getLoginSession() {
+        /* if is set login session token on cookie */
+        if (($tkn = $_COOKIE[CK_LOGIN_SESSION] ?? FALSE)) {
+            /* init session model */
+            $session = new Session($this->conn);
+            /* get user by token and return it. If session is expire, the function return false */
+            $user = $session->getUserByLoginSessionToken($tkn);
+            return $user;
         }
+        /* else return false */
+        return FALSE;
     }
 
     /* function to reset session if client change ip address */
-    protected function resetSessionIfChangeIp() {
-        if (!isset($_SESSION['ipAddr'])) $_SESSION['ipAddr'] = $_SERVER['REMOTE_ADDR'];
-        if ($_SESSION['ipAddr'] !== $_SERVER['REMOTE_ADDR']) {
-            $this->resetSession();
-            $_SESSION['message'] = 'YOUR IP IS CHANGED';
-            $_SESSION['success'] = FALSE;
+    protected function resetLoginSessionIfChangeIp() {
+        /* check if ip has changed */
+        if ($this->loginSession->{IP_ADDRESS} !== $_SERVER['REMOTE_ADDR']) {
+            /* remove login session */
+            $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
+
+            /* set result data */
+            $dataOut = [
+                MESSAGE => 'Your IP address has changed',
+                SUCCESS => FALSE
+            ];
+
+            /* function to default rresponse */
+            $funcDefault = function($data) {
+                $this->showMessage($data[MESSAGE]);
+                exit;
+            };
+
+            $this->switchResponse($dataOut, FALSE, $funcDefault);
+//             $_SESSION[MESSAGE] = 'Your IP address has changed';
+//             $_SESSION[SUCCESS] = FALSE;
         }
     }
 
@@ -307,8 +399,8 @@ class Controller {
     /* function to redirect if not XML HTTP request */
     protected function redirectIfNotXMLHTTPRequest(string $url = '/') {
         if (!isXmlhttpRequest()) {
-            $_SESSION['message'] = 'TO CONTINUE ENABLE JAVASCRIPT';
-            $_SESSION['success'] = FALSE;
+            $_SESSION[MESSAGE] = 'TO CONTINUE ENABLE JAVASCRIPT';
+            $_SESSION[SUCCESS] = FALSE;
             redirect($url);
         }
     }
@@ -421,18 +513,35 @@ class Controller {
 
     /* function to manage login session */
     private function handlerSession() {
-        if (isUserLoggedin()) {
-            /* check if session is expire, then reset it */
-            if (isset($_SESSION['expireTime']) && new DateTime($_SESSION['expireTime']) < new DateTime()) {
-                $this->resetSession();
-                $_SESSION['message'] = 'SESSION EXPIRED';
-                $_SESSION['success'] = FALSE;
-                redirect();
-            }
-            $expireTime = new DateTime();
-            $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
-            $_SESSION['expireTime'] = $expireTime;
-        }
-    }
+        if ($this->appConfig[SECURITY][BLOCK_CHANGE_IP]) $this->resetLoginSessionIfChangeIp();
+        /* check if session is expire, then reset it */
+        if (new DateTime($this->loginSession->{EXPIRE_LOGIN_SESSION}) < new DateTime()) {
+            $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
 
+            /* set result data */
+            $dataOut = [
+                MESSAGE => 'Your session has expired',
+                SUCCESS => FALSE
+            ];
+            
+            /* function to default response */
+            $funcDefault = function($data) {
+                $this->showMessage($data[MESSAGE]);
+                exit;
+            };
+
+            
+            $this->switchResponse($dataOut, FALSE, $funcDefault);
+//             $_SESSION['message'] = 'SESSION EXPIRED';
+//             $_SESSION['success'] = FALSE;
+//             redirect();
+        }
+        /* init session  and set expire date time */
+        $session = new Session($this->conn);
+        $expireDatetime = getExpireDatetime($this->appConfig[SECURITY][MAX_TIME_UNCONNECTED_LOGIN_SESSION]);
+        $session->setExpireLoginSession($this->loginSession->{SESSION_ID}, $expireDatetime);
+//         $expireTime = new DateTime();
+//         $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
+//         $_SESSION['expireTime'] = $expireTime;
+    }
 }

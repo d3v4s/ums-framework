@@ -101,23 +101,6 @@ class AppSettingsController extends Controller {
         };
 
         $this->switchResponse($dataOut, TRUE, $funcDefault, 'csrfSettings');
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = [
-//                     'success' => $resUpdate['success'],
-//                     'message' => $resUpdate['message'] ?? NULL,
-//                     'error' => $resUpdate['error'] ?? NULL
-//                 ];
-//                 $resJSON['ntk'] = generateToken('csrfSettings');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-                
-//                 break;
-//         }
     }
 
     /* ##################################### */
