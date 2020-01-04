@@ -21,11 +21,6 @@ class User {
             SUCCESS => FALSE
         ];
 
-//         /* set lock expire time */
-//         $datetime = new DateTime();
-//         $datetime->modify($this->appConfig[SECURITY][USER_LOCK_TIME]);
-//         $expireLock = $datetime->format('Y-m-d H:i:s');
-
         /* prepare sql query and execute */
         $stmt = $this->conn->prepare('UPDATE '.USERS_TABLE.' SET '.EXPIRE_LOCK.'=:expireLock WHERE '.USER_ID.'=:id');
         $stmt->execute(compact('expireLock', 'id'));

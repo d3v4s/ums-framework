@@ -359,12 +359,13 @@ class Controller {
 
     /* function to redirect if client is not loggin */
     protected function redirectIfNotLoggin() {
-        if (!isUserLoggedin()) redirect("/auth/login");
+        if (!$this->loginSession) redirect("/auth/login");
     }
 
     /* function to redirect if client is not admin user */
     protected function redirectIfNotAdmin() {
-        if (!isUserAdmin()) redirect();
+        $this->redirectIfLoggin();
+        if ($this->loginSession->{ROLE_ID_FRGN} !== 0) redirect();
     }
 
     /* function to redirect if client is not loggin */
