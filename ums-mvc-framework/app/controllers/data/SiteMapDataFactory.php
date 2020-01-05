@@ -53,7 +53,7 @@ class SiteMapDataFactory extends DataFactory {
         return [
             'routes' => array_keys(getRoutes()['GET']),
             'token' => generateToken('csrfSitemap'),
-            'urlServer' => getUrlServer(),
+            'urlServer' => getServerUrl(),
             'siteMapExists' => siteMapExists(),
             'changefreqList' => $this->changefreqList
         ];

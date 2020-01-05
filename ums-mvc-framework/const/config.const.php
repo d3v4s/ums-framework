@@ -20,6 +20,7 @@ define('DATETIME_FORMAT', 'datetime_format');
 /* LAYOUT SECTION */
 define('DEFAULT_LAYOUT', 'default');
 define('UMS_LAYOUT', 'ums');
+define('SETTINGS_LAYOUT', 'settings');
 define('EMAIL_LAYOUT', 'email');
 define('PASSWORD_RESET_EMAIL_LAYOUT', 'password_reset_email');
 define('ENABLER_EMAIL_LAYOUT', 'enabler_email');
@@ -36,7 +37,7 @@ define('BLOCK_CHANGE_IP', 'block_change_ip');
 // define('EXPIRE_LOGIN_SESSION', 'expire_login_session'); // checkConnectTimeLoginSession
 define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', 'max_time_unconnected_login_session');
 define('MAX_WRONG_PASSWORDS', 'max_wrong_passwords');
-define('PASSWORD_TRY_TIME', 'password_try_time');
+define('PASS_TRY_TIME', 'pass_try_time');
 define('USER_LOCK_TIME', 'user_lock_time');
 define('MAX_LOCKS', 'max_locks');
 
@@ -58,7 +59,7 @@ define('REGEX_PASSWORD', 'regex_password');
 define('USE_REGEX_EMAIL', 'use_regex_email');
 define('REGEX_EMAIL', 'regex_email');
 define('ADD_FAKE_USER_PAGE', 'add_fake_users_page');
-define('USER_FOR_PAGE_LIST', 'users_for_page_list');
+// define('USER_FOR_PAGE_LIST', 'users_for_page_list');
 define('LINK_PAGINATION', 'link_pagination');
 define('REQUIRE_CONFIRM_EMAIL', 'require_confirm_email');
 define('ENABLER_EMAIL_FROM', 'enabler_email_from');

@@ -72,6 +72,7 @@ class Controller {
     protected $description = 'PHP FRAMEWORK UMS - This is a framework for user management, which implements the design pattern MVC (Model-view-controller) - Developed by Andrea Serra - DevAS';
     protected $loginSession = NULL;
     protected $userRole = NULL;
+    protected $lang = NULL;
 
     public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout = DEFAULT_LAYOUT) {
         /* get config if is null */
@@ -86,8 +87,9 @@ class Controller {
             $role = new Role($this->conn);
             $this->userRole = $role->getRole($this->loginSession->{ROLE_ID_FRGN});
             $this->handlerSession();
-            array_push($this->jsSrcs, ['src' => '/js/utils/login/logout.js']);
+            array_push($this->jsSrcs, [SOURCE => '/js/utils/login/logout.js']);
         }
+        $this->lang = $this->getLang();
         $this->conn = $conn;
         $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
     }
@@ -160,11 +162,11 @@ class Controller {
         /* if valide token, then send key */
         if ($tokens[0] === $tokens[1]) {
             /* generate new token */
-            $resJSON['ntk'] = generateToken();
+            $resJSON[NEW_TOKEN] = generateToken();
             /* get key and set on result */
             $keys = $this->getKey();
-            $resJSON['keyN'] = $keys['keyN'];
-            $resJSON['keyE'] = $keys['keyE'];
+            $resJSON[KEY_N] = $keys[KEY_N];
+            $resJSON[KEY_E] = $keys[KEY_E];
         }
 
         /* send json response */
@@ -220,7 +222,7 @@ class Controller {
         }
     }
 
-    /* function to send response json (XML HTTP) or default */
+    /* function to send json response if XML HTTP request or send a default response */
     protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken = CSRF) {
         /* get request with header */
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
@@ -241,11 +243,15 @@ class Controller {
     /* function to get tokens of session and post */
     protected function getPostSessionTokens(string $nameToken = CSRF): array {
 //         $postToken = $_POST[$postTokenName] ?? 'tkn';
+        /* reformat name token for header */
         $headerToken = str_replace('-', '_', $nameToken);
         $headerToken = mb_strtoupper($headerToken);
+        /* get post token from header */
         $postToken = $_SERVER['HTTP_'.$headerToken] ?? 'tkn';
+        /* get session token and unset it */
         $sessionToken = $_SESSION[$nameToken] ?? '';
         unset($_SESSION[$nameToken]);
+        /* return tokens */
         return [$postToken, $sessionToken];
     }
     
@@ -289,7 +295,7 @@ class Controller {
         /* if wrong password expire datetime is not set or is expire */
         if (!isset($usrLock->{EXPIRE_WRONG_PASSWORD}) || new DateTime($usrLock->{EXPIRE_WRONG_PASSWORD}) < new DateTime()){
             /* set expire time and reset wrong passwords*/
-            $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASSWORD_TRY_TIME]);
+            $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASS_TRY_TIME]);
             $user->resetWrongPasswords($id, $expireDatetime);
         }
 
@@ -343,20 +349,6 @@ class Controller {
         /* calc expire in unix time and set login session cookie */
         $expireUnixTime =  date_timestamp_get($expireDatetime);
         setcookie(CK_LOGIN_SESSION, $res[TOKEN], time, '/',  $expireUnixTime, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
-    }
-
-    /* function to get a loggin session */
-    protected function getLoginSession() {
-        /* if is set login session token on cookie */
-        if (($tkn = $_COOKIE[CK_LOGIN_SESSION] ?? FALSE)) {
-            /* init session model */
-            $session = new Session($this->conn);
-            /* get user by token and return it. If session is expire, the function return false */
-            $user = $session->getUserByLoginSessionToken($tkn);
-            return $user;
-        }
-        /* else return false */
-        return FALSE;
     }
 
     /* function to reset session if client change ip address */
@@ -492,7 +484,11 @@ class Controller {
         $details = openssl_pkey_get_details($key);
         $keyN = toHex($details['rsa']['n']);
         $keyE = toHex($details['rsa']['e']);
-        return compact('privKey', 'keyN', 'keyE');
+        return [
+            PRIV_KEY => $privKey,
+            KEY_N => $keyN,
+            KEY_E => $keyE
+        ];
     }
 
     /* function to decrypt data */
@@ -544,6 +540,51 @@ class Controller {
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
+
+    /* function to get language select by client */
+    private function getLang() {
+        /* if is set langugage cookie, then return it */
+        if (isset($_COOKIE[CK_LANG])) return $_COOKIE[CK_LANG];
+
+        /* set default result */
+        $langRes = DEFAULT_LANG;
+
+        /* get langs accepted on server */
+        $serverLangs = getList(ACCEPT_LANG_LIST);
+        /* else get accept lang from header request */
+        $accLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        /* get only language */
+        $accLangs = explode(';', $accLangs)[0];
+        /* get language list */
+        $langList = explode(',', $accLangs);
+        /* iterate langs list */
+        foreach ($langList as $lang) {
+            /* get first specification of lang */
+            $lang = explode('-', $lang)[0];
+            /* if lang is accepted by server, then set a result languafe and break loop*/
+            if (in_array($lang, $serverLangs)) {
+                $langRes = $lang;
+                break;
+            }
+        }
+        /* set cookie and return language */
+        setcookie(CK_LANG, $langRes, 0, '/', null, $this->appConfig[SECURITY][ONLY_HTTPS],TRUE);
+        return $langRes;
+    }
+
+    /* function to get a loggin session */
+    private function getLoginSession() {
+        /* if is set login session token on cookie */
+        if (($tkn = $_COOKIE[CK_LOGIN_SESSION] ?? FALSE)) {
+            /* init session model */
+            $session = new Session($this->conn);
+            /* get user by token and return it. If session is expire, the function return false */
+            $user = $session->getUserByLoginSessionToken($tkn);
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
 
     /* function to manage login session */
     private function handlerSession() {

@@ -18,7 +18,7 @@ function getPath(string $pathstart, string ...$others) {
 }
 
 /* function that get a url of server */
-function getUrlServer(): string {
+function getServerUrl(): string {
     return (isSecureConnection() ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'];
 }
 
