@@ -168,7 +168,7 @@ function view(string $view, array $data = []) {
     extract($data);
     
     ob_start();
-    require getViewsPath()."/$view.tpl.php";
+    require getPath(getViewsPath(), "$view.tpl.php");
     $content = ob_get_contents();
     ob_end_clean();
     
@@ -176,16 +176,16 @@ function view(string $view, array $data = []) {
 }
 
 function getList(string $nameList): array {
-    $lists = require getcwd().'/config/lists.php';
+    $lists = require getPath(getcwd(), 'config', 'lists.php');
     return $lists[$nameList];
 }
 
 function getRoutes(): array {
-    return require getcwd().'/config/app.routes.php';
+    return require getPath(getcwd(), 'config', 'app.routes.php');
 }
 
 function getConfig(string $section = NULL): array {
-    $configApp = parse_ini_file(getcwd().'/config/config.ini', TRUE);
+    $configApp = parse_ini_file(getPath(getcwd(), 'config', 'config.ini'), TRUE);
     if ($section === NULL) return $configApp;
     return $configApp[$section];
 }
@@ -215,97 +215,97 @@ function getDomain(string $url): string {
 }
 
 function siteMapExists(): bool {
-    return file_exists(getcwd().'/public/sitemap.xml');
+    return file_exists(getPath(getcwd(), 'public', 'sitemap.xml'));
 }
 
 function getViewsPath(): string {
-    return getcwd().'/app/views';
+    return getPath(getcwd(), 'app', 'views');
 }
 
 function getLayoutPath(): string {
-    return getcwd().'/layout';
+    return getPath(getcwd(), 'layout');
 }
 
-function isUserLoggedin(): bool {
-    return $_SESSION['loggedin'] ?? FALSE;
-}
+// function isUserLoggedin(): bool {
+//     return $_SESSION['loggedin'] ?? FALSE;
+// }
 
-function getUserLogged() {
-    return $_SESSION['user'] ?? NULL;
-}
+// function getUserLogged() {
+//     return $_SESSION['user'] ?? NULL;
+// }
 
-function getUserLoggedFullName(): string {
-    return $_SESSION['user']->name ?? '';
-}
+// function getUserLoggedFullName(): string {
+//     return $_SESSION['user']->name ?? '';
+// }
 
-function getUserLoggedUsername(): string {
-    return $_SESSION['user']->username ?? '';
-}
+// function getUserLoggedUsername(): string {
+//     return $_SESSION['user']->username ?? '';
+// }
 
-function getUserLoggedEmail(): string {
-    return $_SESSION['user']->email ?? '';
-}
+// function getUserLoggedEmail(): string {
+//     return $_SESSION['user']->email ?? '';
+// }
 
-function getUserLoggedRole(): string {
-    return $_SESSION['user']->roletype ?? '';
-}
+// function getUserLoggedRole(): string {
+//     return $_SESSION['user']->roletype ?? '';
+// }
 
-function getUserLoggedID(): string {
-    return $_SESSION['user']->id ?? '';
-}
+// function getUserLoggedID(): string {
+//     return $_SESSION['user']->id ?? '';
+// }
 
-function getUserLoggedNewEmail() {
-    return $_SESSION['user']->new_email ?? FALSE;
-}
+// function getUserLoggedNewEmail() {
+//     return $_SESSION['user']->new_email ?? FALSE;
+// }
 
-function getUserLoggedTokenConfirmEmail() {
-    return $_SESSION['user']->token_confirm_email ?? FALSE;
-}
+// function getUserLoggedTokenConfirmEmail() {
+//     return $_SESSION['user']->token_confirm_email ?? FALSE;
+// }
 
-function isUserAdmin(): bool {
-    return getUserLoggedRole() === 'admin';
-}
+// function isUserAdmin(): bool {
+//     return getUserLoggedRole() === 'admin';
+// }
 
-function isUserEditor(): bool {
-    return getUserLoggedRole() === 'editor';
-}
+// function isUserEditor(): bool {
+//     return getUserLoggedRole() === 'editor';
+// }
 
-function isUser(): bool {
-    return getUserLoggedRole() === 'user';
-}
+// function isUser(): bool {
+//     return getUserLoggedRole() === 'user';
+// }
 
-function isNotSimpleUser(): bool {
-    return isUserLoggedin() && !isUser();
-}
+// function isNotSimpleUser(): bool {
+//     return isUserLoggedin() && !isUser();
+// }
 
-function userCanCreate(): bool {
-    return isUserAdmin();
-}
+// function userCanCreate(): bool {
+//     return isUserAdmin();
+// }
 
-function userCanUpdate(): bool {
-    return isUserAdmin() || isUserEditor();
-}
+// function userCanUpdate(): bool {
+//     return isUserAdmin() || isUserEditor();
+// }
 
-function userCanDelete(): bool {
-    return isUserAdmin();
-}
+// function userCanDelete(): bool {
+//     return isUserAdmin();
+// }
 
-function userCanChangePasswords(): bool {
-    return isUserAdmin();
-}
+// function userCanChangePasswords(): bool {
+//     return isUserAdmin();
+// }
 
-function userCanGenerateRsaKey(): bool {
-    return isUserAdmin();
-}
+// function userCanGenerateRsaKey(): bool {
+//     return isUserAdmin();
+// }
 
-function userCanGenerateSiteMap(): bool {
-    return isUserAdmin();
-}
+// function userCanGenerateSiteMap(): bool {
+//     return isUserAdmin();
+// }
 
-function userCanChangeSettings(): bool {
-    return isUserAdmin();
-}
+// function userCanChangeSettings(): bool {
+//     return isUserAdmin();
+// }
 
-function userCanSendEmail(): bool {
-    return isUserAdmin();
-}
+// function userCanSendEmail(): bool {
+//     return isUserAdmin();
+// }

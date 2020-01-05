@@ -21,19 +21,19 @@ define('DATETIME_FORMAT', 'datetime_format');
 define('DEFAULT_LAYOUT', 'default');
 define('UMS_LAYOUT', 'ums');
 define('EMAIL_LAYOUT', 'email');
-define('RESET_PASSWORD_EMAIL_LAYOUT', 'reset_password_email');
-define('VALIDATION_EMAIL_LAYOUT', 'validation_email');
+define('PASSWORD_RESET_EMAIL_LAYOUT', 'password_reset_email');
+define('ENABLER_EMAIL_LAYOUT', 'enabler_email');
 
 /* RSA SECTION */
 define('DIGEST_ALG', 'digest_alg');
 define('PRIVATE_KEY_BITS', 'private_key_bits');
-define('RSA_KEY_STATIC', 'rsa_key_static');
+define('STATIC_RSA_KEY', 'static_rsa_key');
 define('RSA_PRIV_KEY_FILE', 'rsa_priv_key_file');
 
 /* SECURITY SECTION */
 define('ONLY_HTTPS', 'only_https');
 define('BLOCK_CHANGE_IP', 'block_change_ip');
-define('EXPIRE_LOGIN_SESSION', 'expire_login_session'); // checkConnectTimeLoginSession
+// define('EXPIRE_LOGIN_SESSION', 'expire_login_session'); // checkConnectTimeLoginSession
 define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', 'max_time_unconnected_login_session');
 define('MAX_WRONG_PASSWORDS', 'max_wrong_passwords');
 define('PASSWORD_TRY_TIME', 'password_try_time');
@@ -61,10 +61,10 @@ define('ADD_FAKE_USER_PAGE', 'add_fake_users_page');
 define('USER_FOR_PAGE_LIST', 'users_for_page_list');
 define('LINK_PAGINATION', 'link_pagination');
 define('REQUIRE_CONFIRM_EMAIL', 'require_confirm_email');
-define('VALIDATION_EMAIL_FROM', 'validation_email_from');
-define('USE_SERVER_DOMAIN_VALIDATION_EMAIL_LINK', 'use_server_domain_validation_email_link');
-define('URL_DOMAIN_EMAIL_VALIDATION_LINK', 'url_domain_validation_email_link');
+define('ENABLER_EMAIL_FROM', 'enabler_email_from');
+// define('USE_SERVER_DOMAIN_VALIDATION_EMAIL_LINK', 'use_server_domain_validation_email_link');
+define('DOMAIN_URL_LINK', 'domain_url_link');
 define('PASS_RESET_EMAIL_FROM', 'pass_reset_email_from');
-define('USE_SERVER_DOMAIN_PASS_RESET_LINK', 'use_server_domain_pass_reset_link');
-define('DOMAIN_URL_PASS_RESET_LINK', 'domain_url_pass_reset_link');
-define('EXPIRATION_TIME_PASS_RESET', 'expiration_time_pass_reset');
+// define('USE_SERVER_DOMAIN_PASS_RESET_LINK', 'use_server_domain_pass_reset_link');
+// define('DOMAIN_URL_PASS_RESET_LINK', 'domain_url_pass_reset_link');
+define('PASS_RESET_EXPIRE_TIME', 'pass_reset_expire_time');

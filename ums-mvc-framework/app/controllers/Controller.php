@@ -8,6 +8,7 @@ use app\models\Email;
 use app\models\User;
 use app\controllers\verifiers\Verifier;
 use app\models\Session;
+use app\models\Role;
 
 /**
  * Class controller to implement principal properties and functions
@@ -70,12 +71,20 @@ class Controller {
     protected $keywords = 'php, ums, framework, programming, development, users, management, system, user, mvc, model, view, controller';
     protected $description = 'PHP FRAMEWORK UMS - This is a framework for user management, which implements the design pattern MVC (Model-view-controller) - Developed by Andrea Serra - DevAS';
     protected $loginSession = NULL;
+    protected $userRole = NULL;
 
     public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout = DEFAULT_LAYOUT) {
+        /* get config if is null */
         $this->appConfig = $appConfig ?? getConfig();
-        if ($this->appConfig[SECURITY][ONLY_HTTPS]) $this->redirectIfNotSecureConnection();
+        /* if require redirect on https */
+        if ($this->appConfig[SECURITY][ONLY_HTTPS]) $this->redirectOnSecureConnection();
+        /* get login session */
         $this->loginSession = $this->getLoginSession();
+        /* if have login session */
         if ($this->loginSession) {
+            /* init role model, and get roles of login user */
+            $role = new Role($this->conn);
+            $this->userRole = $role->getRole($this->loginSession->{ROLE_ID_FRGN});
             $this->handlerSession();
             array_push($this->jsSrcs, ['src' => '/js/utils/login/logout.js']);
         }
@@ -100,8 +109,19 @@ class Controller {
     }
 
     /* function to show a message on page */
-    public function showMessage(string $message) {
-        $this->content = view('show-message', [MESSAGE => $message]);
+    public function showMessage(string $message, bool $error=FALSE) {
+        $data = [
+            MESSAGE => $message,
+            ERROR => $error
+        ];
+        $this->content = view('show-message', $data);
+    }
+
+    /* function to set a message page, show it and exit */
+    public function showMessageAndExit(string $message, bool $error=FALSE) {
+        $this->showMessage($message, $error);
+        $this->display();
+        exit;
     }
 
     /* function to send 404 code and show page not found */
@@ -180,6 +200,27 @@ class Controller {
     /* ##################################### */
 
     /* function to send response json (XML HTTP) or default */
+    protected function switchFailResponse(string $message='Fail') {
+        /* get request with header */
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        /* switc the response according to the header */
+        switch ($header) {
+            /* if response is XMLHTTP, then send json response */
+            case 'XMLHTTPREQUEST':
+                sendJsonResponse([
+                    MESSAGE => $message,
+                    SUCCESS => FALSE
+                ]);
+                exit;
+            /* default function */
+            default:
+                /* display fail message and exit */
+                $this->showMessageAndExit($message, TRUE);
+                exit;
+        }
+    }
+
+    /* function to send response json (XML HTTP) or default */
     protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken = CSRF) {
         /* get request with header */
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
@@ -187,9 +228,9 @@ class Controller {
         switch ($header) {
             /* if response is XMLHTTP, then send json response */
             case 'XMLHTTPREQUEST':
-                if ($generateNewToken) $data['ntk'] = generateToken($nameToken);
+                if ($generateNewToken) $data[NEW_TOKEN] = generateToken($nameToken);
                 sendJsonResponse($data);
-                break;
+                exit;
             /* default function */
             default:
                 $funcDefault($data);
@@ -240,14 +281,12 @@ class Controller {
         return $content;
     }
 
-    /* function handler for wrong passwords */
+    /* function to manage wrong passwords */
     protected function handlerWrongPassword(int $id) {
         /* init user model, and get user id */
         $user = new User($this->conn, $this->appConfig);
         $usrLock = $user->getUserLock($id);
-        /* if wrong password expire datetime is not set or is expire,
-         * then set new expire datetime and resest count wrong password
-         */
+        /* if wrong password expire datetime is not set or is expire */
         if (!isset($usrLock->{EXPIRE_WRONG_PASSWORD}) || new DateTime($usrLock->{EXPIRE_WRONG_PASSWORD}) < new DateTime()){
             /* set expire time and reset wrong passwords*/
             $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASSWORD_TRY_TIME]);
@@ -268,8 +307,6 @@ class Controller {
             /* get lock expire time */
             $expireLock = getExpireDatetime($this->appConfig[SECURITY][USER_LOCK_TIME]);
             $user->lockUser($id, $expireLock);
-//             $nLocks = (int) $this->getUserLock($id)->{COUNT_LOCKS};
-//             ++$nLocks;
             /* increment count locks and set on user */
             $user->setCountUserLocks($id, ++$usrLock->{COUNT_LOCKS});
 
@@ -306,14 +343,6 @@ class Controller {
         /* calc expire in unix time and set login session cookie */
         $expireUnixTime =  date_timestamp_get($expireDatetime);
         setcookie(CK_LOGIN_SESSION, $res[TOKEN], time, '/',  $expireUnixTime, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
-
-//         $_SESSION['loggedin'] = TRUE;
-//         $_SESSION['user'] = $userId;
-//         if ($this->appConfig['app']['checkConnectTimeLoginSession']) {
-//             $expireTime = new DateTime();
-//             $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
-//             $_SESSION['expireTime'] = $expireTime;
-//         }
     }
 
     /* function to get a loggin session */
@@ -337,66 +366,52 @@ class Controller {
             /* remove login session */
             $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
 
-            /* set result data */
-            $dataOut = [
-                MESSAGE => 'Your IP address has changed',
-                SUCCESS => FALSE
-            ];
-
-            /* function to default rresponse */
-            $funcDefault = function($data) {
-                $this->showMessage($data[MESSAGE]);
-                exit;
-            };
-
-            $this->switchResponse($dataOut, FALSE, $funcDefault);
-//             $_SESSION[MESSAGE] = 'Your IP address has changed';
-//             $_SESSION[SUCCESS] = FALSE;
+            /* send fail response */
+            $this->switchFailResponse();
         }
     }
 
-    /* REDIRECTS */
+    /* REDIRECTS OR FAIL */
+
+    /* function to redirect if user is loggin */
+    protected function redirectOrFailIfLoggin() {
+        if ($this->loginSession) $this->switchFailResponse();
+    }
 
     /* function to redirect if client is not loggin */
-    protected function redirectIfNotLoggin() {
-        if (!$this->loginSession) redirect("/auth/login");
+    protected function redirectOrFailIfNotLogin() {
+        if (!$this->loginSession) $this->switchFailResponse();
     }
 
     /* function to redirect if client is not admin user */
-    protected function redirectIfNotAdmin() {
-        $this->redirectIfLoggin();
-        if ($this->loginSession->{ROLE_ID_FRGN} !== 0) redirect();
+    protected function redirectOrFailIfNotAdmin() {
+        $this->redirectOrFailIfNotLogin();
+        if ($this->loginSession->{ROLE_ID_FRGN} !== 0) $this->switchFailResponse();
     }
 
     /* function to redirect if client is not loggin */
-    protected function redirectIfCanNotCreate() {
-        if (!userCanCreate()) redirect();
+    protected function redirectOrFailIfCanNotCreateUser() {
+        $this->redirectOrFailIfNotLogin();
+        if (!$this->userRole->{CREATE_USER}) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not update */
-    protected function redirectIfCanNotUpdate() {
-        if (!userCanUpdate()) redirect();
+    protected function redirectOrFailIfCanNotUpdateUser() {
+        $this->redirectOrFailIfNotLogin();
+        if (!$this->userRole->{UPDATE_USER}) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not delete */
-    protected function redirectIfCanNotDelete() {
-        if (!userCanCreate()) redirect();
+    protected function redirectOrFailIfCanNotDelete() {
+        $this->redirectOrFailIfNotLogin();
+        if (!$this->userRole->{DELETE_USER}) $this->switchFailResponse();
     }
 
-    /* function to redirect if user is loggin */
-    protected function redirectIfLoggin() {
-        if (isUserLoggedin()) redirect();
+    /* redirect if email confirm is not require */
+    protected function redirectIfNotRequireConfirmEmail() {
+        if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $this->switchFailResponse();
     }
-
-    /* function to redirect if not SSL connection */
-    protected function redirectIfNotSecureConnection() {
-        if (!isSecureConnection()) {
-            $urlServer = str_replace("www.", "", $_SERVER['HTTP_HOST']);
-            $reqUri = $_SERVER['REQUEST_URI'];
-            redirect("https://$urlServer/$reqUri");
-        }
-    }
-
+    
     /* function to redirect if not XML HTTP request */
     protected function redirectIfNotXMLHTTPRequest(string $url = '/') {
         if (!isXmlhttpRequest()) {
@@ -406,26 +421,35 @@ class Controller {
         }
     }
 
-    /* redirect if email confirm is not require */
-    protected function redirectIfNotEmailConfirmRequire() {
-        if (!$this->appConfig['app']['requireConfirmEmail']) redirect();
+    /* function to redirect on HTTPS connection */
+    protected function redirectOnSecureConnection() {
+        if (!isSecureConnection()) {
+            $urlServer = str_replace("www.", "", $_SERVER['HTTP_HOST']);
+            $reqUri = $_SERVER['REQUEST_URI'];
+            redirect("https://$urlServer/$reqUri");
+        }
     }
 
     /* EMAIL SENDER FUNCTIONS */
 
-    /* function to send the validation email */
-    protected function sendEmailValidation(string $to, string $token, string $message = 'ACTIVATE YOUR ACCOUNT', bool $newEmail = FALSE): bool {
-        $link = $this->appConfig['app']['useServerDomainEmailValidationLink'] ? getUrlServer() : $this->appConfig['app']['urlDomainEmailValidationLink'];;
+    /* function to send the enabler email */
+    protected function sendEnablerEmail(string $to, string $token, string $message = 'ACTIVATE YOUR ACCOUNT', bool $newEmail = FALSE): bool {
+        /* get url domain from configurations */
+        $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
+        /* append source path and token */
         $link .= $newEmail ? '/validate/new/email/' : '/account/enable/';
         $link .= $token;
 
-        $_SESSION['link'] = $link;
+        /* insert link on session if on DEV mode */
+        if (DEV) $_SESSION['link'] = $link;
 
-        $email = new Email($to, $this->appConfig['app']['emailValidationFrom']);
-        $headers = 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type:text/html;charset=UTF-8' . "\r\n";
+        /* init email model and set headers */
+        $email = new Email($to, $this->appConfig[UMS][ENABLER_EMAIL_FROM]);
+        $headers = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type:text/html;charset=utf-8\r\n";
         $email->setHeaders($headers);
-        $email->setLayout('email-validation');
+        /* set layout and data, then generate email body and send it */
+        $email->setLayout(ENABLER_EMAIL_LAYOUT);
         $email->setData(compact('link', 'message'));
         $email->generateContentWithLayout();
         return $email->send();
@@ -433,41 +457,39 @@ class Controller {
 
     /* function to send email for password reset */
     protected function sendEmailResetPassword(string $to, string $token, string $message = 'RESET YOUR PASSWORD'): bool {
-        $link = $this->appConfig['app']['useServerDomainResetPassLink'] ? getUrlServer() : $this->appConfig['app']['urlDomainResetPasswordLink'];
+        /* get domain url from configuration, next append source path and token */
+        $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
         $link .= '/user/reset/password/' . $token;
 
-        $_SESSION['link'] = $link;
-        
-        $email = new Email($to, $this->appConfig['app']['emailResetPassFrom']);
+        /* insert link on session if on DEV mode */
+        if (DEV) $_SESSION['link'] = $link;
+
+        /* init email model and set headers */
+        $email = new Email($to, $this->appConfig[UMS][ENABLER_EMAIL_FROM]);
         $headers = 'MIME-Version: 1.0' . "\r\n";
-        $headers .= 'Content-type:text/html;charset=UTF-8' . "\r\n";
+        $headers .= 'Content-type:text/html;charset=utf-8' . "\r\n";
         $email->setHeaders($headers);
-        $email->setLayout('email-reset-password');
+        /* set layout and data, then generate email body and send it */
+        $email->setLayout(PASSWORD_RESET_EMAIL_LAYOUT);
         $email->setData(compact('link', 'message'));
         $email->generateContentWithLayout();
         return $email->send();
     }
 
+    /* RSA CRYPT FUNCTIONS */
+
     /* function to get private and public key */
     protected function getKey(string $nameKey = 'privKey'): array {
-        $configRsa = $this->appConfig['rsa'];
-        if ($configRsa['rsaKeyStatic']) {
-            $pathFile = getcwd() . '/config/rsa/' . $configRsa['rsaPrivKeyFile'];
-            $fHandle = fopen($pathFile, 'r');
-            $privKey = fread($fHandle, filesize($pathFile));
-            fclose($fHandle);
-            $res = openssl_pkey_get_private($privKey);
-        } else {
-            $config = [
-                'digest_alg' => $configRsa['digestAlg'],
-                'private_key_bits' => $configRsa['privateKeyBits'],
-                'private_key_type' => OPENSSL_KEYTYPE_RSA
-            ];
-            $res = openssl_pkey_new($config);
-            openssl_pkey_export($res, $privKey);
-            $_SESSION[$nameKey];
-        }
-        $details = openssl_pkey_get_details($res);
+        /* get rsa configuration */
+        $configRsa = $this->appConfig[RSA];
+        /* get path of private key and read it */
+        $pathFile = getPath(getcwd(),'config', 'rsa', $configRsa[RSA_PRIV_KEY_FILE]);
+        $privKey = safeFileRead($pathFile);
+        /* validate key */
+        if (!($key = openssl_pkey_get_private($privKey))) $this->switchFailResponse();
+
+        /* get key details and return it */
+        $details = openssl_pkey_get_details($key);
         $keyN = toHex($details['rsa']['n']);
         $keyE = toHex($details['rsa']['e']);
         return compact('privKey', 'keyN', 'keyE');
@@ -475,14 +497,17 @@ class Controller {
 
     /* function to decrypt data */
     protected function decryptData(string $data, string $nameKeySession = 'privKey'): string {
-        $confApp = $this->appConfig['rsa'];
-        if ($confApp['rsaKeyStatic']) {
-            $pathFile = getcwd() . '/config/rsa/' . $confApp['rsaPrivKeyFile'];
-            $privKey = safeFileRead($pathFile);
-        } else $privKey =  $_SESSION[$nameKeySession];
-        $key = openssl_pkey_get_private($privKey);
-        /* conversione da annotazione hex */
+        /* get rsa configuration */
+        $configRsa = $this->appConfig[RSA];
+        /* get path of private key, and read it */
+        $pathFile = getPath(getcwd(),'config', 'rsa', $configRsa[RSA_PRIV_KEY_FILE]);
+        $privKey = safeFileRead($pathFile);
+        /* validate key */
+        if (!($key = openssl_pkey_get_private($privKey))) $this->switchFailResponse();
+
+        /* convert data from hex annotation */
         $data = pack('H*', $data);
+        /* decrypt data and return it */
         $res = '';
         openssl_private_decrypt($data, $res, $key);
         return $res;
@@ -492,19 +517,27 @@ class Controller {
 
     /* function to get attributes of css by info array */
     protected function getAttributeCss(array $css): string {
-        $str = 'href="'.$css['src'].'" ';
+        /* create link source */
+        $str = 'href="'.$css[SOURCE].'" ';
+        /* append CSP nonce */
         $str .= "nonce=\"$this->CSPStyleNonce\"";
-        $str .= isset($css['integrity']) ? ' integrity="'.$css['integrity'].'"' : '';
-        $str .= isset($css['crossorigin']) ? ' crossorigin="'.$css['crossorigin'].'"' : '';
+        /* if is set integrity, append it */
+        $str .= isset($css[INTEGRITY]) ? ' integrity="'.$css['integrity'].'"' : '';
+        /* if is set crossorigin, append it */
+        $str .= isset($css[CROSSORIGIN]) ? ' crossorigin="'.$css['crossorigin'].'"' : '';
         return $str;
     }
 
     /* function to get attribute of javascript by info array */
     protected function getAttributeJS(array $js): string {
-        $str = 'src="'.$js['src'].'" ';
+        /* create link source */
+        $str = 'src="'.$js[SOURCE].'" ';
+        /* append CSP nonce */
         $str .= "nonce=\"$this->CSPScriptNonce\"";
-        $str .= isset($js['integrity']) ? ' integrity="'.$js['integrity'].'"' : '';
-        $str .= isset($js['crossorigin']) ? ' crossorigin="'.$js['crossorigin'].'"' : '';
+        /* if is set integrity, append it */
+        $str .= isset($js[INTEGRITY]) ? ' integrity="'.$js['integrity'].'"' : '';
+        /* if is set crossorigin, append it */
+        $str .= isset($js[CROSSORIGIN]) ? ' crossorigin="'.$js['crossorigin'].'"' : '';
         return $str;
     }
 
@@ -514,6 +547,7 @@ class Controller {
 
     /* function to manage login session */
     private function handlerSession() {
+        /* reset login session if client change ip */
         if ($this->appConfig[SECURITY][BLOCK_CHANGE_IP]) $this->resetLoginSessionIfChangeIp();
         /* check if session is expire, then reset it */
         if (new DateTime($this->loginSession->{EXPIRE_LOGIN_SESSION}) < new DateTime()) {
@@ -527,22 +561,18 @@ class Controller {
             
             /* function to default response */
             $funcDefault = function($data) {
-                $this->showMessage($data[MESSAGE]);
-                exit;
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+                redirect();
+//                 $this->showMessageAndExit($data[MESSAGE], TRUE);
             };
 
-            
+            /* send session expired message */
             $this->switchResponse($dataOut, FALSE, $funcDefault);
-//             $_SESSION['message'] = 'SESSION EXPIRED';
-//             $_SESSION['success'] = FALSE;
-//             redirect();
         }
         /* init session  and set expire date time */
         $session = new Session($this->conn);
         $expireDatetime = getExpireDatetime($this->appConfig[SECURITY][MAX_TIME_UNCONNECTED_LOGIN_SESSION]);
         $session->setExpireLoginSession($this->loginSession->{SESSION_ID}, $expireDatetime);
-//         $expireTime = new DateTime();
-//         $expireTime->modify($this->appConfig['app']['maxTimeUnconnectedLoginSession']);
-//         $_SESSION['expireTime'] = $expireTime;
     }
 }

@@ -570,34 +570,6 @@ class User {
         return $result;
     }
 
-    /* function to get role id by role name */
-    public function getRoleId($role_name) {
-        /* set fail results */
-        $result = [
-            MESSAGE => 'Invalid role',
-            SUCCESS => FALSE
-        ];
-
-        /* prepare sql query */
-        $sql = 'SELECT id as '.ROLE_ID.', role FROM roles WHERE role = :role';
-        $stmt = $this->conn->prepare($sql);
-        /* execute sql query */
-        $stmt->execute([
-            'role' => $role_name
-        ]);
-
-        /* check statement, get role and return success result */
-        if ($stmt && ($role = $stmt->fetch(PDO::FETCH_OBJ))) {
-            unset($result[MESSAGE]);
-            $result[SUCCESS] = TRUE;
-            $result[ROLE_ID] = $role->ROLE_ID;
-            return $result;
-        }
-
-        /* return fail result */
-        return $result;
-    }
-
     /* function to get user lock property */
     public function getUserLock(int $id) {
         /* set fail results */
