@@ -20,39 +20,43 @@ class EmailController extends Controller {
 
     /* function to view new email interfdace */
     public function showNewEmail() {
-        $this->redirectIfCanNotSendEmail();
+        /* redirect */
+        $this->redirectOrFailIfCanNotSendEmail();
 
+        /* set location */
         $this->isNewEmail = TRUE;
 
-        $this->CSPScriptSrc .= " 'strict-dynamic'";
-        $this->CSPStyleSrc .= " 'unsafe-inline' 'strict-dynamic'";
-        $this->CSPImgSrc .= ' data:';
+//         $this->CSPScriptSrc .= " 'strict-dynamic'";
+//         $this->CSPStyleSrc .= " 'unsafe-inline' 'strict-dynamic'";
+//         $this->CSPImgSrc .= ' data:';
+        /* add javascript source */
         array_push($this->jsSrcs,
-//             ['src' => '/js/ckeditor/ckeditor.js'],
-            ['src' => '/js/crypt/jsbn.js'],
-            ['src' => '/js/crypt/prng4.js'],
-            ['src' => '/js/crypt/rng.js'],
-            ['src' => '/js/crypt/rsa.js'],
-            ['src' => '/js/utils/req-key.js'],
-            ['src' => '/js/utils/validate.js'],
-            ['src' => '/js/utils/ums/adm-mail.js']
+//             [SOURCE => '/js/ckeditor/ckeditor.js'],
+            [SOURCE => '/js/crypt/jsbn.js'],
+            [SOURCE => '/js/crypt/prng4.js'],
+            [SOURCE => '/js/crypt/rng.js'],
+            [SOURCE => '/js/crypt/rsa.js'],
+            [SOURCE => '/js/utils/req-key.js'],
+            [SOURCE => '/js/utils/validate.js'],
+            [SOURCE => '/js/utils/ums/adm-mail.js']
         );
-        
-        $this->content = view('ums/admin-new-email', ['token' => generateToken()]);
+
+        /* generrate token and show new email page */
+        $this->content = view('ums/admin-new-email', [TOKEN => generateToken(CSRF_NEW_EMAIL)]);
     }
 
     /* function to send email */
     public function sendEmail() {
         /* redirects */
-        $this->redirectIfCanNotSendEmail();
+        $this->redirectOrFailIfCanNotSendEmail();
         $this->redirectIfNotXMLHTTPRequest('/ums/email/new');
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens();
-        $to = $_POST['to'] ?? '';
-        $subject = $_POST['subject'] ?? '';
-        $content = $_POST['content'] ?? '';
-        $from = $this->appConfig['app']['sendEmailFrom'];
+        $to = $_POST[TO] ?? '';
+        $subject = $_POST[SUBJETC] ?? '';
+        $content = $_POST[CONTENT] ?? '';
+        $from = $this->appConfig[APP][SEND_EMAIL_FROM];
 
         /* decrypt data */
         $to = $this->decryptData($to);
@@ -63,39 +67,40 @@ class EmailController extends Controller {
         $verifier = EmailVerifier::getInstance($this->appConfig);
         $resSendEmail = $verifier->verifySendEmail($from, $to, $tokens);
         /* if success */
-        if ($resSendEmail['success']) {
+        if ($resSendEmail[SUCCESS]) {
             /* if is set add subject */
             $email = isset($subject) ? new Email($to, $from, $subject) : new Email($to, $from);
             /* set header of email */
-            $headers = "MIME-Version: 1.0" . "\r\n";
-            $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+            $headers = "MIME-Version: 1.0"."\r\n";
+            $headers .= "Content-type:text/html;charset=UTF-8"."\r\n";
             $email->setHeaders($headers);
             /* set data and layout */
-            $email->setData(['content' => $content]);
-            $email->setLayout('email');
-            /* generate email with select layout and send it */
+            $email->setData([CONTENT => $content]);
+            $email->setLayout(EMAIL_LAYOUT);
+            /* generate email with select layout */
             $email->generateContentWithLayout();
-            $resSendEmail['success'] = $email->send();
-            $resSendEmail['message'] = $resSendEmail['success'] ? 'Email sent successfully' : 'Sending email failed' ;
+            /* send email and set result */
+            $resSendEmail[SUCCESS] = $email->send();
+            $resSendEmail[MESSAGE] = $resSendEmail[SUCCESS] ? 'Email sent successfully' : 'Sending email failed' ;
         }
 
         /* result data */
         $dataOut = [
-            'success' => $resSendEmail['success'],
-            'message' => $resSendEmail['message'] ?? NULL,
-            'error' => $resSendEmail['error'] ?? NULL
+            SUCCESS => $resSendEmail[SUCCESS],
+            MESSAGE => $resSendEmail[MESSAGE] ?? NULL,
+            ERROR => $resSendEmail[ERROR] ?? NULL
         ];
 
         /* function for default response */
         $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data['success'] ? redirect() : redirect('/ums/email/new');
+            $data[SUCCESS] ? redirect() : redirect('/ums/email/new');
         };
 
-        $this->switchResponse($dataOut, !$resSendEmail['success'], $funcDefault);
+        $this->switchResponse($dataOut, !$resSendEmail[SUCCESS], $funcDefault);
     }
 
     /* ##################################### */
@@ -103,7 +108,7 @@ class EmailController extends Controller {
     /* ##################################### */
 
     /* function to redirect if user can not send email */
-    private function redirectIfCanNotSendEmail() {
-        if (!userCanSendEmail()) redirect();
+    private function redirectOrFailIfCanNotSendEmail() {
+        if (!$this->userRole->{CAN_SEND_EMAIL}) $this->switchFailResponse();
     }
 }

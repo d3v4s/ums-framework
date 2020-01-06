@@ -29,11 +29,13 @@ class AppSettingsVerifier extends Verifier {
         /* set fail result */
         $result = [
             MESSAGE => 'Settings update failed',
-            SUCCESS => FALSE
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
-        /* verify tokens */
+        /* verify tokens, and if is valid set generate token */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* validate page not found */
         if (!$this->isValidInput($data[PAGE_NOT_FOUND], 1, 150, TRUE, '/^[a-zA-Z\d_\-.]+$/')) {
@@ -88,11 +90,13 @@ class AppSettingsVerifier extends Verifier {
         /* set fail result */
         $result = [
             MESSAGE => 'Settings update failed',
-            SUCCESS => FALSE
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
         
-        /* validate token */
+        /* verify tokens, and if is valid set generate token */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
         
         /* get layout data */
         $dataRes = $this->getLayoutSettingsData($data);
@@ -100,13 +104,13 @@ class AppSettingsVerifier extends Verifier {
         foreach ($dataRes as $nameLayout => $valueLayout) {
             /* validate name */
             if (!preg_match('/^[a-zA-Z\d_\-]+$/', $nameLayout)) {
-                $result[MESSAGE] = 'Invalid layut name: ' . $nameLayout;
+                $result[MESSAGE] = 'Invalid layut name: '.$nameLayout;
                 $result[ERROR] = array_search($nameLayout, $data);
                 return $result;
             }
             /* validate value */
             if (!preg_match('/^[a-zA-Z\d_\-.]+$/', $valueLayout)) {
-                $result[MESSAGE] = 'Invalid layut value: ' . $valueLayout;
+                $result[MESSAGE] = 'Invalid layut value: '.$valueLayout;
                 $result[ERROR] = array_search($valueLayout, $data);
                 return $result;
             }
@@ -126,11 +130,13 @@ class AppSettingsVerifier extends Verifier {
         /* set fail result */
         $result = [
             MESSAGE => 'Settings update failed',
-            SUCCESS => FALSE
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
-        /* validate tokens */
+        /* verify tokens, and if is valid set generate token */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* validate n. bits of private key */ 
         if (!$this->isValidNumber($data[PRIVATE_KEY_BITS], 1, 1024000)) {
@@ -163,11 +169,13 @@ class AppSettingsVerifier extends Verifier {
         /* set fail result */
         $result = [
             MESSAGE => 'Settings update failed',
-            SUCCESS => FALSE
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
-        
-        /* verify tokens */
+
+        /* verify tokens, and if is valid set generate token */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
         
         /* validate max unconnected time on login session */
         if (!$this->isValidNumber($data[MAX_TIME_UNCONNECTED_LOGIN_SESSION], -1, 9999)) {
@@ -241,17 +249,19 @@ class AppSettingsVerifier extends Verifier {
         /* set fail result */
         $result = [
             MESSAGE => 'Settings update failed',
-            SUCCESS => FALSE
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
         
-        /* verify tokens */
+        /* verify tokens, and if is valid set generate token */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* init role model */
         $role = new Role($this->conn);
 
         /* validate default user */
-        if (!(is_numeric($data[DEFAULT_USER]) && $role->getRole($data[DEFAULT_USER]))) {
+        if (!(is_numeric($data[DEFAULT_USER_ROLE]) && $role->getRole($data[DEFAULT_USER_ROLE]))) {
             $result[MESSAGE] = 'Invalid default user';
             $result[ERROR] = MIN_LENGHT_NAME;
         }
@@ -298,13 +308,6 @@ class AppSettingsVerifier extends Verifier {
             return $result;
         }
         
-//         /* validate list of n. users for page */
-//         if (!preg_match('/^[\d,]+$/', $data[USERS_FOR_PAGE_LIST])) {
-//             $result['message'] = 'Invalid users for page list';
-//             $result['error'] = USERS_FOR_PAGE_LIST;
-//             return $result;
-//         }
-
         /* validate n. link visible on pagination */
         if (!$this->isValidNumber($data[LINK_PAGINATION], 1, 30)) {
             $result[MESSAGE] = 'Invalid n. link pagination';

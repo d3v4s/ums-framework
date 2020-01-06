@@ -57,9 +57,9 @@ class AppSettingsDataFactory extends DataFactory {
         /* get url of server */
         $data[URL_SERVER] = getServerUrl();
         /* set html checked attribute for check buttons */
-        $data['_'.SHOW_MESSAGE_EXCEPTION] = $data[SHOW_MESSAGE_EXCEPTION] ? 'checked="checked"' : '';
-        $data['_'.CHECK_MAX_LENGTH_PASS] = $data[CHECK_MAX_LENGTH_PASS] ? 'checked="checked"' : '';
-        $data['_'.REQUIRE_HARD_PASS] = $data[REQUIRE_HARD_PASS] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.SHOW_MESSAGE_EXCEPTION] = $data[SHOW_MESSAGE_EXCEPTION] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.CHECK_MAX_LENGTH_PASS] = $data[CHECK_MAX_LENGTH_PASS] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.REQUIRE_HARD_PASS] = $data[REQUIRE_HARD_PASS] ? 'checked="checked"' : '';
         $data[TIME_UNIT_LIST] = $this->timeUnitList;
 //         $data['_checkedAddFakeUsersPage'] = $data['addFakeUsersPage'] ? 'checked="checked"' : '';
     }
@@ -83,8 +83,8 @@ class AppSettingsDataFactory extends DataFactory {
     /* function to mangae the data of security settings */
     private function handlerSecuritySettingsData(array &$data) {
         /* set html checked attribute for check buttons */
-        $data['_'.ONLY_HTTPS] = $data[ONLY_HTTPS] ? 'checked="checked"' : '';
-        $data['_'.BLOCK_CHANGE_IP] = $data[BLOCK_CHANGE_IP] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.ONLY_HTTPS] = $data[ONLY_HTTPS] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.BLOCK_CHANGE_IP] = $data[BLOCK_CHANGE_IP] ? 'checked="checked"' : '';
         /* split time and unit */
         $timeSplit = explode(' ', $data[MAX_TIME_UNCONNECTED_LOGIN_SESSION]);
         $data[MAX_TIME_UNCONNECTED_LOGIN_SESSION] = $timeSplit[0];
@@ -102,12 +102,12 @@ class AppSettingsDataFactory extends DataFactory {
     /* function to mangae the data of UMS settings */
     private function handlerUmsSettingsData(array &$data) {
         /* set html checked attribute for check buttons */
-        $data['_'.SHOW_MESSAGE_EXCEPTION] = $data[SHOW_MESSAGE_EXCEPTION] ? 'checked="checked"' : '';
-        $data['_'.CHECK_MAX_LENGTH_PASS] = $data[CHECK_MAX_LENGTH_PASS] ? 'checked="checked"' : '';
-        $data['_'.REQUIRE_HARD_PASS] = $data[REQUIRE_HARD_PASS] ? 'checked="checked"' : '';
-        $data['_'.USE_REGEX] = $data[USE_REGEX] ? 'checked="checked"' : '';
-        $data['_'.USE_REGEX_EMAIL] = $data[USE_REGEX_EMAIL] ? 'checked="checked"' : '';
-        $data['_'.REQUIRE_CONFIRM_EMAIL] = $data[REQUIRE_CONFIRM_EMAIL] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.SHOW_MESSAGE_EXCEPTION] = $data[SHOW_MESSAGE_EXCEPTION] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.CHECK_MAX_LENGTH_PASS] = $data[CHECK_MAX_LENGTH_PASS] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.REQUIRE_HARD_PASS] = $data[REQUIRE_HARD_PASS] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.USE_REGEX] = $data[USE_REGEX] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.USE_REGEX_EMAIL] = $data[USE_REGEX_EMAIL] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.REQUIRE_CONFIRM_EMAIL] = $data[REQUIRE_CONFIRM_EMAIL] ? 'checked="checked"' : '';
         /* split time and unit */
         $timeSplit = explode(' ', $data[PASS_RESET_EXPIRE_TIME]);
         $data[PASS_RESET_EXPIRE_TIME] = $timeSplit[0];

@@ -42,7 +42,7 @@ define('USER_LOCK_TIME', 'user_lock_time');
 define('MAX_LOCKS', 'max_locks');
 
 /* UMS SECTION */
-define('DEFAULT_USER', 'defautl_user');
+define('DEFAULT_USER_ROLE', 'defautl_role');
 define('MIN_LENGHT_NAME', 'min_length_name');
 define('MAX_LENGTH_NAME', 'max_length_name');
 define('MIN_LENGHT_USERNAME', 'min_length_username');

@@ -384,23 +384,23 @@ class Controller {
     /* function to redirect if client is not loggin */
     protected function redirectOrFailIfCanNotCreateUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole->{CREATE_USER}) $this->switchFailResponse();
+        if (!$this->userRole->{CAN_CREATE_USER}) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not update */
     protected function redirectOrFailIfCanNotUpdateUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole->{UPDATE_USER}) $this->switchFailResponse();
+        if (!$this->userRole->{CAN_UPDATE_USER}) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not delete */
-    protected function redirectOrFailIfCanNotDelete() {
+    protected function redirectOrFailIfCanNotDeleteUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole->{DELETE_USER}) $this->switchFailResponse();
+        if (!$this->userRole->{CAN_DELETE_USER}) $this->switchFailResponse();
     }
 
     /* redirect if email confirm is not require */
-    protected function redirectIfNotRequireConfirmEmail() {
+    protected function redirectOrFailIfNotRequireConfirmEmail() {
         if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $this->switchFailResponse();
     }
     

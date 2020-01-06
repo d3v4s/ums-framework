@@ -10,6 +10,7 @@ define('FAKE_USERS', TRUE);
 define('DEFAULT_LANG', 'en');
 define('NAME_LAYOUT_DATA', 'name-layout-');
 define('VAL_LAYOUT_DATA', 'val-layout-');
+define('NO_ESCAPE', '_');
 
 /* CONSTANTS FOR SOURCES */
 define('SOURCE', 'src');
@@ -44,6 +45,11 @@ define('URL_SERVER', 'url_server');
 define('GENERATE_TOKEN', 'gen_token');
 define('PATH_PRIV_KEY', 'path_priv_key');
 define('TIME_UNIT', 'time_unit_');
+define('PENDING', 'pending');
+define('N_USERS', 'n_users');
+define('SUBJETC', 'subject');
+define('CONTENT', 'content');
+define('TO', 'to');
 
 /* CONSTANTS FOR COOKIES */
 define('CK_LOGIN_SESSION', 'lstkn');
@@ -52,5 +58,7 @@ define('CK_LANG', 'lang');
 /* CONSTANTS FOR CSRF TOKENS */
 define('CSRF', 'XS-TKN');
 define('CSRF_LOGOUT', 'XS-TKN-OUT');
+define('CSRF_NEW_EMAIL', 'XS-TKN-NE');
 define('CSRF_SETTINGS', 'XS-TKN-STTNG');
 define('CSRF_GEN_SAVE_RSA', 'XS-TNK-GSR');
+define('CSRF_ADD_FAKE_USER', 'XS-TKN-FU');

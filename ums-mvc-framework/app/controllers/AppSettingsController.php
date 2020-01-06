@@ -25,7 +25,7 @@ class AppSettingsController extends Controller {
     /* function to view app settings */
     public function showAppSettings(string $section = 'app') {
         /* redirect */
-        $this->redirectIfCanNotChangeSettings();
+        $this->redirectOrFailIfCanNotChangeSettings();
 
         $this->isSettings = TRUE;
         /* show message error if not valid app section */
@@ -50,7 +50,7 @@ class AppSettingsController extends Controller {
     /* function to update settings */
     public function updateSettings(string $section) {
         /* redirect */
-        $this->redirectIfCanNotChangeSettings();
+        $this->redirectOrFailIfCanNotChangeSettings();
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_SETTINGS);
@@ -76,8 +76,11 @@ class AppSettingsController extends Controller {
                 $resUpdate = $verifier->verifyUmsSettingsUpdate($data, $tokens);
                 break;
             default:
-                $resUpdate[MESSAGE] = 'Invalid settings section';
-                $resUpdate[SUCCESS] = FALSE;
+                $resUpdate =[
+                    MESSAGE => 'Invalid settings section',
+                    SUCCESS => FALSE,
+                    GENERATE_TOKEN => FALSE
+                ];
                 $section = 'app';
                 break;
         }
@@ -107,7 +110,7 @@ class AppSettingsController extends Controller {
             redirect('/ums/app/settings/'.$data[SECTION]);
         };
 
-        $this->switchResponse($dataOut, TRUE, $funcDefault, 'csrfSettings');
+        $this->switchResponse($dataOut, $resUpdate[GENERATE_TOKEN], $funcDefault, CSRF_SETTINGS);
     }
 
     /* ##################################### */
@@ -134,7 +137,7 @@ class AppSettingsController extends Controller {
     }
 
     /* function to redirect if user can not update settings */
-    private function redirectIfCanNotChangeSettings() {
-        if (!$this->userRole->{CHANGE_PASSWORD}) $this->switchFailResponse();
+    private function redirectOrFailIfCanNotChangeSettings() {
+        if (!$this->userRole->{CAN_CHANGE_SETTINGS}) $this->switchFailResponse();
     }
 }

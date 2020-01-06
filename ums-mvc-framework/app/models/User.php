@@ -373,7 +373,7 @@ class User {
         /* get hash of password */
         $password = password_hash($data[PASSWORD], PASSWORD_DEFAULT);
         /* set user role type if it is not set */
-        $roletype = $data[ROLE_ID] ?? $this->appConfig['app']['defau'];
+        $roletype = $data[ROLE_ID] ?? $this->appConfig[UMS][DEFAULT_USER_ROLE];
 
         /* prepare sql query and execute it */
         $sql = 'INSERT INTO '.PENDING_USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLER_TOKEN.') VALUES ';
@@ -399,39 +399,45 @@ class User {
         /* return result */
         return $result;
     }
-    public function saveUser(array $data, bool $generateTokenAccountEnabler = FALSE): array {
+
+    /* function to save new user */
+    public function saveUser(array $data): array {
+        /* set fail result */
         $result = [
-            'message' => 'Save user failed',
-            'success' => FALSE
+            MESSAGE => 'Save user failed',
+            SUCCESS => FALSE
         ];
 
-        $data['pass'] = $data['pass'] ?? $this->appConfig['app']['passDefault'];
-        $password = password_hash($data['pass'], PASSWORD_DEFAULT);
-        $roletype = $data['roletype'] ?? 'user';
+        /* manage data before the process */
+        $data[PASS] = $data[PASS] ?? $this->appConfig[UMS][PASS_DEFAULT];
+        $password = password_hash($data[PASS], PASSWORD_DEFAULT);
+        $roleId = $data[ROLE] ?? $this->appConfig[DEFAULT_USER_ROLE];
 
-        $sql = 'INSERT INTO users (name, username, email, password, roletype, enabled, token_account_enabler) VALUES ';
-        $sql .= "(:name, :username, :email, :password, :roletype, :enabled, :token_account_enabler)";
-
+        /* prepare sql query and execute it */
+        $sql = 'INSERT INTO '.USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLED.', '.REGISTRATION_DATETIME.') VALUES ';
+        $sql .= "(:name, :username, :email, :password, :role_id, :enabled, :reg_datetime)";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(
             [
-                'name' => $data['name'],
-                'username' => $data['username'],
-                'email' => $data['email'],
+                'name' => $data[NAME],
+                'username' => $data[USERNAME],
+                'email' => $data[EMAIL],
                 'password' => $password,
-                'roletype' => $roletype,
-                'enabled' => (int) $data['enabled'],
-                'token_account_enabler' => $generateTokenAccountEnabler ? $this->getNewAccountEnablerToken() : NULL
+                'role_id' => $roleId,
+                'enabled' => (int) $data[ENABLED],
+                'reg_datetime' => $data[REGISTRATION_DATETIME] ?? NULL
+                
             ]
         );
-        
-        
-        if ($stmt->rowCount()) {
-            $result['id'] = $this->conn->lastInsertId();
-            $result['success'] = TRUE;
-            $result['message'] = 'New user saved successfully';
-        } else $result['error-info'] = $stmt->errorInfo();
 
+        /* if ssql query success, then set success result */
+        if ($stmt->rowCount()) {
+            $result[USER_ID] = $this->conn->lastInsertId();
+            $result[SUCCESS] = TRUE;
+            $result[MESSAGE] = 'New user saved successfully';
+         /* else set error info result */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        /* return result */
         return $result;
     }
     

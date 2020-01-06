@@ -18,8 +18,8 @@ class EmailVerifier extends Verifier {
     public function verifySendEmail(string $from, string $to, array $tokens): array {
         /* set fail result */
         $res = [
-            'success' => FALSE,
-            'message' => 'Send email failed'
+            MESSAGE => 'Send email failed',
+            SUCCESS => FALSE
         ];
 
         /* validate tokens */
@@ -27,23 +27,23 @@ class EmailVerifier extends Verifier {
 
         /* validate from email */
         if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            $res['message'] = 'From email wrong';
-            $res['error'] = 'from';
+            $res[MESSAGE] = 'From email wrong';
+            $res[ERROR] = 'from';
             return $res;
         }
 
         /* validate to email */
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $res['message'] = 'To email wrong';
-            $res['error'] = 'to';
+            $res[MESSAGE] = 'To email wrong';
+            $res[ERROR] = 'to';
             return $res;
         }
 
         /* unset error message */
-        unset($res['message']);
+        unset($res[MESSAGE]);
 
         /*set success result and return it */
-        $res['success'] = TRUE;
+        $res[SUCCESS] = TRUE;
         return $res;
     }
 }

@@ -26,14 +26,14 @@ define('PENDING_USER_ID', 'id_pending_user');
 define('ROLES_TABLE', 'roles');
 define('ROLE_ID', 'id_role');
 define('ROLE', 'role');
-define('CREATE_USER', 'create_user');
-define('UPDATE_USER', 'update_user');
-define('DELETE_USER', 'delete_user');
-define('CHANGE_PASSWORD', 'change_pass');
-define('GENERATE_RSA', 'gen_rsa');
-define('GENERATE_SITEMAP', 'gen_sitemap');
-define('CHANGE_SETTINGS', 'change_settings');
-define('SEND_EMAIL', 'send_email');
+define('CAN_CREATE_USER', 'create_user');
+define('CAN_UPDATE_USER', 'update_user');
+define('CAN_DELETE_USER', 'delete_user');
+define('CAN_CHANGE_PASSWORD', 'change_pass');
+define('CAN_GENERATE_RSA', 'gen_rsa');
+define('CAN_GENERATE_SITEMAP', 'gen_sitemap');
+define('CAN_CHANGE_SETTINGS', 'change_settings');
+define('CAN_SEND_EMAIL', 'send_email');
 
 /* CONSTANTS FOR SESSIONS TABLE */
 define('SESSIONS_TABLE', 'sessions');
