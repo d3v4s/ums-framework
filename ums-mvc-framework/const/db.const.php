@@ -39,7 +39,6 @@ define('CAN_SEND_EMAIL', 'send_email');
 define('SESSIONS_TABLE', 'sessions');
 define('SESSION_ID', 'id_session');
 define('SESSION_TOKEN', 'session_token');
-define('IP_ADDRESS', 'ip_address');
 
 /* CONSTANTS FOR USERS TABLE */
 define('USERS_TABLE', 'users');
@@ -63,6 +62,7 @@ define('ROLE_ID_FRGN', 'role_id');
 define('USER_ID_FRGN', 'user_id');
 
 /* GENERIC CONSTANTS */
+define('IP_ADDRESS', 'ip_address');
 define('ENABLER_TOKEN', 'enabler_token');
 define('EXPIRE_DATETIME', 'expire_datetime');
 define('REGISTRATION_DATETIME', 'registration_datetime');

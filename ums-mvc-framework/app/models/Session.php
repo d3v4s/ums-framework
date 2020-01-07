@@ -11,8 +11,14 @@ class Session {
         $this->conn = $conn;
     }
 
+    /* ##################################### */
+    /* PUBLIC FUNCTIONS */
+    /* ##################################### */
+    
+    /* ############# CREATE FUNCTIONS ############# */
+
     /* function to set new login session */
-    public function newLoginSession(int $userId, string $ipAddres, string $expireDatetime) {
+    public function newLoginSession(int $userId, string $ipAddress, string $expireDatetime) {
         /* set fail result */
         $result = [
             MESSAGE => 'Adding new login session failed',
@@ -27,7 +33,7 @@ class Session {
         $stmt->execute([
             'user_id' => $userId,
             'token' => $sessTkn,
-            'ip_addr' => $ipAddres,
+            'ip_addr' => $ipAddress,
             'expire_datetime' => $expireDatetime
         ]);
 
@@ -42,6 +48,8 @@ class Session {
         /* return result */
         return $result;
     }
+
+    /* ############# READ FUNCTIONS ############# */
 
     /* function to get user by login session token */
     public function getUserByLoginSessionToken(string $token, bool $unsetPassword = TRUE) {
@@ -67,6 +75,8 @@ class Session {
         /* else return false */
         return FALSE;
     }
+
+    /* ############# UPDATE FUNCTIONS ############# */
 
     /* function to remove login session by session id */
     public function setExpireLoginSession(int $sessionId, string $expireDatetime): bool {
@@ -113,6 +123,10 @@ class Session {
         /* else return false */
         return FALSE;
     }
+
+    /* ##################################### */
+    /* PRIVATE FUNCTIONS */
+    /* ##################################### */
 
     /* function to get new login session token */
     private function getNewLoginSessionToken(): string {

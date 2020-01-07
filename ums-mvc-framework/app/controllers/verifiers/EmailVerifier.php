@@ -19,11 +19,13 @@ class EmailVerifier extends Verifier {
         /* set fail result */
         $res = [
             MESSAGE => 'Send email failed',
-            SUCCESS => FALSE
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $res;
+        $res[GENERATE_TOKEN] = TRUE;
 
         /* validate from email */
         if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {

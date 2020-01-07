@@ -2,17 +2,20 @@
 namespace app\controllers;
 
 use app\models\User;
-
-use \PDO;
 use app\controllers\verifiers\Verifier;
 use app\controllers\verifiers\LoginVerifier;
+use app\models\PendingEmail;
+use app\models\PasswordResetRequest;
+use app\models\PendingUser;
+use \DateTime;
+use \PDO;
 
 /**
  * Class controller to mange login, signup and logout rquest
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginController extends Controller {
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'default') {
+    public function __construct(PDO $conn, array $appConfig, string $layout = DEFAULT_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -20,190 +23,411 @@ class LoginController extends Controller {
     /* PUBLIC FUNCTION */
     /* ##################################### */
 
+    /* ############ LOGIN FUNCTIONS ############ */
+    
+    /* function to view login page */
+    public function showLogin() {
+        /* redirect */
+        $this->redirectOrFailIfLogin();
+        
+        /* set location, page title, keywords and description */
+        $this->isLogin = TRUE;
+        $this->title .= ' - Login';
+        $this->keywords .= ', login, signin, register, registration';
+        $this->description = 'UMS - PHP FRAMEWORK - Login page - Signin in this site';
+        
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/crypt/jsbn.js'],
+            [SOURCE => '/js/crypt/prng4.js'],
+            [SOURCE => '/js/crypt/rng.js'],
+            [SOURCE => '/js/crypt/rsa.js'],
+            [SOURCE => '/js/utils/req-key.js'],
+            [SOURCE => '/js/utils/login/login.js']
+        );
+
+        /* show login page */
+        $this->content = view('login/login', [TOKEN => generateToken(CSRF_LOGIN)]);
+    }
+    
+    /* function to login */
+    public function login() {
+        /* redirects */
+        $this->redirectOrFailIfLogin();
+        $this->redirectIfNotXMLHTTPRequest('/'.LOGIN_ROUTE);
+        
+        /* get tokens and post data */
+        $tokens = $this->getPostSessionTokens(CSRF_LOGIN);
+        $username = $_POST[USER] ?? '';
+        $pass = $_POST[PASSWORD] ?? '';
+        
+        /* decrypt password */
+        $pass = $this->decryptData($pass);
+        
+        /* get verifier instance, and check the login request */
+        $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
+        $resLogin = $verifier->verifyLogin($username, $pass, $tokens);
+        /* if success */
+        if($resLogin[SUCCESS]) {
+            /* init user model and create a login session */
+            $user = new User($this->conn);
+            $user->resetLockCounts($resLogin[USER]->{USER_ID});
+            $this->createLoginSession($resLogin[USER]);
+        /* else if is wrong password, increments it */
+        } else if ($resLogin[WRONG_PASSWORD]) $this->handlerWrongPassword($resLogin[USER_ID]);
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            $data[SUCCESS] ? redirect() : redirect('/'.LOGIN_ROUTE);
+        };
+        
+        /* result data */
+        $dataOut = [
+            SUCCESS => $resLogin[SUCCESS],
+            ERROR => $resLogin[ERROR] ?? NULL,
+            MESSAGE => $resLogin[MESSAGE] ?? NULL
+        ];
+        
+        $this->switchResponse($dataOut, (!$resLogin[SUCCESS] && $resLogin[GENERATE_TOKEN]), $funcDefault, CSRF_LOGIN);
+    }
+    
+    /* ############ SIGNUP FUNCTIONS ############ */
+
+    /* function to view signup page */
+    public function showSignup() {
+        /* redirect */
+        $this->redirectOrFailIfLogin();
+        
+        /* set location, page title, keywords and description */
+        $this->isSignup = TRUE;
+        $this->title .= ' - Signup';
+        $this->keywords .= 'signup, registration, logon';
+        $this->description = 'PHP FRAMEWORK UMS - Signup page';
+        
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/crypt/jsbn.js'],
+            [SOURCE => '/js/crypt/prng4.js'],
+            [SOURCE => '/js/crypt/rng.js'],
+            [SOURCE => '/js/crypt/rsa.js'],
+            [SOURCE => '/js/utils/req-key.js'],
+            [SOURCE => '/js/utils/validate.js'],
+            [SOURCE => '/js/utils/login/signup.js']
+        );
+        
+        $this->content = view('login/signup', [TOKEN => generateToken(CSRF_SIGNUP)]);
+    }
+    
+    /* function to signup */
+    public function signup() {
+        /* redirects */
+        $this->redirectOrFailIfLogin();
+        $this->redirectIfNotXMLHTTPRequest('/'.SIGNUP_ROUTE);
+        
+        /* get tokens and post data */
+        $tokens = $this->getPostSessionTokens(CSRF_SIGNUP);
+        $email = $_POST[EMAIL] ?? '';
+        $username = $_POST[USERNAME] ?? '';
+        $name = $_POST[NAME] ?? '';
+        $pass = $_POST[PASSWORD] ?? '';
+        /* send fail if empty pass */
+        if (empty($pass)) $this->switchFailResponse('Insert a password', '/'.SIGNUP_ROUTE);
+        $cpass = $_POST[CONFIRM_PASS] ?? '';
+        
+        /* decrypt passwords */
+        $pass = $this->decryptData($pass);
+        $cpass = $this->decryptData($cpass);
+        
+        /* get verifier instance, and check the signup request */
+        $verifier = Verifier::getInstance($this->appConfig, $this->conn);
+        $resSignup = $verifier->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
+        /* if succcess */
+        if($resSignup[SUCCESS]) {
+            $userData = [
+                NAME => $name,
+                USERNAME => $username,
+                EMAIL => $email,
+                PASSWORD => $pass,
+                ROLE_ID => $this->appConfig[UMS][DEFAULT_USER_ROLE]
+            ];
+            /* if email confirm is require */
+            if ($this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) {
+                /* save user on pending table */
+                $pendUser = new PendingUser($this->conn);
+                $res = $pendUser->savePendingUser($userData);
+                /* if success create signup session */
+                if ($res[SUCCESS]) {
+                    $this->resetSession();
+                    $this->sendEnablerEmail($email, $res[TOKEN]);
+                    $_SESSION[SIGNUP] = TRUE;
+                    $_SESSION[USER_ID] = $res[USER_ID];
+                }
+            } else {
+                /* save user */
+                $user = new User($this->conn);
+                $res = $user->saveUser($userData);
+                /* if success create login session */
+                if ($res[SUCCESS]) $this->createLoginSession($res[USER_ID]);
+            }
+            /* set result */
+            $resSignup[MESSAGE] = $res[MESSAGE];
+            $resSignup[SUCCESS] = $res[SUCCESS];
+        }
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            $data[SUCCESS] ? redirect('/'.CONFIRM_SIGNUP_ROUTE) : redirect('/'.SIGNUP_ROUTE);
+        };
+        
+        /* result data */
+        $dataOut = [
+            SUCCESS => $resSignup[SUCCESS],
+            ERROR => $resSignup[ERROR] ?? NULL,
+            MESSAGE => $resSignup[MESSAGE] ?? NULL
+        ];
+
+        $this->switchResponse($dataOut, (!$resSignup[SUCCESS] && $resSignup[GENERATE_TOKEN]), $funcDefault, CSRF_SIGNUP);
+    }
+
+    /* function to view signup confirm page */
+    public function showSignupConfirm() {
+        /* redirects */
+        $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->redirectIfNotSignupSession();
+
+        /* get user id of signup session */
+        $userId = $_SESSION[USER_ID] ?? '';
+
+        /* init pending user model */
+        $pendUser = new PendingUser($this->conn);
+        /* if is not valid user id, show error message and return */
+        if (!(is_numeric($userId) && $pendUser->getPendingUser($userId))) {
+//             $this->title .= ' - ERROR';
+            $this->showMessageAndExit('ERROR', TRUE);
+            return;
+        }
+
+        /* set page title */
+        $this->title .= ' - Signup Confirm';
+
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/utils/login/signup-confirm.js']
+        );
+
+        $this->content = view('login/signup-confirm', [TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC)]);
+    }
+
+    /* function to resend a signup email */
+    public function signupResendEmail() {
+        /* redirects */
+        $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->redirectIfNotSignupSession();
+
+        if (isset($_SESSION[LAST_RESEND_REQ])) {
+            $nextReqTime = new DateTime($_SESSION[LAST_RESEND_REQ]);
+            $nextReqTime->modify('5 minutes');
+            if ($nextReqTime > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request', '/'.CONFIRM_SIGNUP_ROUTE);
+        }
+
+        /* get tokens and user id */
+        $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_ACC);
+        $userId = $_SESSION[USER_ID];
+
+        /* get verifier instance, and check the resend validator email request */
+        $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
+        $resResendEmail = $verifier->verifySignupResendEmail($userId, $tokens);
+        if ($resResendEmail[SUCCESS]) {
+            $this->sendEmailValidation($resResendEmail[EMAIL], $resResendEmail[TOKEN]);
+            $resResendEmail[MESSAGE] = 'Email successfully sended';
+            $datetime = new DateTime();
+            $_SESSION[LAST_RESEND_REQ] = $datetime->format('Y-m-d H:i:s');
+        }
+
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect('/auth/signup/confirm');
+        };
+
+        /* result data */
+        $dataOut = [
+            SUCCESS => $resResendEmail[SUCCESS],
+            MESSAGE => $resResendEmail[MESSAGE] ?? NULL
+        ];
+
+        $this->switchResponse($dataOut, $resResendEmail[GENERATE_TOKEN], $funcDefault, CSRF_RESEND_ENABLER_ACC);
+    }
+
+    /* ############ LOGOUT FUNCTIONS ############ */
+
     /* function handler for logout request */
     public function logout() {
         /* redirect */
-        $this->redirectIfNotLoggin();
+        $this->redirectOrFailIfNotLogin();
 
         /* get tokens and user id */
-        $tokens = $this->getPostSessionTokens('XS_TKN_OUT', 'csrfLogout');
+        $tokens = $this->getPostSessionTokens(CSRF_LOGOUT);
         $id = getUserLoggedID();
 
         /* get verifier instance, and check the logout request */
         $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
         $resLogout = $verifier->verifyLogout($id, $tokens);
-        if ($resLogout['success']) {
-            $this->resetSession();
-            $resLogout['message'] = 'Succesfully logout'; 
+        if ($resLogout[SUCCESS]) {
+            $resLogout[SUCCESS] = $this->resetLoginSession();
+            $resLogout[MESSAGE] = $resLogout[SUCCESS] ? 'Succesfully logout' : 'Logout failed'; 
         }
 
         /* function for default response */
         $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect();
         };
 
         /* result data */
         $dataOut = [
-            'success' => $resLogout['success'],
-            'message' => $resLogout['message'] ?? NULL
+            SUCCESS => $resLogout[SUCCESS],
+            MESSAGE => $resLogout[MESSAGE] ?? NULL
         ];
 
-        $this->switchResponse($dataOut, !$resLogout['success'], $funcDefault, 'csrfLogout');
+        $this->switchResponse($dataOut, (!$resLogout[SUCCESS] && $resLogout[GENERATE_TOKEN]), $funcDefault, CSRF_LOGOUT);
     }
 
+    /* ############ NEW EMAIL FUNCTIONS ############ */
+
     /* function to validate a new email */
-    public function validateNewEmail(string $token) {
+    public function enableNewEmail(string $token) {
         /* redirect */
-        $this->redirectIfNotEmailConfirmRequire();
+        $this->redirectOrFailIfConfirmEmailNotRequire();
 
         /* get verifier instance, and check the validate a new email request */
         $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
-        $resValidate = $verifier->verifyValidateNewEmail($token);
-        if (!$resValidate['success']) {
-            /* if verifier fails, show page not found and return */
+        $resValidate = $verifier->verifyEnableNewEmail($token);
+
+        /* if verifier fails, show page not found and return */
+        if (!$resValidate[SUCCESS]) {
             $this->showPageNotFound();
             return;
         }
 
         /* init user model and confirm a new email */
-        $user = new User($this->conn, $this->appConfig);
-        if (isset($resValidate['deleteUser'])) $user->deleteUser($resValidate['deleteUser']);
-        $res = $user->confirmEmail($resValidate['userId']);
+        $user = new User($this->conn);
+        $res = $user->updateEmail($resValidate[USER]->{USER_ID}, $resValidate[USER]->{NEW_EMAIL});
 
         /* set session message */
-        if (isset($res['message'])) {
-            $_SESSION['message'] = $res['message'];
-            $_SESSION['success'] = $res['success'];
+        if (isset($res[MESSAGE])) {
+            $_SESSION[MESSAGE] = $res[MESSAGE];
+            $_SESSION[SUCCESS] = $res[SUCCESS];
         }
+
         /* if fail redirect on signup page */
-        if (!$res['success']) redirect('/auth/signup');
+        if (!$res[SUCCESS]) redirect('/auth/signup');
 
-        /* remove token to confirm new email */
-        $user->removeTokenConfirmEmail($resValidate['userId']);
+        /* else remove token to confirm new email */
+        $pendEmail = new PendingEmail($this->conn);
+        $pendEmail->removeAllEmailEnablerToken($resValidate[USER]->{USER_ID});
 
-        /* if user is not loggin redirect on login page */
-        if (!isUserLoggedin()) redirect('/auth/login');
+        /* if user is not login redirect on login page */
+        if (!$this->loginSession) redirect('/auth/login');
 
-        /* if loggin user is the same that require confirm a new email,
-         * then regenerate a loggins session
-         */
-        if ($resValidate['userId'] === getUserLoggedID()) {
-            $usr = $user->getUser($resValidate['userId']);
-            $this->createSessionLogin($usr);
-        }
-
-        /* redirect to home */
+        /* else redirect to home */
         redirect();
     }
 
-    /* function to enable new account */
-    public function enableAccount(string $token) {
-        /* redirect */
-        $this->redirectIfNotEmailConfirmRequire();
-
-        /* get verifier instance, and check the enable account request */
-        $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
-        $resEnable = $verifier->verifyEnableAccount($token);
-        if (!$resEnable['success']) {
-            /* if verifier fails, show page not found and return */
-            $this->showPageNotFound();
-            return;
-        }
-
-        /* init user model and confirm a enable user reuqest */
-        $user = new User($this->conn, $this->appConfig);
-        $res = $user->enableUser($resEnable['user']->id);
-
-        /* set session message */
-        if (isset($res['message'])){
-            $_SESSION['message'] = $res['message'];
-            $_SESSION['success'] = $res['success'];
-        }
-
-        /* if enable user fails, redirect on signup page */
-        if (!$res['success']) redirect('/auth/signup');
-
-        /* remove account enabler token and redirect on login page */ 
-        $user->removeTokenEnabler($resEnable['user']->id);
-        redirect('/auth/login');
-    }
+    /* ############ PASSWORD FUNCTIONS ############ */
 
     /* function to view reset password request page */
-    public function showResetPasswordRequest() {
+    public function showPasswordResetRequest() {
         /* redirect */
         $this->redirectIfLoggin();
 
         /* set page title */
         $this->title .= ' - Forgot Password';
+        $this->keywords .= ',password, forgot, reset, account, recovery';
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            ['src' => '/js/utils/validate.js'],
-            ['src' => '/js/utils/login/res-pass-req.js']
+            [SOURCE => '/js/utils/validate.js'],
+            [SOURCE => '/js/utils/login/pass-reset-req.js']
         );
 
-        $this->content = view('login/reset-pass-req', ['token' => generateToken('csrfResPassReq')]);
+        /* generate token and show page */
+        $this->content = view('login/pass-reset-req', [TOKEN => generateToken(CSRF_PASS_RESET_REQ)]);
     }
 
     /* function to mangae reset password request */ 
-    public function resetPasswordRequest() {
+    public function passwordResetRequest() {
         /* redirect */
         $this->redirectIfLoggin();
 
         /* get tokens and email */
-        $tokens = $this->getPostSessionTokens('XS_TKN', 'csrfResPassReq');
-        $email = $_POST['email'] ?? '';
+        $tokens = $this->getPostSessionTokens(CSRF_PASS_RESET_REQ);
+        $email = $_POST[EMAIL] ?? '';
 
         /* get verifier instance, and check the reset password request */
         $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
-        $resResetPassReq = $verifier->verifyResetPassReq($email, $tokens);
-        if ($resResetPassReq['success']) {
-            /* init user model and create a reset password token */
-            $user = new User($this->conn, $this->appConfig);
-            $resUser = $user->createTokenResetPassword($resResetPassReq['user']->id);
+        $resPassResetReq = $verifier->verifyPassResetReq($email, $tokens);
+        if ($resPassResetReq[SUCCESS]) {
+            /* init password reset request model */
+            $passResReq = new PasswordResetRequest($this->conn);
+            /* remove all previus request */
+            $passResReq->removePasswordResetReqForUser($resPassResetReq[USER]->{USER_ID});
+            /* calc expire datae time add a new request */
+            $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASS_RESET_EXPIRE_TIME]);
+            $res = $passResReq->newPasswordResetReq($resPassResetReq[USER]->{USER_ID}, $_SERVER['REMOTE_ADDR'], $expireDatetime);
             /* if success */
-            if ($resUser['success']) {
-                /* get email to send reset password link */
-                $usr = $user->getUserByEmail($email);
-                $resUser['success'] = $this->sendEmailResetPassword($email, $usr->token_reset_pass);
-                $resUser['message'] = $resUser['success'] ? 'Email for password reset succesfully sended' : 'Send email failed';
-            } 
+            if ($res[SUCCESS]) {
+                /* send email */
+                $res[SUCCESS] = $this->sendEmailResetPassword($email, $res[TOKEN]);
+                $res[MESSAGE] = $res[SUCCESS] ? 'Email for password reset succesfully sended' : 'Send email failed';
+            }
 
             /* set success and messsage */
-            $resResetPassReq['success'] = $resUser['success'];
-            $resResetPassReq['message'] = $resUser['message'];
+            $resPassResetReq[SUCCESS] = $res[SUCCESS];
+            $resPassResetReq[MESSAGE] = $res[MESSAGE];
         }
 
         /* function for default response */
         $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect('/auth/login');
         };
 
         /* result data */
         $dataOut = [
-            'success' => $resResetPassReq['success'],
-            'error' => $resResetPassReq['error'] ?? NULL,
-            'message' => $resResetPassReq['message'] ?? NULL
+            SUCCESS => $resPassResetReq[SUCCESS],
+            ERROE => $resPassResetReq[ERROR] ?? NULL,
+            MESSAGE => $resPassResetReq[MESSAGE] ?? NULL
         ];
 
-        $this->switchResponse($dataOut, !$resResetPassReq['success'], $funcDefault, 'csrfResPassReq');
+        $this->switchResponse($dataOut, (!$resPassResetReq[SUCCESS] && $resPassResetReq[GENERATE_TOKEN]), $funcDefault, CSRF_PASS_RESET_REQ);
     }
 
     /* function to view reset password page */
-    public function showResetPassword(string $token) {
+    public function showPasswordReset(string $token) {
         /* redirect */
         $this->redirectIfLoggin();
 
         /* show page not found if is not valid token */
-        if (!$this->isSetTokenResetPass($token)) {
+        $passResReq = new PasswordResetRequest($this->conn);
+        if (!$passResReq->getUserByResetPasswordToken($token)) {
             $this->showPageNotFound();
             return;
         }
@@ -213,34 +437,35 @@ class LoginController extends Controller {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            ['src' => '/js/crypt/jsbn.js'],
-            ['src' => '/js/crypt/prng4.js'],
-            ['src' => '/js/crypt/rng.js'],
-            ['src' => '/js/crypt/rsa.js'],
-            ['src' => '/js/utils/req-key.js'],
-            ['src' => '/js/utils/validate.js'],
-            ['src' => '/js/utils/login/reset-pass.js']
+            [SOURCE => '/js/crypt/jsbn.js'],
+            [SOURCE => '/js/crypt/prng4.js'],
+            [SOURCE => '/js/crypt/rng.js'],
+            [SOURCE => '/js/crypt/rsa.js'],
+            [SOURCE => '/js/utils/req-key.js'],
+            [SOURCE => '/js/utils/validate.js'],
+            [SOURCE => '/js/utils/login/pass-reset.js']
         );
 
-        /* result data */
+        /* data to be view */
         $data = [
-            'token' => generateToken(),
-            'tokenReset' => $token
+            TOKEN => generateToken(CSRF_PASS_RESET),
+            PASSWORD_RESET_TOKEN => $token
         ];
-        $this->content = view('login/reset-pass', $data);
+        $this->content = view('login/pass-reset', $data);
     }
 
     /* function to reset a password */
-    public function resetPassword() {
+    public function passwordReset() {
         /* redirects */
         $this->redirectIfLoggin();
-        $tokenReset = $_POST['token'] ?? '';
-        $this->redirectIfNotXMLHTTPRequest("/user/reset/password/$tokenReset");
+        $tokenReset = $_POST[PASSWORD_RESET_TOKEN] ?? '';
+        $this->redirectIfNotXMLHTTPRequest('/'.PASS_RESET_ROUTE."/$tokenReset");
 
         /* get tokens and post data */
-        $tokens = $this->getPostSessionTokens();
-        $pass = $_POST['pass'] ?? '';
-        $cpass = $_POST['cpass'] ?? 'x';
+        $tokens = $this->getPostSessionTokens(CSRF_PASS_RESET);
+        $pass = $_POST[PASSWORD] ?? '';
+        if (empty($pass)) $this->switchFailResponse('Insert a password', '/'.PASS_RESET_ROUTE."/$tokenReset");
+        $cpass = $_POST[CONFIRM_PASS] ?? '';
 
         /* decrypt passwords */
         $pass = $this->decryptData($pass);
@@ -248,278 +473,97 @@ class LoginController extends Controller {
 
         /* get verifier instance, and check the reset password request */
         $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
-        $resResetPass = $verifier->verifyResetPass($tokenReset, $pass, $cpass, $tokens);
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
+        $resResetPass = $verifier->verifyPassReset($tokenReset, $pass, $cpass, $tokens);
+
+        /* init pass reset req model */
+        $passResReq = new PasswordResetRequest($this->conn);
         /* if verifier success */
-        if ($resResetPass['success']) {
+        if ($resResetPass[SUCCESS]) {
+        /* init user model */
+            $user = new User($this->conn);
             /* update password */
-            $resUser = $user->updateUserPass($resResetPass['user']->id , $pass);
+            $resUser = $user->updatePassword($resResetPass[USER_ID], $pass);
             /* if success remove token */
-            if ($resUser['success']) {
-                $user->removeTokenResetPassword($resResetPass['user']->id);
-                $resResetPass['message'] = 'Password reset successfully';
+            if ($resUser[SUCCESS]) {
+                $passResReq->removePasswordResetReqForUser($resResetPass[USER_ID]);
+                $resResetPass[MESSAGE] = 'Password reset successfully';
             /* else show error message */
-            } else $resResetPass['message'] = $resUser['message'];
+            } else $resResetPass[MESSAGE] = $resUser[MESSAGE];
 
             /* set succcess */
-            $resResetPass['success'] = $resUser['success'];
+            $resResetPass[SUCCESS] = $resUser[SUCCESS];
         /* else remove reset password token */
-        } else if ($resResetPass['deleteToken']) $user->removeTokenResetPassword($resResetPass['userId']);
+        } else if ($resResetPass[REMOVE_TOKEN]) $passResReq->removePasswordResetReqForUser($resResetPass[USER_ID]);
 
         /* function for default response */
         $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect('/auth/login');
         };
 
         /* result data */
         $dataOut = [
-            'success' => $resResetPass['success'],
-            'error' => $resResetPass['error'] ?? NULL,
-            'message' => $resResetPass['message'] ?? NULL
+            SUCCESS => $resResetPass[SUCCESS],
+            ERROR => $resResetPass[ERROR] ?? NULL,
+            MESSAGE => $resResetPass[MESSAGE] ?? NULL
         ];
-        $this->switchResponse($dataOut, !$resResetPass['success'], $funcDefault);
+        $this->switchResponse($dataOut, (!$resResetPass[SUCCESS] && $resResetPass[GENERATE_TOKEN]), $funcDefault, CSRF_PASS_RESET);
     }
 
-    /* function to view login page */
-    public function showLogin() {
+    /* ############ ACCOUNT FUNCTIONS ############ */
+
+    /* function to enable new account */
+    public function enableAccount(string $token) {
         /* redirect */
-        $this->redirectIfLoggin();
-
-        /* set location, page title, keywords and description */
-        $this->isLogin = TRUE;
-        $this->title .= ' - Login';
-        $this->keywords .= ', login, signin';
-        $this->description = 'PHP FRAMEWORK UMS - Login page';
-
-        /* add javascript sources */
-        array_push($this->jsSrcs,
-            ['src' => '/js/crypt/jsbn.js'],
-            ['src' => '/js/crypt/prng4.js'],
-            ['src' => '/js/crypt/rng.js'],
-            ['src' => '/js/crypt/rsa.js'],
-            ['src' => '/js/utils/req-key.js'],
-            ['src' => '/js/utils/login/login.js']
-        );
-
-        $this->content = view('login/login', ['token' => generateToken()]);
-    }
-
-    /* function to login */
-    public function login() {
-        /* redirects */
-        $this->redirectIfLoggin();
-        $this->redirectIfNotXMLHTTPRequest('/auth/login');
-
-        /* get tokens and post data */
-        $tokens = $this->getPostSessionTokens();
-        $username = $_POST['user'] ?? '';
-        $pass = $_POST['pass'] ?? '';
-
-        /* decrypt password */
-        $pass = $this->decryptData($pass);
-
-        /* get verifier instance, and check the login request */
+        $this->redirectOrFailIfConfirmEmailNotRequire();
+        
+        /* get verifier instance, and check the enable account request */
         $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
-        $resLogin = $verifier->verifyLogin($username, $pass, $tokens);
-        /* if success */
-        if($resLogin['success']) {
-            /* init user model and create a login session */
-            $user = new User($this->conn, $this->appConfig);
-            $user->resetWrongPasswordLock($resLogin['user']->id);
-            $this->createSessionLogin($resLogin['user']);
-        /* else if is wrong password, increments it */
-        } else if ($resLogin['wrongPass']) $this->handlerWrongPassword($resLogin['userId']);
+        $resEnable = $verifier->verifyEnableAccount($token);
+        
+        /* if verifier fails, show page not found and return */
+        if (!$resEnable[SUCCESS]) {
+            /* if link is expire redirect to signup and remove token*/
+            if ($resEnable[REMOVE_TOKEN]) {
+                $pendUser = new PendingUser($this->conn);
+                $pendUser->removeAccountEnablerToken($token);
+                $this->switchFailResponse($resEnable[MESSAGE], '/'.SIGNUP_ROUTE);
+            /* else show page not found */
+            } else $this->showPageNotFound();
 
-        /* function for default response */
-        $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
-            }
-            $data['success'] ? redirect() : redirect('/auth/login');
-        };
-
-        /* result data */
-        $dataOut = [
-            'success' => $resLogin['success'],
-            'error' => $resLogin['error'] ?? NULL,
-            'message' => $resLogin['message'] ?? NULL
-        ];
-
-        $this->switchResponse($dataOut, !$resLogin['success'], $funcDefault);
-    }
-
-    /* function to view signup page */
-    public function showSignup() {
-        /* redirect */
-        $this->redirectIfLoggin();
-
-        /* set location, page title, keywords and description */
-        $this->isSignup = TRUE;
-        $this->title .= ' - Signup';
-        $this->keywords .= 'signup, registration, logon';
-        $this->description = 'PHP FRAMEWORK UMS - Signup page';
-
-        /* add javascript sources */
-        array_push($this->jsSrcs,
-            ['src' => '/js/crypt/jsbn.js'],
-            ['src' => '/js/crypt/prng4.js'],
-            ['src' => '/js/crypt/rng.js'],
-            ['src' => '/js/crypt/rsa.js'],
-            ['src' => '/js/utils/req-key.js'],
-            ['src' => '/js/utils/validate.js'],
-            ['src' => '/js/utils/login/signup.js']
-        );
-
-        $this->content = view('login/signup', ['token' => generateToken()]);
-    }
-
-    /* function to signup */
-    public function signup() {
-        /* redirects */
-        $this->redirectIfLoggin();
-        $this->redirectIfNotXMLHTTPRequest('/auth/signup');
-
-        /* get tokens and post data */
-        $tokens = $this->getPostSessionTokens();
-        $email = $_POST['email'] ?? '';
-        $username = $_POST['username'] ?? '';
-        $name = $_POST['name'] ?? '';
-        $pass = $_POST['pass'] ?? '';
-        $cpass = $_POST['cpass'] ?? 'x';
-
-        /* decrypt passwords */
-        $pass = $this->decryptData($pass);
-        $cpass = $this->decryptData($cpass);
-
-        /* get verifier instance, and check the signup request */
-        $verifier = Verifier::getInstance($this->appConfig, $this->conn);
-        $resSignup = $verifier->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
-        /* if succcess */
-        if($resSignup['success']) {
-            /* init user model */
-            $user = new User($this->conn, $this->appConfig);
-
-//             /* check if need to delete user, and delete it */
-//             if (isset($resSignup['deleteUser'])) foreach ($resSignup['deleteUser'] as $userId) $user->deleteUser($userId);
-
-            /* check if is require confirm email, and set account enable */
-            $requireConfirmEmail = $this->appConfig['app']['requireConfirmEmail'];
-            $enabled = !$requireConfirmEmail;
-
-            /* compact the data of new user, and save it */
-            $data = compact('email', 'username', 'name', 'pass', 'enabled');
-            $resUser = $user->saveUser($data, $requireConfirmEmail);
-
-            /* if success */
-            if ($resUser['success']) {
-                /* reset session and get new user id */
-                $this->resetSession();
-                $newUser = $user->getUser($resUser['id']);
-                /* if require a email confirm */
-                if ($requireConfirmEmail) {
-                    /* send email and create a signup session */
-                    $this->sendEmailValidation($email, $newUser->token_account_enabler);
-                    $this->resetSession();
-                    $_SESSION['signup'] = TRUE;
-                    $_SESSION['userId'] = $resUser['id'];
-                /* else create login session */
-                } else $this->createSessionLogin($newUser);
-                /* set success messagge */
-                $resSignup['message'] = 'New user signup successfully';
-            /* else set error message */
-            } else $resSignup['message'] = $resUser['message'];
-
-            /* set success */
-            $resSignup['success'] = $resUser['success'];
-        }
-
-        /* function for default response */
-        $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
-            }
-            $data['success'] ? redirect('/auth/signup/confirm') : redirect('/auth/signup');
-        };
-
-        /* result data */
-        $dataOut = [
-            'success' => $resSignup['success'],
-            'error' => $resSignup['error'] ?? NULL,
-            'message' => $resSignup['message'] ?? NULL
-        ];
-
-        $this->switchResponse($dataOut, !$resSignup['success'], $funcDefault);
-    }
-
-    /* function to view signup confirm page */
-    public function showSignupConfirm() {
-        /* redirects */
-        $this->redirectIfNotEmailConfirmRequire();
-        $this->redirectIfNotSignup();
-
-        /* get user id of signup session */
-        $userId = $_SESSION['userId'] ?? '';
-
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
-        /* if is not valid user id, show error message and return */
-        if (!(is_numeric($userId) && $user->getUser($userId))) {
-            $this->showMessage('ERROR');
             return;
         }
 
-        /* set page title */
-        $this->title .= ' - Signup Confirm';
+        /* set user data */
+        $dataUsr = [
+            NAME => $resEnable[USER]->{NAME},
+            USERNAME => $resEnable[USER]->{USERNAME},
+            EMAIL => $resEnable[USER]->{EMAIL},
+            PASSWORD => $resEnable[USER]->{PASSWORD},
+            ROLE => $resEnable[USER]->{ROLE_ID_FRGN},
+            ENABLED => TRUE,
+            REGISTRATION_DATETIME => $resEnable[USER]->{REGISTRATION_DATETIME}
+        ];
+        /* init user model and save user */
+        $user = new User($this->conn);
+        $res = $user->saveUser($dataUsr);
 
-        /* add javascript sources */
-        array_push($this->jsSrcs,
-            ['src' => '/js/utils/login/signup-confirm.js']
-        );
-
-        $this->content = view('login/signup-confirm', ['token' => generateToken('csrfResendEmail')]);
-    }
-
-    /* function to resend a signup email */
-    public function signupResendEmail() {
-        /* redirects */
-        $this->redirectIfNotEmailConfirmRequire();
-        $this->redirectIfNotSignup();
-
-        /* get tokens and user id */
-        $tokens = $this->getPostSessionTokens('XS_TKN', 'csrfResendEmail');
-        $userId = $_SESSION['userId'];
-
-        /* get verifier instance, and check the resend validator email request */
-        $verifier = LoginVerifier::getInstance($this->appConfig, $this->conn);
-        $resResendEmail = $verifier->verifySignupResendEmail($userId, $tokens);
-        if ($resResendEmail['success']) {
-            $this->sendEmailValidation($resResendEmail['email'], $resResendEmail['token']);
-            $resResendEmail['message'] = 'Email successfully sended';
+        /* set session message */
+        if (isset($res[MESSAGE])){
+            $_SESSION[MESSAGE] = $res[MESSAGE];
+            $_SESSION[SUCCESS] = $res[SUCCESS];
         }
 
-        /* function for default response */
-        $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
-            }
-            redirect('/auth/signup/confirm');
-        };
-
-        /* result data */
-        $dataOut = [
-            'success' => $resResendEmail['success'],
-            'message' => $resResendEmail['message'] ?? NULL
-        ];
-
-        $this->switchResponse($dataOut, TRUE, $funcDefault, 'csrfResendEmail');
+        /* if enable user fails, redirect on signup page */
+        if (!$res[SUCCESS]) redirect('/auth/signup');
+        
+        /* remove account enabler token and redirect on login page */
+        $pendUser = new PendingUser($this->conn);
+        $pendUser->removeAccountEnablerToken($token);
+        redirect('/'.LOGIN_ROUTE);
     }
 
     /* ##################################### */
@@ -528,13 +572,7 @@ class LoginController extends Controller {
     
 
     /* function to redirect if client is not on signup session */
-    private function redirectIfNotSignup() {
-        if (!(($_SESSION['signup'] ?? FALSE) && ($_SESSION['userId'] ?? FALSE))) redirect();
-    }
-
-    /* function to check if is a valid password reset token */
-    private function isSetTokenResetPass(string $token): bool {
-        $user = new User($this->conn, $this->appConfig);
-        return (bool) $user->getUserByTokenResetPassword($token);
+    private function redirectIfNotSignupSession() {
+        if (!(($_SESSION[SIGNUP] ?? FALSE) && ($_SESSION[USER_ID] ?? FALSE))) redirect();
     }
 }

@@ -263,13 +263,13 @@ class AppSettingsVerifier extends Verifier {
         /* validate default user */
         if (!(is_numeric($data[DEFAULT_USER_ROLE]) && $role->getRole($data[DEFAULT_USER_ROLE]))) {
             $result[MESSAGE] = 'Invalid default user';
-            $result[ERROR] = MIN_LENGHT_NAME;
+            $result[ERROR] = MIN_LENGTH_NAME;
         }
         
         /* validate min length of name */
-        if (!$this->isValidNumber($data[MIN_LENGHT_NAME], 1, 255)) {
+        if (!$this->isValidNumber($data[MIN_LENGTH_NAME], 1, 255)) {
             $result[MESSAGE] = 'Invalid min lenght name';
-            $result[ERROR] = MIN_LENGHT_NAME;
+            $result[ERROR] = MIN_LENGTH_NAME;
             return $result;
         }
         
@@ -281,9 +281,9 @@ class AppSettingsVerifier extends Verifier {
         }
         
         /* validate min length of username */
-        if (!$this->isValidNumber($data[MIN_LENGHT_USERNAME], 1, 255)) {
+        if (!$this->isValidNumber($data[MIN_LENGTH_USERNAME], 1, 255)) {
             $result[MESSAGE] = 'Invalid min lenght username';
-            $result[ERROR] = MIN_LENGHT_USERNAME;
+            $result[ERROR] = MIN_LENGTH_USERNAME;
             return $result;
         }
         
@@ -295,9 +295,9 @@ class AppSettingsVerifier extends Verifier {
         }
         
         /* validate min length of password */
-        if (!$this->isValidNumber($data[MIN_LENGHT_PASS], 1, 255)) {
+        if (!$this->isValidNumber($data[MIN_LENGTH_PASS], 1, 255)) {
             $result[MESSAGE] = 'Invalid min lenght password';
-            $result[ERROR] = MIN_LENGHT_PASS;
+            $result[ERROR] = MIN_LENGTH_PASS;
             return $result;
         }
         

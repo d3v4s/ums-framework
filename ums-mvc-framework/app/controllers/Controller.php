@@ -202,7 +202,7 @@ class Controller {
     /* ##################################### */
 
     /* function to send response json (XML HTTP) or default */
-    protected function switchFailResponse(string $message='Fail') {
+    protected function switchFailResponse(string $message='Fail', string $redirectTo=NULL) {
         /* get request with header */
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
         /* switc the response according to the header */
@@ -216,14 +216,20 @@ class Controller {
                 exit;
             /* default function */
             default:
-                /* display fail message and exit */
+                /* if is set redirect to, then set session message and redirect */
+                if (isset($redirectTo)) {
+                    $_SESSION[MESSAGE] = $message;
+                    $_SESSION[SUCCESS] = FALSE;
+                    redirect($redirectTo);
+                }
+                /* else display fail message and exit */
                 $this->showMessageAndExit($message, TRUE);
                 exit;
         }
     }
 
     /* function to send json response if XML HTTP request or send a default response */
-    protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken = CSRF) {
+    protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken=CSRF) {
         /* get request with header */
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
         /* switc the response according to the header */
@@ -330,8 +336,6 @@ class Controller {
 
     /* function to reset login session */
     protected function removeLoginSession(string $sessionToken): bool {
-        /* reset session */
-        $this->resetSession();
         /* init session model and remove lgin session token */
         $session = new Session($this->conn);
         return $session->removeLoginSessionToken($sessionToken);
@@ -355,52 +359,57 @@ class Controller {
     protected function resetLoginSessionIfChangeIp() {
         /* check if ip has changed */
         if ($this->loginSession->{IP_ADDRESS} !== $_SERVER['REMOTE_ADDR']) {
-            /* remove login session */
-            $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
-
-            /* send fail response */
+            /* reset login session send fail response */
+            $this->resetLoginSession();
             $this->switchFailResponse();
         }
     }
 
-    /* REDIRECTS OR FAIL */
+    protected function resetLoginSession(): bool {
+        /* reset session */
+        $this->resetSession();
+        /* remove login session */
+        return $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
+    }
 
-    /* function to redirect if user is loggin */
-    protected function redirectOrFailIfLoggin() {
+    /* REDIRECT OR SEND FAIL FUNCTIONS */
+
+    /* function to redirect or send fail if user is loggin */
+    protected function redirectOrFailIfLogin() {
         if ($this->loginSession) $this->switchFailResponse();
     }
 
-    /* function to redirect if client is not loggin */
+    /* function to redirect or send fail if client is not loggin */
     protected function redirectOrFailIfNotLogin() {
         if (!$this->loginSession) $this->switchFailResponse();
     }
 
-    /* function to redirect if client is not admin user */
+    /* function to redirect or send fail if client is not admin user */
     protected function redirectOrFailIfNotAdmin() {
         $this->redirectOrFailIfNotLogin();
         if ($this->loginSession->{ROLE_ID_FRGN} !== 0) $this->switchFailResponse();
     }
 
-    /* function to redirect if client is not loggin */
+    /* function to redirect or send fail if client is not loggin */
     protected function redirectOrFailIfCanNotCreateUser() {
         $this->redirectOrFailIfNotLogin();
         if (!$this->userRole->{CAN_CREATE_USER}) $this->switchFailResponse();
     }
 
-    /* function to redirect if user can not update */
+    /* function to redirect or send fail if user can not update */
     protected function redirectOrFailIfCanNotUpdateUser() {
         $this->redirectOrFailIfNotLogin();
         if (!$this->userRole->{CAN_UPDATE_USER}) $this->switchFailResponse();
     }
 
-    /* function to redirect if user can not delete */
+    /* function to redirect or send fail if user can not delete */
     protected function redirectOrFailIfCanNotDeleteUser() {
         $this->redirectOrFailIfNotLogin();
         if (!$this->userRole->{CAN_DELETE_USER}) $this->switchFailResponse();
     }
 
-    /* redirect if email confirm is not require */
-    protected function redirectOrFailIfNotRequireConfirmEmail() {
+    /* funtion to redirect or send fail if email confirm is not require */
+    protected function redirectOrFailIfConfirmEmailNotRequire() {
         if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $this->switchFailResponse();
     }
     

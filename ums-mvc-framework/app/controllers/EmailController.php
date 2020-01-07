@@ -10,7 +10,7 @@ use app\controllers\verifiers\EmailVerifier;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class EmailController extends Controller {
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout = UMS) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -100,7 +100,7 @@ class EmailController extends Controller {
             $data[SUCCESS] ? redirect() : redirect('/ums/email/new');
         };
 
-        $this->switchResponse($dataOut, !$resSendEmail[SUCCESS], $funcDefault);
+        $this->switchResponse($dataOut, (!$resSendEmail[SUCCESS] && $resSendEmail[GENERATE_TOKEN]), $funcDefault);
     }
 
     /* ##################################### */

@@ -1,6 +1,7 @@
 -- CREATE DATABASE --
 CREATE SCHEMA `ums` DEFAULT CHARACTER SET utf8mb4;
 USE `ums`;
+
 -- CREATE TABLES --
 
 -- new table for roles of users
@@ -26,25 +27,13 @@ CREATE TABLE `users` (
 	`username` VARCHAR(64) NOT NULL ,
 	`email` VARCHAR(64) NOT NULL ,
 	`password` VARCHAR(255) NOT NULL ,
-	`token_reset_pass` VARCHAR(255) NULL DEFAULT NULL ,
-	`datetime_req_reset_pass_expire` DATETIME NULL DEFAULT NULL ,
-	`roletype` ENUM('user','editor','admin') NOT NULL DEFAULT 'user' ,
+	`role_id` INT(5) unsigned NOT NULL DEFAULT '2',
 	`enabled` BOOLEAN NOT NULL DEFAULT FALSE ,
-	`registration_day` DATE NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-	`token_account_enabler` VARCHAR(255) NULL DEFAULT NULL ,
-	`new_email` VARCHAR(64) NULL DEFAULT NULL ,
-	`token_confirm_email` VARCHAR(255) NULL ,
-	`n_wrong_password` INT UNSIGNED NOT NULL DEFAULT '0' ,
-	`datetime_reset_wrong_password` DATETIME NULL DEFAULT NULL ,
-	`datetime_unlock_user` DATETIME NULL DEFAULT NULL ,
-	`n_locks` INT UNSIGNED NOT NULL DEFAULT '0' ,
+	`registration_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+	`expire_lock` datetime NULL DEFAULT NULL,
 
 	UNIQUE `username` (`username`),
-	UNIQUE `email` (`email`),
-	UNIQUE `token_reset_pass` (`token_reset_pass`),
-	UNIQUE `token_account_enabler` (`token_account_enabler`),
-	UNIQUE `new_email` (`new_email`),
-	UNIQUE `token_confirm_email` (`token_confirm_email`)
+	UNIQUE `email` (`email`)
 );
 
 -- new table for deleted users
@@ -66,13 +55,13 @@ CREATE TABLE `deleted_users` (
 
 -- new table for reset passwword request
 CREATE TABLE `password_reset_requests` (
-  `id_password_reset_request` int(15) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(15) unsigned NOT NULL,
-  `password_reset_token` varchar(255) NOT NULL,
-  `expire_datetime` datetime NOT NULL,
+	`id_password_reset_request` int(15) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`user_id` int(15) unsigned NOT NULL,
+	`password_reset_token` varchar(255) NOT NULL,
+	`expire_datetime` datetime NOT NULL,
 
-  FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
-  UNIQUE `password_reset_token` (`password_reset_token`)
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
+	UNIQUE `password_reset_token` (`password_reset_token`)
 );
 
 -- new table for pending new emails
@@ -118,13 +107,13 @@ CREATE TABLE `sessions` (
 
 -- create table for user locks
 CREATE TABLE `user_locks` (
-  `id_user_locks` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  `user_id` int(15) unsigned NOT NULL,
-  `count_wrong_password` int(5) unsigned NOT NULL DEFAULT '0',
-  `expire_wrong_password` datetime NULL,
-  `count_locks` int(5) NOT NULL DEFAULT '0',
+	`id_user_locks` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`user_id` int(15) unsigned NOT NULL,
+	`count_wrong_password` int(5) unsigned NOT NULL DEFAULT '0',
+	`expire_wrong_password` datetime NULL,
+	`count_locks` int(5) NOT NULL DEFAULT '0',
 
-  FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION
 );
 ALTER TABLE `user_locks`
 	ADD UNIQUE `user_id` (`user_id`),

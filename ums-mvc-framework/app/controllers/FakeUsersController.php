@@ -15,7 +15,7 @@ class FakeUsersController extends Controller {
     protected $lastnames = ['Serra', 'Rossi', 'da Vinci', 'Smith', 'Cruz', 'Waters', 'Gilmour', 'Marsh', 'Cartman', 'Stoch'];
     protected $domains = ['protonmail.com', 'gmail.com', 'yahoo.com', 'mail.com', 'hotmail.it', 'libero.it', 'devas.info'];
 
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout = UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -55,7 +55,7 @@ class FakeUsersController extends Controller {
         if ($resAddFakeUsers[SUCCESS]) {
             /* set default password and role user */
             $pass = $this->appConfig[UMS][PASS_DEFAULT];
-            $roletype = $this->appConfig[UMS][DEFAULT_USER_ROLE];
+            $roleId = $this->appConfig[UMS][DEFAULT_USER_ROLE];
             /* init user and counter */
             $user = new User($this->conn, $this->appConfig);
             $usersAdded = 0;
@@ -72,8 +72,8 @@ class FakeUsersController extends Controller {
                     USERNAME => $username,
                     EMAIL => $email,
                     NAME => $name,
-                    PASS => $pass,
-                    ROLE => $roletype,
+                    PASSWORD => $pass,
+                    ROLE => $roleId,
                     ENABLED => $enabled
                 ];
                 /* add fake user */
@@ -97,10 +97,10 @@ class FakeUsersController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect('/ums/users') : redirect('ums/users/fake');
+            $data[SUCCESS] ? redirect('/ums/users') : redirect('/ums/users/fake');
         };
 
-        $this->switchResponse($dataOut, !$resAddFakeUsers[SUCCESS], $funcDefault, CSRF_ADD_FAKE_USER);
+        $this->switchResponse($dataOut, (!$resAddFakeUsers[SUCCESS] && $resAddFakeUsers[GENERATE_TOKEN]), $funcDefault, CSRF_ADD_FAKE_USER);
     }
 
     /* ##################################### */

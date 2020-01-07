@@ -15,19 +15,21 @@ class RSAVerifier extends Verifier {
     /* ##################################### */
 
     /* function to verify generate key pair request */
-    public function verifyKeyGenerate(array $tokens): array {
+    public function verifyGenerateKey(array $tokens): array {
         /* set fail results */
         $result = [
-            'message' => 'Generate rsa key pair failed',
-            'success' => FALSE
+            MESSAGE => 'Generate rsa key pair failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* unset error messege and set success */
-        unset($result['message']);
-        $result['success'] = TRUE;
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
 
         /* return result */
         return $result;
@@ -37,16 +39,18 @@ class RSAVerifier extends Verifier {
     public function verifyKeyGenerateSave(array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Save rsa key failed',
-            'success' => FALSE
+            MESSAGE => 'Save rsa key failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* unset error message and set success */
-        unset($result['message']);
-        $result['success'] = TRUE;
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
 
         /* return result */
         return $result;

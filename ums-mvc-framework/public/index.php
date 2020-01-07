@@ -24,9 +24,9 @@ try {
     /* init router and set routes */
     $router = new Router($conn, getConfig());
     $router->setRoutes(getRoutes());
-    /* get controller and display page */
+    /* get controller, and if is valid controller then display page */
     $controller = $router->dispatch();
-    $controller->display();
+    if (is_subclass_of($controller, 'Controller', FALSE)) $controller->display();
 } catch (Exception $e) {
     /* init base controller and show error */
     $controller = new Controller(NULL, getConfig());

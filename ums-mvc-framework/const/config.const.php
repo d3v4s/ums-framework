@@ -5,7 +5,7 @@
 /* SECTIONS */
 define('APP', 'app');
 define('LAYOUT', 'layout');
-define('RSA ', 'rsa');
+define('RSA', 'rsa');
 define('SECURITY', 'security');
 define('UMS', 'ums');
 
@@ -43,11 +43,11 @@ define('MAX_LOCKS', 'max_locks');
 
 /* UMS SECTION */
 define('DEFAULT_USER_ROLE', 'defautl_role');
-define('MIN_LENGHT_NAME', 'min_length_name');
+define('MIN_LENGTH_NAME', 'min_length_name');
 define('MAX_LENGTH_NAME', 'max_length_name');
-define('MIN_LENGHT_USERNAME', 'min_length_username');
+define('MIN_LENGTH_USERNAME', 'min_length_username');
 define('MAX_LENGTH_USERNAME', 'max_length_username');
-define('MIN_LENGHT_PASS', 'min_length_password');
+define('MIN_LENGTH_PASS', 'min_length_password');
 define('CHECK_MAX_LENGTH_PASS', 'check_max_length_password');
 define('MAX_LENGTH_PASS', 'max_length_password');
 define('REQUIRE_HARD_PASS', 'require_hard_password');
@@ -63,6 +63,7 @@ define('ADD_FAKE_USER_PAGE', 'add_fake_users_page');
 define('LINK_PAGINATION', 'link_pagination');
 define('REQUIRE_CONFIRM_EMAIL', 'require_confirm_email');
 define('ENABLER_EMAIL_FROM', 'enabler_email_from');
+define('ENABLER_LINK_EXPIRE_TIME', 'enabler_link_expire_time');
 // define('USE_SERVER_DOMAIN_VALIDATION_EMAIL_LINK', 'use_server_domain_validation_email_link');
 define('DOMAIN_URL_LINK', 'domain_url_link');
 define('PASS_RESET_EMAIL_FROM', 'pass_reset_email_from');
