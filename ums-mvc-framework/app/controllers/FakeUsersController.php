@@ -15,7 +15,7 @@ class FakeUsersController extends Controller {
     protected $lastnames = ['Serra', 'Rossi', 'da Vinci', 'Smith', 'Cruz', 'Waters', 'Gilmour', 'Marsh', 'Cartman', 'Stoch'];
     protected $domains = ['protonmail.com', 'gmail.com', 'yahoo.com', 'mail.com', 'hotmail.it', 'libero.it', 'devas.info'];
 
-    public function __construct(PDO $conn, array $appConfig, string $layout = UMS_LAYOUT) {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -26,20 +26,20 @@ class FakeUsersController extends Controller {
     /* function to view fake users page */
     public function showAddFakeUsers() {
         /* redirects */
-        $this->redirectIfNotAddFakeUsers();
+        $this->redirectOrFailIfNotAddFakeUsers();
         $this->redirectOrFailIfCanNotCreateUser();
 
         /* add javascript sources and view fake user page */
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/ums/adm-fkusrs.js']
         );
-        $this->content = view('ums/admin-add-fake-users', [TOKEN => generateToken(CSRF_ADD_FAKE_USER)]);
+        $this->content = view('ums/add-fake-users', [TOKEN => generateToken(CSRF_ADD_FAKE_USER)]);
     }
 
     /* function to add fake users */
     public function addFakeUsers() {
         /* redirects */
-        $this->redirectIfNotAddFakeUsers();
+        $this->redirectOrFailIfNotAddFakeUsers();
         $this->redirectOrFailIfCanNotCreateUser();
 
         /* get data */
@@ -97,7 +97,7 @@ class FakeUsersController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect('/ums/users') : redirect('/ums/users/fake');
+            $data[SUCCESS] ? redirect('/'.USERS_LIST_ROUTE) : redirect('/'.FAKE_USERS_ROUTE);
         };
 
         $this->switchResponse($dataOut, (!$resAddFakeUsers[SUCCESS] && $resAddFakeUsers[GENERATE_TOKEN]), $funcDefault, CSRF_ADD_FAKE_USER);
@@ -108,7 +108,7 @@ class FakeUsersController extends Controller {
     /* ##################################### */
 
     /* function to redirect if add fake user is disable on settings app */
-    private function redirectIfNotAddFakeUsers() {
+    private function redirectOrFailIfNotAddFakeUsers() {
         if (!ADD_FAKE_USER_PAGE) $this->switchFailResponse();
     }
 

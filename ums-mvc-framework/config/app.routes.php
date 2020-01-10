@@ -2,92 +2,80 @@
 
 return [
     'GET' => [
-        '' => 'app\controllers\Controller@showHome',
-        'ums/users' => 'app\controllers\UMSController@showUsersList',
-        'ums/users/:orderBy' => 'app\controllers\UMSController@showUsersList',
-        'ums/users/:orderBy/:orderDir' => 'app\controllers\UMSController@showUsersList',
-        'ums/users/:orderBy/:orderDir/:page' => 'app\controllers\UMSController@showUsersList',
-        'ums/users/:orderBy/:orderDir/:page/:nRow' => 'app\controllers\UMSController@showUsersList',
-        'ums/user/:user' => 'app\controllers\UMSController@showUser',
-        'ums/user/:user/delete' => 'app\controllers\UMSController@showDeleteUser',
-        'ums/user/:user/update' => 'app\controllers\UMSController@showUpdateUser',
-        'ums/user/:user/update/pass' => 'app\controllers\UMSController@showUpdatePasswordUser',
-        'ums/user/new' => 'app\controllers\UMSController@showNewUser',
-        'ums/app/settings' => 'app\controllers\AppSettingsController@showAppSettings',
-        'ums/app/settings/:section' => 'app\controllers\AppSettingsController@showAppSettings',
-        'ums/email/new' => 'app\controllers\EmailController@showNewEmail',
-        'ums/users/fake' => 'app\controllers\FakeUsersController@showAddFakeUsers',
-        'ums/generator/rsa' => 'app\controllers\RSAKeyGeneratorController@showRSAKeyGenerator',
-        'ums/generator/site/map' => 'app\controllers\SiteMapGeneratorController@showSiteMapGenerator',
-        'ums/generator/site/map/update' => 'app\controllers\SiteMapGeneratorController@showSiteMapUpdate',
-        'account/enable/:token' => 'app\controllers\LoginController@enableAccount',
-        'validate/new/email/:token' => 'app\controllers\LoginController@validateNewEmail',
-        'auth/login' => 'app\controllers\LoginController@showLogin',
-        'auth/signup' => 'app\controllers\LoginController@showSignup',
-        'auth/signup/confirm' => 'app\controllers\LoginController@showSignupConfirm',
-        'auth/reset/password/req' => 'app\controllers\LoginController@showResetPasswordRequest',
-        'user/reset/password/:token' => 'app\controllers\LoginController@showResetPassword',
-        'user/settings' => 'app\controllers\UserController@showUserSettings',
-        'user/settings/pass' => 'app\controllers\UserController@showChangePassword',
-        'user/settings/delete' => 'app\controllers\UserController@showDeleteAccount',
-        'app/config/get/json' => function () {
-            $confApp = getConfig('app');
-            
-            if ($confApp['useRegex']) {
-                modifyRegexJS($confApp['regexName']);
-                modifyRegexJS($confApp['regexUsername']);
-                modifyRegexJS($confApp['regexPassword']);
-            }
-
-            if ($confApp['useRegexEmail']) modifyRegexJS($confApp['regexEmail']);
-
-            $resConfJSON = [
-                'minLengthName' => $confApp['minLengthName'],
-                'maxLengthName' => $confApp['maxLengthName'],
-                'minLengthUsername' => $confApp['minLengthUsername'],
-                'maxLengthUsername' => $confApp['maxLengthUsername'],
-                'minLengthPassword' => $confApp['minLengthPassword'],
-                'maxLengthPassword' => $confApp['maxLengthPassword'],
-                'checkMaxLengthPassword' => $confApp['checkMaxLengthPassword'],
-                'requireHardPassword' => $confApp['requireHardPassword'],
-                'useRegex' => $confApp['useRegex'],
-                'regexName' => $confApp['regexName'],
-                'regexUsername' => $confApp['regexUsername'],
-                'regexPassword' => $confApp['regexPassword'],
-                'useRegexEmail' => $confApp['useRegexEmail'],
-                'regexEmail' => $confApp['regexEmail']
-            ];
-            sendJsonResponse($resConfJSON);
-//             echo json_encode($resConfJSON);
-//             exit;
+        HOME_ROUTE => 'app\controllers\Controller@showHome',
+        UMS_HOME_ROUTE => 'app\controllers\UMSController@showUmsHome',
+        USERS_LIST_ROUTE => 'app\controllers\UMSController@showUsersList',
+        USERS_LIST_ROUTE.'/:orderBy' => 'app\controllers\UMSController@showUsersList',
+        USERS_LIST_ROUTE.'/:orderBy/:orderDir' => 'app\controllers\UMSController@showUsersList',
+        USERS_LIST_ROUTE.'/:orderBy/:orderDir/:page' => 'app\controllers\UMSController@showUsersList',
+        USERS_LIST_ROUTE.'/:orderBy/:orderDir/:page/:nRow' => 'app\controllers\UMSController@showUsersList',
+        USER_ROUTE.'/:user' => 'app\controllers\UMSController@showUser',
+//         SHOW_USER_ROUTE.'/:user/delete' => 'app\controllers\UMSController@showDeleteUser',
+        USER_ROUTE.'/:user/'.UPDATE_ROUTE => 'app\controllers\UMSController@showUpdateUser',
+        USER_ROUTE.'/:user/'.PASS_UPDATE_ROUTE => 'app\controllers\UMSController@showUpdatePasswordUser',
+        NEW_USER_ROUTE => 'app\controllers\UMSController@showNewUser',
+        NEW_EMAIL_ROUTE => 'app\controllers\EmailController@showNewEmail',
+        APP_SETTINGS_ROUTE => 'app\controllers\AppSettingsController@showAppSettings',
+        APP_SETTINGS_ROUTE.'/:section' => 'app\controllers\AppSettingsController@showAppSettings',
+        FAKE_USERS_ROUTE => 'app\controllers\FakeUsersController@showAddFakeUsers',
+        RSA_GENERATOR_ROUTE => 'app\controllers\RSAKeyGeneratorController@showRSAKeyGenerator',
+        SITE_MAP_GENERATOR_ROUTE => 'app\controllers\SiteMapGeneratorController@showSiteMapGenerator',
+        SITE_MAP_UPDATE_ROUTE => 'app\controllers\SiteMapGeneratorController@showSiteMapUpdate',
+        ACCOUNT_ENABLER_ROUTE.'/:token' => 'app\controllers\LoginController@enableAccount',
+        EMAIL_ENABLER_ROUTE.'/:token' => 'app\controllers\LoginController@validateNewEmail',
+        LOGIN_ROUTE => 'app\controllers\LoginController@showLogin',
+        SIGNUP_ROUTE => 'app\controllers\LoginController@showSignup',
+        CONFIRM_SIGNUP_ROUTE => 'app\controllers\LoginController@showSignupConfirm',
+        PASS_RESET_REQ_ROUTE => 'app\controllers\LoginController@showResetPasswordRequest',
+        PASS_RESET_ROUTE.'/:token' => 'app\controllers\LoginController@showResetPassword',
+        ACCOUNT_SETTINGS_ROUTE => 'app\controllers\AccountController@showAccountSettings',
+        ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE => 'app\controllers\AccountController@showChangePassword',
+//         'user/settings/delete' => 'app\controllers\UserController@showDeleteAccount',
+        GET_JSON_CONFIG_ROUTE => function () {
+            sendJsonResponse([
+                'minLengthName' => MIN_LENGTH_NAME,
+                'maxLengthName' => MAX_LENGTH_NAME,
+                'minLengthUsername' => MIN_LENGTH_USERNAME,
+                'maxLengthUsername' => MAX_LENGTH_USERNAME,
+                'minLengthPassword' => MIN_LENGTH_USERNAME,
+                'maxLengthPassword' => MAX_LENGTH_PASS,
+                'useRegexName' => USE_REGEX_NAME,
+                'regexName' => modifyRegexJS(REGEX_NAME),
+                'useRegexUsername' => USE_REGEX_USERNAME,
+                'regexUsername' => modifyRegexJS(REGEX_USERNAME),
+                'useRegexEmail' => USE_REGEX_EMAIL,
+                'regexEmail' => modifyRegexJS(REGEX_EMAIL),
+                'useRegexPassword' => USE_REGEX_PASSWORD,
+                'regexPassword' => modifyRegexJS(REGEX_PASSWORD)
+            ]);
         }
     ],
 
     'POST' => [
-        'ums/user/new' => 'app\controllers\UMSController@newUser',
-        'ums/user/update' => 'app\controllers\UMSController@updateUser',
-        'ums/user/update/pass' => 'app\controllers\UMSController@updatePasswordUser',
-        'ums/user/update/reset/wrong/pass' => 'app\controllers\UMSController@resetWrongPasswords',
-        'ums/user/update/reset/lock' => 'app\controllers\UMSController@resetLockUser',
-        'ums/user/delete/confirm' => 'app\controllers\UMSController@deleteUser',
-        'ums/user/delete/new/email' => 'app\controllers\UMSController@deleteNewEmail',
-        'ums/app/settings/:section/update' => 'app\controllers\AppSettingsController@updateSettings',
-        'ums/generator/rsa/save' => 'app\controllers\RSAKeyGeneratorController@rsaKeyGenerateSave',
-        'ums/generator/rsa/get' => 'app\controllers\RSAKeyGeneratorController@rsaKeyGenerate',
-        'ums/generator/site/map' => 'app\controllers\SiteMapGeneratorController@siteMapGenerate',
-        'ums/email/send' => 'app\controllers\EmailController@sendEmail',
-        'ums/users/fake' => 'app\controllers\FakeUsersController@addFakeUsers',
-        'auth/login' => 'app\controllers\LoginController@login',
-        'auth/logout' => 'app\controllers\LoginController@logout',
-        'auth/signup' => 'app\controllers\LoginController@signup',
-        'auth/signup/confirm/email/resend' => 'app\controllers\LoginController@signupResendEmail',
-        'auth/reset/password' => 'app\controllers\LoginController@resetPasswordRequest',
-        'user/reset/password' => 'app\controllers\LoginController@resetPassword',
-        'user/settings/update' => 'app\controllers\UserController@updateUser',
-        'user/settings/pass/update' => 'app\controllers\UserController@changePassword',
-        'user/settings/delete/confirm' => 'app\controllers\UserController@deleteAccount',
-        'user/settings/new/email/resend/validation' => 'app\controllers\UserController@resendNewEmailValidation',
-        'user/settings/new/email/delete' => 'app\controllers\UserController@deleteNewEmail',
-        'app/config/get/key/json' => 'app\controllers\Controller@showKeyJSON'
+        NEW_USER_ROUTE => 'app\controllers\UMSController@newUser',
+        USER_ROUTE.'/'.UPDATE_ROUTE => 'app\controllers\UMSController@updateUser',
+        USER_ROUTE.'/'.PASS_UPDATE_ROUTE => 'app\controllers\UMSController@updatePasswordUser',
+        USER_ROUTE.'/'.RESET_LOCK_COUNTERS_ROUTE => 'app\controllers\UMSController@resetWrongPasswords',
+//         USER_ROUTE.'/update/reset/lock' => 'app\controllers\UMSController@resetLockUser',
+//         'ums/user/delete/confirm' => 'app\controllers\UMSController@deleteUser',
+//         'ums/user/delete/new/email' => 'app\controllers\UMSController@deleteNewEmail',
+        APP_SETTINGS_ROUTE.'/:section/'.UPDATE_ROUTE => 'app\controllers\AppSettingsController@updateSettings',
+        RSA_GENERATOR_ROUTE.'/'.SAVE_ROUTE => 'app\controllers\RSAKeyGeneratorController@rsaKeyGenerateSave',
+        RSA_GENERATOR_ROUTE.'/'.GET_ROUTE => 'app\controllers\RSAKeyGeneratorController@rsaKeyGenerate',
+        SITE_MAP_GENERATOR_ROUTE => 'app\controllers\SiteMapGeneratorController@siteMapGenerate',
+        SEND_EMAIL_ROUTE => 'app\controllers\EmailController@sendEmail',
+        FAKE_USERS_ROUTE => 'app\controllers\FakeUsersController@addFakeUsers',
+        LOGIN_ROUTE => 'app\controllers\LoginController@login',
+        LOGOUT_ROUTE => 'app\controllers\LoginController@logout',
+        SIGNUP_ROUTE => 'app\controllers\LoginController@signup',
+        CONFIRM_SIGNUP_ROUTE.'/'.RESEND_EMAIL_ROUTE => 'app\controllers\LoginController@signupResendEmail',
+        PASS_RESET_REQ_ROUTE => 'app\controllers\LoginController@resetPasswordRequest',
+        PASS_RESET_ROUTE => 'app\controllers\LoginController@resetPassword',
+        ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE => 'app\controllers\AccountController@updateAccount',
+        ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE => 'app\controllers\AccountController@changePassword',
+        ACCOUNT_SETTINGS_ROUTE.'/'.DELETE_ROUTE => 'app\controllers\AccountController@deleteAccount',
+        ACCOUNT_SETTINGS_ROUTE.'/'.RESEND_EMAIL_ROUTE => 'app\controllers\AccountController@resendEmailEnabler',
+        ACCOUNT_SETTINGS_ROUTE.'/'.DELETE_EMAIL_ROUTE => 'app\controllers\AccountController@deleteNewEmail',
+        GET_JSON_KEY_ROUTE => 'app\controllers\Controller@showKeyJSON'
     ]
 ];

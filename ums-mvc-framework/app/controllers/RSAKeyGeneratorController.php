@@ -12,13 +12,15 @@ require_once __DIR__.'/../../helpers/functions.php';
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class RSAKeyGeneratorController extends Controller {
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* ########## SHOW FUNCTIONS ########## */
 
     /* function to view rsa key pair generator page */
     public function showRSAKeyGenerator() {
@@ -33,20 +35,22 @@ class RSAKeyGeneratorController extends Controller {
             [SOURCE => '/js/utils/ums/adm-rsa.js']
         );
 
-        $this->content = view('ums/admin-rsa-generator', [TOKEN => generateToken(CSRF_GEN_RSA)]);
+        $this->content = view('ums/rsa-generator', [TOKEN => generateToken(CSRF_GEN_RSA)]);
     }
+
+    /* ########## ACTION FUNCTIONS ########## */
 
     /* function to generate a new rsa key pair */
     public function generateRsaKey() {
         /* redirects */
         $this->redirectOrFailIfCanNotGenerateRsaKey();
-        $this->redirectIfNotXMLHTTPRequest('/ums/generator/rsa');
+        $this->redirectIfNotXMLHTTPRequest('/'.RSA_GENERATOR_ROUTE);
 
         /* get tokens */
         $tokens = $this->getPostSessionTokens(CSRF_GEN_RSA);
 
         /* get verifier instance, and check gerate rsa key request */
-        $verifier = RSAVerifier::getInstance($this->appConfig);
+        $verifier = RSAVerifier::getInstance();
         $resKeyGenerate = $verifier->verifyGenerateKey($tokens);
         /* if success */
         if ($resKeyGenerate[SUCCESS]) {
@@ -75,7 +79,7 @@ class RSAKeyGeneratorController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/ums/generator/rsa');
+            redirect('/'.RSA_GENERATOR_ROUTE);
         };
 
         $this->switchResponse($dataOut, $resKeyGenerate[GENERATE_TOKEN], $funcDefault, CSRF_GEN_RSA);
@@ -85,7 +89,7 @@ class RSAKeyGeneratorController extends Controller {
     /* function to generate and save a key on server */
     public function generateSaveRsaKey() {
         /* redirect */
-        $this->redirectIfNotAdmin();
+        $this->redirectOrFailIfCanNotGenerateRsaKey();
 
         /* get tokens */
         $tokens = $this->getPostSessionTokens(CSRF_GEN_SAVE_RSA);
@@ -128,7 +132,7 @@ class RSAKeyGeneratorController extends Controller {
 
     /* function to redirect if user can not generate rsa key pair */ 
     private function redirectOrFailIfCanNotGenerateRsaKey() {
-        if (!$this->userRole->{CAN_GENERATE_RSA}) redirect();
+        if (!$this->userRole[CAN_GENERATE_RSA]) redirect();
     }
 
     /* function to save rsa private key */

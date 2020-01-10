@@ -10,7 +10,7 @@ use app\controllers\verifiers\EmailVerifier;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class EmailController extends Controller {
-    public function __construct(PDO $conn, array $appConfig, string $layout = UMS) {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -42,14 +42,14 @@ class EmailController extends Controller {
         );
 
         /* generrate token and show new email page */
-        $this->content = view('ums/admin-new-email', [TOKEN => generateToken(CSRF_NEW_EMAIL)]);
+        $this->content = view('ums/new-email', [TOKEN => generateToken(CSRF_NEW_EMAIL)]);
     }
 
     /* function to send email */
     public function sendEmail() {
         /* redirects */
         $this->redirectOrFailIfCanNotSendEmail();
-        $this->redirectIfNotXMLHTTPRequest('/ums/email/new');
+        $this->redirectIfNotXMLHTTPRequest('/'.NEW_EMAIL_ROUTE);
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens();
@@ -97,7 +97,7 @@ class EmailController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect() : redirect('/ums/email/new');
+            $data[SUCCESS] ? redirect() : redirect('/'.NEW_EMAIL_ROUTE);
         };
 
         $this->switchResponse($dataOut, (!$resSendEmail[SUCCESS] && $resSendEmail[GENERATE_TOKEN]), $funcDefault);
@@ -109,6 +109,6 @@ class EmailController extends Controller {
 
     /* function to redirect if user can not send email */
     private function redirectOrFailIfCanNotSendEmail() {
-        if (!$this->userRole->{CAN_SEND_EMAIL}) $this->switchFailResponse();
+        if (!$this->userRole[CAN_SEND_EMAIL]) $this->switchFailResponse();
     }
 }

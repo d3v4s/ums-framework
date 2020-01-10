@@ -6,37 +6,32 @@ namespace app\controllers\verifiers;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class SiteMapVerifier extends Verifier {
-    protected $changefreqList =  [];
 
-    protected function __construct(array $appConfig) {
-        parent::__construct($appConfig);
-        $this->changefreqList = getList('changefreq');
+    protected function __construct() {
+        parent::__construct();
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
-    /* set list of change frequencies */
-    public function setChangefreqList(array $changefreqList) {
-        $this->changefreqList = $changefreqList;
-    }
-
     /* function to verfify generate sitemap request */
-    public function verifySiteMapGenerate(string $urlServer, array $data, array $tokens): array {
+    public function verifyGenerateSiteMap(string $urlServer, array $data, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Site map creation failed',
-            'success' => FALSE
+            MESSAGE => 'Site map creation failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* validate domain */
         if (!$this->isValidDomain($urlServer)) {
-            $result['message'] = 'Invalid url server';
-            $result['error'] = 'url-server';
+            $result[MESSAGE] = 'Invalid url server';
+            $result[ERROR] = URL_SERVER;
             return $result;
         }
 
@@ -47,62 +42,62 @@ class SiteMapVerifier extends Verifier {
         $keys = array_keys($routesList);
         foreach ($keys as $key) {
             /* if not empty set last modify */
-            if (!empty($data['lastmod-' . $key])) {
+            if (!empty($data[SITEMAP_LASTMOD.$key])) {
                 /* get last modify date */
-                $lastmod = $data['lastmod-' . $key];
+                $lastmod = $data[SITEMAP_LASTMOD.$key];
                 /* validate last modify date */
                 if (!$this->isValidDate($lastmod)) {
-                    $result['message'] = 'Last modification date invalid on route ' . $key;
-                    $result['error'] = 'lastmod-' . $key;
+                    $result[MESSAGE] = 'Last modification date invalid on route '.$key;
+                    $result[ERROR] = SITEMAP_LASTMOD.$key;
                     return $result;
                 }
 
                 /* escape malicious chars and set last modify date */
                 $this->escapeEntity($lastmod);
-                $routesList[$key]['lastmod'] = $lastmod;
+                $routesList[$key][LASTMOD] = $lastmod;
             }
 
             /* if not empty set priority */
-            if (!empty($data['priority-' . $key])) {
+            if (!empty($data[SITEMAP_PRIORITY.$key])) {
                 /* get priority number */
-                $priority = $data['priority-' . $key];
+                $priority = $data[SITEMAP_PRIORITY.$key];
                 /* validate priority number */
                 if (!$this->isValidNumber($priority, 0, 1)) {
-                    $result['message'] = 'Invalid priority on route ' . $key;
-                    $result['error'] = 'priority-' . $key;
+                    $result[MESSAGE] = 'Invalid priority on route '.$key;
+                    $result[ERROR] = SITEMAP_PRIORITY.$key;
                     return $result;
                 }
 
                 /* escape malicious chars and set priority */
                 $this->escapeEntity($priority);
-                $routesList[$key]['priority'] = $priority;
+                $routesList[$key][PRIORITY] = $priority;
             }
 
             /* if not empty set change frequency */
-            if (!empty($data['changefreq-' . $key])) {
+            if (!empty($data[SITEMAP_CHANGEFREQ.$key])) {
                 /* get change frequency */
-                $changefreq = $data['changefreq-' . $key];
+                $changefreq = $data[SITEMAP_CHANGEFREQ.$key];
                 /* validate change frequency */
-                if (!in_array($changefreq, $this->changefreqList)) {
-                    $result['message'] = 'Change frequency invalid on route ' . $key;
-                    $result['error'] = 'changefreq-' . $key;
+                if (!in_array($changefreq, CHANGE_FREQ_LIST)) {
+                    $result[MESSAGE] = 'Change frequency invalid on route '.$key;
+                    $result[ERROR] = SITEMAP_CHANGEFREQ.$key;
                     return $result;
                 }
 
                 /* escape malicious chars and set change frequency */
                 $this->escapeEntity($changefreq);
-                $routesList[$key]['changefreq'] = $changefreq;
+                $routesList[$key][CHANGEFREQ] = $changefreq;
             }
 
             /* escape malicious chars and set priority */
-            $routesList[$key]['route'] = $urlServer . $routesList[$key]['route'];
-            $this->escapeEntity($routesList[$key]['route']);
+            $routesList[$key][ROUTE] = $urlServer . $routesList[$key][ROUTE];
+            $this->escapeEntity($routesList[$key][ROUTE]);
         }
 
         /* unset error message and set results */
-        unset($result['message']);
-        $result['routesList'] = $routesList;
-        $result['success'] = TRUE;
+        unset($result[MESSAGE]);
+        $result[ROUTES] = $routesList;
+        $result[SUCCESS] = TRUE;
 
         /* return results */
         return $result;
@@ -115,7 +110,7 @@ class SiteMapVerifier extends Verifier {
     /* function to get routes list */
     private function getRoutesList(array $data): array {
         $routeList = [];
-        foreach ($data as $key => $val) if (substr($key, 0, 6) === 'route-') $routeList[substr($key, 6)] = ['route' => $val];
+        foreach ($data as $key => $val) if (substr($key, 0, 6) === SITEMAP_ROUTE) $routeList[substr($key, 6)] = [ROUTE => $val];
 
         return $routeList;
     }

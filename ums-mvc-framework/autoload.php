@@ -10,7 +10,7 @@ function autoloadClass($className) {
         $fileName = \str_replace($namespaceSeparator, DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
     }
     $fileName .= \str_replace('_', DIRECTORY_SEPARATOR, $className) . $fileExtension;
-    require \getPath(WORK_DIR, [$fileName]);
+    require \getPath(getcwd(), $fileName);
 //     $link = $_SERVER['DOCUMENT_ROOT'].'/../'.str_replace('\\', '/', $className).'.php';
 //     if (file_exists($link)) require_once $link;
 //     else throw new Exception("Class $className not found");

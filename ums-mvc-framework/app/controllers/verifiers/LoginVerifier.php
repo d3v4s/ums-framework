@@ -13,15 +13,13 @@ use \PDO;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginVerifier extends Verifier {
-    protected function __construct(array $appConfig, PDO $conn) {
-        parent::__construct($appConfig, $conn);
+    protected function __construct(PDO $conn) {
+        parent::__construct($conn);
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
-
-    /* ############ LOGIN FUNCTIONS ############ */
 
     /* function to verify a login */
     public function verifyLogin(string $username, string $pass, array $tokens): array {
@@ -38,10 +36,10 @@ class LoginVerifier extends Verifier {
         $result[GENERATE_TOKEN] = TRUE;
         
         /* get ums configuartions and init user model */
-        $umsConf = $this->appConfig[UMS];
+//         $umsConf = $this->appConfig[UMS];
         $user = new User($this->conn);
         /* if is valid email, loggin with it */
-        if ($this->isValidEmail($username, $umsConf[USE_REGEX_EMAIL], $umsConf[REGEX_EMAIL])) {
+        if ($this->isValidEmail($username, USE_REGEX_EMAIL, REGEX_EMAIL)) {
             /* if user not found, then set user not found message and return */
             if (!$usr = $user->getUserByEmail($username, FALSE)) {
                 $result[MESSAGE] = 'User not found - Wrong email';
@@ -77,8 +75,6 @@ class LoginVerifier extends Verifier {
         return $result;
     }
 
-    /* ############ SIGNUP FUNCTIONS ############ */
-    
     /* function to verify a resend signup validation email request */
     public function verifySignupResendEmail(int $id, array $tokens): array {
         /* set fail result */
@@ -109,8 +105,6 @@ class LoginVerifier extends Verifier {
         return $result;
     }
 
-    /* ############ LOGOUT FUNCTIONS ############ */
-
     /* function to verify logout request */
     public function verifyLogout(int $id, array $tokens): array {
         /* set fail result */
@@ -136,37 +130,6 @@ class LoginVerifier extends Verifier {
         return $result;
     }
 
-    /* ############ NEW EMAIL FUNCTIONS ############ */
-
-    /* function to verify a enable new email request */
-    public function verifyEnableNewEmail(string $token): array {
-        /* set fail result */
-        $result = [
-            MESSAGE => 'Confirm new email failed',
-            SUCCESS => FALSE
-        ];
-
-
-        /* validate tokens and user id init pending email model */
-        $pendMail = new PendingEmail($this->conn);
-        if (!($usr = $pendMail->getUserByEmailEnablerToken($token)) || $this->isUserLockedOrDisabled($usr)) return $result;
-
-        /* check if new email confirmed already exists */
-        $user = new User($this->conn);
-        if ($user->getUserByEmail($usr->new_email)) {
-            $result[MESSAGE] = 'User already exist with this email';
-            return $result;
-        }
-
-        /* unset error message */
-        unset($result[MESSAGE]);
-
-        /* set success result and return it */
-        $result[USER] = $usr;
-        $result[SUCCESS] = TRUE;
-        return $result;
-    }
-
     /* ############ PASSWORD FUNCTIONS ############ */
 
     /* function to verify a reset password request */
@@ -183,7 +146,7 @@ class LoginVerifier extends Verifier {
         $result[GENERATE_TOKEN] = TRUE;
 
         /* validate email */
-        if (!$this->isValidEmail($email, $this->appConfig[UMS][USE_REGEX_EMAIL], $this->appConfig[UMS][REGEX_EMAIL])) {
+        if (!$this->isValidEmail($email, USE_REGEX_EMAIL, REGEX_EMAIL)) {
             $result[MESSAGE] = 'Invalid email';
             $result[ERROR] = EMAIL;
             return $result;
@@ -236,10 +199,10 @@ class LoginVerifier extends Verifier {
         }
 
         /* get UMS configurations */
-        $umsConf = $this->appConfig[UMS];
+//         $umsConf = $this->appConfig[UMS];
 
         /* validate password */
-        if (!$this->isValidPassword($pass, $umsConf[MIN_LENGTH_PASS], $umsConf[CHECK_MAX_LENGTH_PASS], $umsConf[MAX_LENGTH_PASS], $umsConf[REQUIRE_HARD_PASS], $umsConf[USE_REGEX], $umsConf[REGEX_PASSWORD])) {
+        if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX, REGEX_PASSWORD)) {
             $result[MESSAGE] = 'Invalid password';
             $result[ERROR] = PASSWORD;
             return $result;
@@ -261,7 +224,7 @@ class LoginVerifier extends Verifier {
         return $result;
     }
 
-    /* ############ ACCOUNT FUNCTIONS ############ */
+    /* ############ ENABLER FUNCTIONS ############ */
 
     /* function to verify enable account request */
     public function verifyEnableAccount(string $token): array {
@@ -279,7 +242,7 @@ class LoginVerifier extends Verifier {
         if (!($user = $pendUser->getUserByAccountEnablerToken($token, FALSE))) return $result;
 
         $expireTime = new DateTime($user->{REGISTRATION_DATETIME});
-        $expireTime->modify($this->appConfig[UMS][ENABLER_LINK_EXPIRE_TIME]);
+        $expireTime->modify(ENABLER_LINK_EXPIRE_TIME);
         if ($expireTime < new DateTime()) {
             $result[MESSAGE] = 'Your enabler link has expire';
             $result[REMOVE_TOKEN] = TRUE;
@@ -304,6 +267,44 @@ class LoginVerifier extends Verifier {
 
         /* set success result and return it */
         $result[USER] = $user;
+        $result[SUCCESS] = TRUE;
+        return $result;
+    }
+
+    /* function to verify a enable new email request */
+    public function verifyEnableNewEmail(string $token): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Confirm new email failed',
+            SUCCESS => FALSE,
+            REMOVE_TOKEN => FALSE
+        ];
+        
+        
+        /* validate tokens and user id init pending email model */
+        $pendMail = new PendingEmail($this->conn);
+        if (!($mail = $pendMail->getUserByEmailEnablerToken($token)) || $this->isUserLockedOrDisabled($mail)) return $result;
+
+        /* check if token is expire */
+        if ($mail->{EXPIRE_DATETIME} < new DateTime()) {
+            $result[MESSAGE] = 'Your enabler link has expire';
+            $result[REMOVE_TOKEN] = TRUE;
+            return $result;
+        }
+
+        /* check if new email confirmed already exists */
+        $userModel = new User($this->conn);
+        if ($userModel->getUserByEmail($mail->{NEW_EMAIL})) {
+            $result[MESSAGE] = 'User already exist with this email';
+            $result[REMOVE_TOKEN] = TRUE;
+            return $result;
+        }
+        
+        /* unset error message */
+        unset($result[MESSAGE]);
+        
+        /* set success result and return it */
+        $result[USER] = $mail;
         $result[SUCCESS] = TRUE;
         return $result;
     }

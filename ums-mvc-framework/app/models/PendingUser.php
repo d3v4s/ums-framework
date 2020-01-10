@@ -44,7 +44,7 @@ class PendingUser {
             'username' => $data[USERNAME],
             'email' => $data[EMAIL],
             'password' => $password,
-            'role_id' => $data[ROLE_ID],
+            'role_id' => $data[ROLE_ID_FRGN],
             'account_enabler_token' => $token
         ]);
         

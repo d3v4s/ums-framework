@@ -6,8 +6,8 @@ namespace app\controllers\verifiers;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class EmailVerifier extends Verifier {
-    protected function __construct(array $appConfig) {
-        parent::__construct($appConfig);
+    protected function __construct() {
+        parent::__construct();
     }
 
     /* ##################################### */

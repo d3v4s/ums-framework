@@ -57,8 +57,8 @@ class PendingEmail {
     /* function to get user by login session token */
     public function getPendingEmailByUserId(string $userId) {
         /* prepare sql query, then execute */
-        $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE.' ';
-        $sql .= 'WHERE '.USER_ID_FRGN.'=:id AND '.ENABLER_TOKEN.'IS NOT NULL';
+        $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE;
+        $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND '.ENABLER_TOKEN.'IS NOT NULL';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $userId]);
 
@@ -79,9 +79,7 @@ class PendingEmail {
         $stmt->execute(['token' => $token]);
         
         /* if find pending mail return it */
-        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) {
-            return $pendMail;
-        }
+        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }

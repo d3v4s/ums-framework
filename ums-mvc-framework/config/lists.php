@@ -16,11 +16,11 @@ return [
         'it'
     ],
 
-    'time_units' => [
-        'minutes',
-        'hour',
-        'day'
-    ],
+//     'time_units' => [
+//         'minutes',
+//         'hour',
+//         'day'
+//     ],
 
     'change_freq' => [
         'always',
@@ -32,17 +32,26 @@ return [
         'never'
     ],
 
+    'user_cols' => [
+        USER_ID => 'ID',
+        NAME => 'Name',
+        USERNAME => 'Username',
+        EMAIL => 'Email',
+        ROLE => 'Roletype', 
+        ENABLED => 'Enabled'
+    ],
+
     'order_by' => [
-        'id',
-        'name',
-        'username',
-        'email',
-        'roletype',
-        'enabled'
+        USER_ID,
+        NAME,
+        USERNAME,
+        EMAIL,
+        ROLE,
+        ENABLED
     ],
 
     'order_dir' => [
-        'ASC',
-        'DESC'
+        ASC,
+        DESC
     ]
 ];

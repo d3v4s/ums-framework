@@ -11,18 +11,16 @@ use app\models\PendingEmail;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class Verifier {
-    protected $appConfig;
     protected $conn;
     static protected $instance;
 
     /* singleton */
-    static public function getInstance(array $appConfig, PDO $conn = NULL): Verifier {
-        if (!isset(static::$instance)) static::$instance = new static($appConfig, $conn);
+    static public function getInstance(PDO $conn = NULL): Verifier {
+        if (!isset(static::$instance)) static::$instance = new static($conn);
         return static::$instance;
     }
 
-    protected function __construct(array $appConfig, PDO $conn = NULL) {
-        $this->appConfig = $appConfig ?? getConfig();
+    protected function __construct(PDO $conn = NULL) {
         $this->conn = $conn;
     }
 
@@ -39,13 +37,13 @@ class Verifier {
         ];
 
         /* check if user has reached max wrong passwords */
-        if ($nWrongPass >= $this->appConfig[SECURITY][MAX_WRONG_PASSWORDS]) {
+        if ($nWrongPass >= MAX_WRONG_PASSWORDS) {
             $result[LOCK] = TRUE;
             ++$nLock;
         }
 
         /* check if user has reached max locks */
-        if ($nLock >= $this->appConfig[SECURITY][MAX_LOCKS]) {
+        if ($nLock >= MAX_LOCKS) {
             $result[DISABLE] = TRUE;
             $result[LOCK] = FALSE;
         }
@@ -59,7 +57,7 @@ class Verifier {
         /* set fail function */
         $result = [
             MESSAGE => 'Signup failed',
-            SUCCESS => false,
+            SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
 
@@ -67,18 +65,18 @@ class Verifier {
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
 
-        /* get app configurations */
-        $umsConf = $this->appConfig[UMS];
+//         /* get app configurations */
+//         $umsConf = $this->appConfig[UMS];
 
         /* validate name */
-        if (!$this->isValidInput($name, $umsConf[MIN_LENGTH_NAME], $umsConf[MAX_LENGTH_NAME], $umsConf[USE_REGEX], $umsConf[REGEX_NAME])) {
+        if (!$this->isValidInput($name, MIN_LENGTH_NAME, MAX_LENGTH_NAME, USE_REGEX_NAME, REGEX_NAME)) {
             $result[MESSAGE] = 'Invalid name';
             $result[ERROR] = NAME;
             return $result;
         }
 
         /* validate username */
-        if (!$this->isValidInput($username, $umsConf[MIN_LENGTH_USERNAME], $umsConf[MAX_LENGTH_USERNAME], $umsConf[USE_REGEX], $umsConf[REGEX_USERNAME])) {
+        if (!$this->isValidInput($username, MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, USE_REGEX, REGEX_USERNAME)) {
             $result[MESSAGE] = 'Invalid username';
             $result[ERROR] = USERNAME;
             return $result;
@@ -96,7 +94,7 @@ class Verifier {
 
 
         /* validate email */
-        if (!$this->isValidEmail($email, $umsConf[USE_REGEX_EMAIL], $umsConf[REGEX_EMAIL])) {
+        if (!$this->isValidEmail($email, USE_REGEX_EMAIL, REGEX_EMAIL)) {
             $result[MESSAGE] = 'Invalid email';
             $result[ERROR] = EMAIL;
             return $result;
@@ -110,7 +108,7 @@ class Verifier {
         }
 
         /* validate password */
-        if (!$this->isValidPassword($pass, $umsConf[MIN_LENGTH_PASS], $umsConf[CHECK_MAX_LENGTH_PASS], $umsConf[MAX_LENGTH_PASS], $umsConf[REQUIRE_HARD_PASS], $umsConf[USE_REGEX], $umsConf[REGEX_PASSWORD])) {
+        if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX, REGEX_PASSWORD)) {
             $result[MESSAGE] = 'Invalid password';
             $result[ERROR] = PASSWORD;
             return $result;
@@ -141,7 +139,6 @@ class Verifier {
             GENERATE_TOKEN => FALSE
         ];
 
-
         /* validate token */
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
@@ -151,26 +148,19 @@ class Verifier {
         if (!($usr = $user->getUser($id))) return $result;
 
         /* get configuration of app */
-        $umsConf = $this->appConfig[UMS];
+//         $umsConf = $this->appConfig[UMS];
 
         /* validate name */
-        if (!$this->isValidInput($name, $umsConf[MIN_LENGTH_NAME], $umsConf[MAX_LENGTH_USERNAME], $umsConf[USE_REGEX], $umsConf[REGEX_NAME])) {
+        if (!$this->isValidInput($name, MIN_LENGTH_NAME, MAX_LENGTH_NAME, USE_REGEX_NAME, REGEX_NAME)) {
             $result[MESSAGE] = 'Invalid name';
             $result[ERROR] = NAME;
             return $result;
         }
 
         /* validate username */
-        if (!$this->isValidInput($username, $umsConf[MIN_LENGTH_USERNAME], $umsConf[MAX_LENGTH_USERNAME], $umsConf[USE_REGEX], $umsConf[REGEX_USERNAME])) {
+        if (!$this->isValidInput($username, MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, USE_REGEX_USERNAME, REGEX_USERNAME)) {
             $result[MESSAGE] = 'Invalid username';
             $result[ERROR] = USERNAME;
-            return $result;
-        }
-
-        /* validate email */
-        if (!$this->isValidEmail($email, $umsConf[USE_REGEX_EMAIL], $umsConf[REGEX_EMAIL])) {
-            $result[MESSAGE] = 'Invalid email';
-            $result[ERROR] = EMAIL;
             return $result;
         }
 
@@ -179,9 +169,13 @@ class Verifier {
             $result[MESSAGE] = 'User already exist with this username';
             $result[ERROR] = USERNAME;
             return $result;
-//             if ($this->isValidUser($usrDel, $umsConf['requireConfirmEmail'])) {
-//             }
-//             $result['deleteUser'] = $usrDel->id;
+        }
+
+        /* validate email */
+        if (!$this->isValidEmail($email, USE_REGEX_EMAIL, REGEX_EMAIL)) {
+            $result[MESSAGE] = 'Invalid email';
+            $result[ERROR] = EMAIL;
+            return $result;
         }
 
         /* if email is changed, then check if it already exists */
@@ -190,9 +184,6 @@ class Verifier {
                 $result[MESSAGE] = 'User already exist with this email';
                 $result[ERROR] = EMAIL;
                 return $result;
-//                 if ($this->isValidUser($usrDel, $umsConf['requireConfirmEmail'])) {
-//                 }
-//                 $result['deleteUser'] = $usrDel->id;
             }
             $result[CHANGED_EMAIL] = TRUE;
         }
@@ -220,12 +211,13 @@ class Verifier {
         $result[GENERATE_TOKEN] = TRUE;
 
         /* init user model and validate user id */
-        $user = new User($this->conn);
-        if (!$user->getUser($id)) return $result;
+        $userModel = new User($this->conn);
+        if (!($user = $userModel->getUser($id))) return $result;
 
         /* unset error message and set success */
         unset($result[MESSAGE]);
-        $result[SUCCESS] = true;
+        $result[SUCCESS] = TRUE;
+        $result[USER] = $user;
 
         /* return result */
         return $result;
@@ -264,38 +256,24 @@ class Verifier {
 
     /* function to validate the tokens */
     protected function verifyTokens(array $tokens): bool {
-        /* if tokens are not set or are empty, then return FALSE */ 
-        if (!(isset($tokens[0]) && isset($tokens[1])) || empty($tokens[0]) || empty($tokens[1])) return FALSE;
-        /* compare tokens */
-        return ($tokens[0] === $tokens[1]);
+        /* check if tokens are not set or are empty, then compare tokens */
+        return isset($tokens[0]) && isset($tokens[1]) && !empty($tokens[0]) && !empty($tokens[1]) && $tokens[0] === $tokens[1];
     }
 
     /* function to validate a input */
     protected function isValidInput(string $input, int $minLength, int $maxLength, bool $useRegex, string $regex = ''): bool {
-        if (strlen($input) < $minLength || strlen($input) > $maxLength || ($useRegex && !preg_match($regex, $input))) return FALSE;
-        return TRUE;
+        return strlen($input) > $minLength && strlen($input) < $maxLength && (!$useRegex || preg_match($regex, $input));
     }
 
     /* function to laidate a email */
-    protected function isValidEmail(string $email, bool $useRegex, string $regex = ''): bool {
-        if ($useRegex) if (!preg_match($regex, $email)) return FALSE;
-        else if (!($email = filter_var($email, FILTER_VALIDATE_EMAIL))) return FALSE;
-
-        return TRUE;
+    protected function isValidEmail(string $email, bool $useRegex, string $regex=''): bool {
+        return ($email = filter_var($email, FILTER_VALIDATE_EMAIL)) && (!$useRegex || preg_match($regex, $email));
     }
 
-    /* fuinction to validate a password */
-    protected function isValidPassword(string $password, int $minLength, bool $checkMaxLength, int $maxLength, bool $requireHardPassword, bool $useRegex, string $regex = ''): bool {
-        if (strlen($password) < $minLength || ($checkMaxLength && strlen($password) > $maxLength)) return FALSE;
-        if ($requireHardPassword) {
-//             $rgx = '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{'.$minLength.',}$/';
-            $rgx = '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]))[A-Za-z\d\W_]{8,}$/';
-            if (!preg_match($rgx, $password)) return FALSE;
-        }
-        if ($useRegex && !preg_match($regex, $password)) return FALSE;
-
-        return TRUE;
-    }
+//     /* fuinction to validate a password */
+//     protected function isValidPassword(string $password, int $minLength, int $maxLength, bool $useRegex, string $regex = ''): bool {
+//         return strlen($password) > $minLength && strlen($password) < $maxLength && (!$useRegex || preg_match($regex, $password));
+//     }
 
     /* fuinction to validate a domain */
     protected function isValidDomain(string $domain): bool {

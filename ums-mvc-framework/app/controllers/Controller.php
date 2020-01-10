@@ -74,7 +74,7 @@ class Controller {
     protected $userRole = NULL;
     protected $lang = NULL;
 
-    public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout = DEFAULT_LAYOUT) {
+    public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout=DEFAULT_LAYOUT) {
         /* get config if is null */
         $this->appConfig = $appConfig ?? getConfig();
         /* if require redirect on https */
@@ -86,9 +86,13 @@ class Controller {
             /* init role model, and get roles of login user */
             $role = new Role($this->conn);
             $this->userRole = $role->getRole($this->loginSession->{ROLE_ID_FRGN});
+            /* manage session */
             $this->handlerSession();
+            /* generate logout token */
+            $this->tokenLogout = generateToken(CSRF_LOGOUT);
             array_push($this->jsSrcs, [SOURCE => '/js/utils/login/logout.js']);
         }
+
         $this->lang = $this->getLang();
         $this->conn = $conn;
         $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
@@ -102,6 +106,30 @@ class Controller {
     public function setLayout(string $layout) {
         $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
     }
+
+    /* function to display content on layout */
+    public function display() {
+        /* if CSP (Content Security Policy) is require */
+        if ($this->setCSPHeader) {
+            /* get CSP content and set CSP headers */
+            $this->cspContent = $this->getCSPContent();
+            header("Content-Security-Policy: $this->cspContent");
+            header("X-Content-Security-Policy: $this->cspContent");
+            header("X-WebKit-CSP: $this->cspContent");
+        }
+        /* set content type header */
+        header("Content-Type: $this->contentType");
+        /* set content type option header */
+        header("X-Content-Type-Options: $this->XContentTypeOptions");
+        /* set XSS (Cross Site Script) protection header */
+        header("X-XSS-Protection: $this->XXSSProtection");
+        /* set frame option header */
+        header("X-Frame-Options: $this->XFrameOptions");
+        /* view layout */
+        require_once $this->layout;
+    }
+
+    /* ########## SHOW FUNCTIONS ########## */
 
     /* function to view the home page */
     public function showHome() {
@@ -129,26 +157,26 @@ class Controller {
     /* function to send 404 code and show page not found */
     public function showPageNotFound() {
         header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
-        $this->content = view($this->appConfig[APP][PAGE_NOT_FOUND]);
+        $this->content = view(PAGE_NOT_FOUND);
     }
 
     /* function to view error page */
     public function showPageError(Exception $exception) {
         $data = [];
         /* if is set show exception, then view info about it */
-        if ($data[SHOW_MESSAGE_EXCEPTION] = $this->appConfig[APP][SHOW_MESSAGE_EXCEPTION]) {
+        if (SHOW_MESSAGE_EXCEPTION) {
             $data[EXCEPTION] = [
-                'toString' => $exception->__toString(),
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage(),
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-                'previous' => $exception->getMessage(),
-                'trace' => $exception->getTrace(),
-                'traceString' => $exception->getTraceAsString()
+                TO_STRING => $exception->__toString(),
+                CODE => $exception->getCode(),
+                MESSAGE => $exception->getMessage(),
+                FILE => $exception->getFile(),
+                LINE => $exception->getLine(),
+                PREVIOUS => $exception->getMessage(),
+                TRACE => $exception->getTrace(),
+                TRACE_STRING => $exception->getTraceAsString()
             ];
         }
-        $this->content = view($this->appConfig[APP][PAGE_EXCEPTION], $data);
+        $this->content = view(PAGE_EXCEPTION, $data);
     }
 
     /* function to send public key on json format */
@@ -157,12 +185,12 @@ class Controller {
         $this->redirectIfNotXMLHTTPRequest();
 
         /* get tokens and init json result */
-        $tokens = $this->getPostSessionTokens();
+        $tokens = $this->getPostSessionTokens(CSRF_KEY_JSON);
         $resJSON = [];
         /* if valide token, then send key */
         if ($tokens[0] === $tokens[1]) {
             /* generate new token */
-            $resJSON[NEW_TOKEN] = generateToken();
+//             $resJSON[NEW_TOKEN] = generateToken();
             /* get key and set on result */
             $keys = $this->getKey();
             $resJSON[KEY_N] = $keys[KEY_N];
@@ -171,30 +199,6 @@ class Controller {
 
         /* send json response */
         sendJsonResponse($resJSON);
-    }
-
-    /* display content on layout */
-    public function display() {
-        /* if is user loggin, then generate logout token */
-        if (isUserLoggedin()) $this->tokenLogout = $this->tokenLogout ?? generateToken(CSRF_LOGOUT);
-        /* if CSP (Content Security Policy) is require */
-        if ($this->setCSPHeader) {
-            /* get CSP content and create CSP headers */
-            $this->cspContent = $this->getCSPContent();
-            header("Content-Security-Policy: $this->cspContent");
-            header("X-Content-Security-Policy: $this->cspContent");
-            header("X-WebKit-CSP: $this->cspContent");
-        }
-        /* set content type header */
-        header("Content-Type: $this->contentType");
-        /* set content type option header */
-        header("X-Content-Type-Options: $this->XContentTypeOptions");
-        /* set XSS (Cross Site Script) protection header */
-        header("X-XSS-Protection: $this->XXSSProtection");
-        /* set frame option header */
-        header("X-Frame-Options: $this->XFrameOptions");
-        /* view layout */
-        require_once $this->layout;
     }
 
     /* ##################################### */
@@ -296,12 +300,12 @@ class Controller {
     /* function to manage wrong passwords */
     protected function handlerWrongPassword(int $id) {
         /* init user model, and get user id */
-        $user = new User($this->conn, $this->appConfig);
+        $user = new User($this->conn);
         $usrLock = $user->getUserLock($id);
         /* if wrong password expire datetime is not set or is expire */
         if (!isset($usrLock->{EXPIRE_WRONG_PASSWORD}) || new DateTime($usrLock->{EXPIRE_WRONG_PASSWORD}) < new DateTime()){
             /* set expire time and reset wrong passwords*/
-            $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASS_TRY_TIME]);
+            $expireDatetime = getExpireDatetime(PASS_TRY_TIME);
             $user->resetWrongPasswords($id, $expireDatetime);
         }
 
@@ -317,7 +321,7 @@ class Controller {
             /* reset wrong password */
             $user->resetWrongPasswords($id);
             /* get lock expire time */
-            $expireLock = getExpireDatetime($this->appConfig[SECURITY][USER_LOCK_TIME]);
+            $expireLock = getExpireDatetime(USER_LOCK_TIME);
             $user->lockUser($id, $expireLock);
             /* increment count locks and set on user */
             $user->setCountUserLocks($id, ++$usrLock->{COUNT_LOCKS});
@@ -347,12 +351,12 @@ class Controller {
         $this->resetSession();
         /* init session model and calc session expire time */
         $session = new Session($this->conn);
-        $expireDatetime = getExpireDatetime($this->appConfig[SECURITY][MAX_TIME_UNCONNECTED_LOGIN_SESSION]);
+        $expireDatetime = getExpireDatetime(MAX_TIME_UNCONNECTED_LOGIN_SESSION);
         /* create login session */
         $res = $session->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
         /* calc expire in unix time and set login session cookie */
-        $expireUnixTime =  date_timestamp_get($expireDatetime);
-        setcookie(CK_LOGIN_SESSION, $res[TOKEN], time, '/',  $expireUnixTime, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
+//         $expireUnixTime =  date_timestamp_get($expireDatetime);
+        setcookie(CK_LOGIN_SESSION, $res[TOKEN], time() + (86400 * COOKIE_EXPIRE_DAYS), '/',  DOMAIN_LOGIN_SESSION_COOCKIE, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
     }
 
     /* function to reset session if client change ip address */
@@ -361,7 +365,7 @@ class Controller {
         if ($this->loginSession->{IP_ADDRESS} !== $_SERVER['REMOTE_ADDR']) {
             /* reset login session send fail response */
             $this->resetLoginSession();
-            $this->switchFailResponse();
+            $this->switchFailResponse('Your ip has changed');
         }
     }
 
@@ -369,7 +373,25 @@ class Controller {
         /* reset session */
         $this->resetSession();
         /* remove login session */
+        setcookie(CK_LOGIN_SESSION, '', time()-1);
         return $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
+    }
+
+    /* USER ROLETYPE FUNCTIONS */
+
+    /* function to check if is admin user */
+    protected function isAdminUser(): bool {
+        return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === ADMIN_ROLE_ID;
+    }
+
+    /* function to check if is admin user */
+    protected function isEditorUser(): bool {
+        return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === EDITOR_ROLE_ID;
+    }
+
+    /* function to check if is admin user */
+    protected function isSimpleUser(): bool {
+        return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === USER_ROLE_ID;
     }
 
     /* REDIRECT OR SEND FAIL FUNCTIONS */
@@ -384,28 +406,34 @@ class Controller {
         if (!$this->loginSession) $this->switchFailResponse();
     }
 
+    /* function to redirect or send fail if client is a simple user */
+    protected function redirectOrFailIfSimpleUser() {
+        $this->redirectOrFailIfNotLogin();
+        if ($this->isSimpleUser()) $this->switchFailResponse();
+    }
+
     /* function to redirect or send fail if client is not admin user */
     protected function redirectOrFailIfNotAdmin() {
         $this->redirectOrFailIfNotLogin();
-        if ($this->loginSession->{ROLE_ID_FRGN} !== 0) $this->switchFailResponse();
+        if (!$this->isAdminUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if client is not loggin */
     protected function redirectOrFailIfCanNotCreateUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole->{CAN_CREATE_USER}) $this->switchFailResponse();
+        if (!$this->userRole[CAN_CREATE_USER]) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if user can not update */
     protected function redirectOrFailIfCanNotUpdateUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole->{CAN_UPDATE_USER}) $this->switchFailResponse();
+        if (!$this->userRole[CAN_UPDATE_USER]) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if user can not delete */
     protected function redirectOrFailIfCanNotDeleteUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole->{CAN_DELETE_USER}) $this->switchFailResponse();
+        if (!$this->userRole[CAN_DELETE_USER]) $this->switchFailResponse();
     }
 
     /* funtion to redirect or send fail if email confirm is not require */
@@ -442,7 +470,7 @@ class Controller {
         $link .= $token;
 
         /* insert link on session if on DEV mode */
-        if (DEV) $_SESSION['link'] = $link;
+        if (DEV) $_SESSION[LINK] = $link;
 
         /* init email model and set headers */
         $email = new Email($to, $this->appConfig[UMS][ENABLER_EMAIL_FROM]);
@@ -451,7 +479,10 @@ class Controller {
         $email->setHeaders($headers);
         /* set layout and data, then generate email body and send it */
         $email->setLayout(ENABLER_EMAIL_LAYOUT);
-        $email->setData(compact('link', 'message'));
+        $email->setData([
+            LINK => $link,
+            MESSAGE => $message
+        ]);
         $email->generateContentWithLayout();
         return $email->send();
     }
@@ -460,10 +491,10 @@ class Controller {
     protected function sendEmailResetPassword(string $to, string $token, string $message = 'RESET YOUR PASSWORD'): bool {
         /* get domain url from configuration, next append source path and token */
         $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
-        $link .= '/user/reset/password/' . $token;
+        $link .= '/'.PASS_RESET_ROUTE.'/'.$token;
 
         /* insert link on session if on DEV mode */
-        if (DEV) $_SESSION['link'] = $link;
+        if (DEV) $_SESSION[LINK] = $link;
 
         /* init email model and set headers */
         $email = new Email($to, $this->appConfig[UMS][ENABLER_EMAIL_FROM]);
@@ -472,7 +503,11 @@ class Controller {
         $email->setHeaders($headers);
         /* set layout and data, then generate email body and send it */
         $email->setLayout(PASSWORD_RESET_EMAIL_LAYOUT);
-        $email->setData(compact('link', 'message'));
+
+        $email->setData([
+            LINK => $link,
+            MESSAGE => $message
+        ]);
         $email->generateContentWithLayout();
         return $email->send();
     }
@@ -480,11 +515,9 @@ class Controller {
     /* RSA CRYPT FUNCTIONS */
 
     /* function to get private and public key */
-    protected function getKey(string $nameKey = 'privKey'): array {
-        /* get rsa configuration */
-        $configRsa = $this->appConfig[RSA];
+    protected function getKey(): array {
         /* get path of private key and read it */
-        $pathFile = getPath(getcwd(),'config', 'rsa', $configRsa[RSA_PRIV_KEY_FILE]);
+        $pathFile = getPath(getcwd(),'config', 'rsa', $this->appConfig[RSA][RSA_PRIV_KEY_FILE]);
         $privKey = safeFileRead($pathFile);
         /* validate key */
         if (!($key = openssl_pkey_get_private($privKey))) $this->switchFailResponse();
@@ -501,11 +534,9 @@ class Controller {
     }
 
     /* function to decrypt data */
-    protected function decryptData(string $data, string $nameKeySession = 'privKey'): string {
-        /* get rsa configuration */
-        $configRsa = $this->appConfig[RSA];
+    protected function decryptData(string $data): string {
         /* get path of private key, and read it */
-        $pathFile = getPath(getcwd(),'config', 'rsa', $configRsa[RSA_PRIV_KEY_FILE]);
+        $pathFile = getPath(getcwd(),'config', 'rsa', $this->appConfig[RSA][RSA_PRIV_KEY_FILE]);
         $privKey = safeFileRead($pathFile);
         /* validate key */
         if (!($key = openssl_pkey_get_private($privKey))) $this->switchFailResponse();
@@ -559,7 +590,7 @@ class Controller {
         $langRes = DEFAULT_LANG;
 
         /* get langs accepted on server */
-        $serverLangs = getList(ACCEPT_LANG_LIST);
+        $serverLangs = ACCEPT_LANG_LIST;
         /* else get accept lang from header request */
         $accLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
         /* get only language */
@@ -622,7 +653,7 @@ class Controller {
         }
         /* init session  and set expire date time */
         $session = new Session($this->conn);
-        $expireDatetime = getExpireDatetime($this->appConfig[SECURITY][MAX_TIME_UNCONNECTED_LOGIN_SESSION]);
+        $expireDatetime = getExpireDatetime(MAX_TIME_UNCONNECTED_LOGIN_SESSION);
         $session->setExpireLoginSession($this->loginSession->{SESSION_ID}, $expireDatetime);
     }
 }

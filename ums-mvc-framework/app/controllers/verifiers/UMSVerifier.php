@@ -3,23 +3,24 @@ namespace app\controllers\verifiers;
 
 use app\models\User;
 use \PDO;
+use app\models\Role;
 
 class UMSVerifier extends Verifier {
-    protected $userRoles = [];
+//     protected $userRoles = [];
 
-    protected function __construct(array $appConfig, PDO $conn) {
-        parent::__construct($appConfig, $conn);
-        $this->userRoles = getList('userRoles');
+    protected function __construct(PDO $conn) {
+        parent::__construct($conn);
+//         $this->userRoles = getList('userRoles');
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
-    /* function to set list of user roles */
-    public function setUserRoles(array $userRoles) {
-        $this->userRoles = $userRoles;
-    }
+//     /* function to set list of user roles */
+//     public function setUserRoles(array $userRoles) {
+//         $this->userRoles = $userRoles;
+//     }
 
     /* functio to verify a new user request */
     public function verifyNewUser(string $name, string $email, string $username, string $pass, string $cpass, string $role, array $tokens): array {
@@ -27,13 +28,12 @@ class UMSVerifier extends Verifier {
         /* validate name, email, username, password and token */
         $result = $this->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
 
+        $roleModel = new Role($this->conn);
         /* validate role type */
-        if ($result['success'] && !in_array($role, $this->userRoles)) {
-            return [
-                'message' => 'Invalid roletype',
-                'error' => 'role',
-                'success' => FALSE
-            ];
+        if ($result[SUCCESSC] && !in_array($role, $roleModel->getRoleIdList())) {
+            $result[MESSAGE] = 'Invalid roletype';
+            $result[ERROR] = ROLE_ID_FRGN;
+            $result[SUCCESS] = FALSE;
         }
 
         /* return result */
@@ -42,17 +42,16 @@ class UMSVerifier extends Verifier {
 
     /* function to verify a update user request */
     public function verifyUpdateUser(string $id, string $name, string $email, string $username, string $role, array $tokens): array {
-        /* verify update */
         /* validate id, name, email, username and token */
         $result = $this->verifyUpdate($id, $name, $email, $username, $tokens);
 
+        $roleModel = new Role($this->conn);
+        
         /* validate role type */
-        if ($result['success'] && !in_array($role, $this->userRoles)) {
-            return [
-                'message' => 'Invalid roletype',
-                'error' => 'role',
-                'success' => FALSE
-            ];
+        if ($result[SUCCESS] && !in_array($role, $roleModel->getRoleIdList())) {
+            $result[MESSAGE] = 'Invalid roletype';
+            $result[ERROR] = ROLE_ID_FRGN;
+            $result[SUCCESS] = FALSE;
         }
 
         /* return result */
@@ -60,75 +59,103 @@ class UMSVerifier extends Verifier {
     }
 
     /* function to verify reset user locks request */
-    public function verifyResetLockUser(int $id, array $tokens): array {
+    public function verifUnlockUser(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Reset lock user failed',
-            'success' => FALSE
+            MESSAGE => 'Unlock user failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
-
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
-
+        
         /* validate tokens nad user id */
-        if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
-        /* unset error message */
-        unset($result['message']);
-
-        /* set success and return result */
-        $result['success'] = TRUE;
-        return $result;
-    }
-
-    /* function to verify reset wrong password request */
-    public function verifyResetWrongPasswords(int $id, array $tokens): array {
-        /* set fail result */
-        $result = [
-            'message' => 'Reset wrong passwords failed',
-            'success' => FALSE
-        ];
-
-        /* init user model */
+        /* init user model and validate user */
         $user = new User($this->conn, $this->appConfig);
-
-        /* validate tokens and user id */
-        if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
-
+        if ($user->getUser($id)) return $result;
+        
         /* unset error message */
-        unset($result['message']);
+        unset($result[MESSAGE]);
 
         /* set success and return result */
-        $result['success'] = TRUE;
+        $result[SUCCESS] = TRUE;
         return $result;
     }
+
+//     /* function to verify reset user locks request */
+//     public function verifyResetLockUser(int $id, array $tokens): array {
+//         /* set fail result */
+//         $result = [
+//             'message' => 'Reset lock user failed',
+//             'success' => FALSE
+//         ];
+
+//         /* init user model */
+//         $user = new User($this->conn, $this->appConfig);
+
+//         /* validate tokens nad user id */
+//         if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
+
+//         /* unset error message */
+//         unset($result['message']);
+
+//         /* set success and return result */
+//         $result['success'] = TRUE;
+//         return $result;
+//     }
+
+//     /* function to verify reset wrong password request */
+//     public function verifyResetWrongPasswords(int $id, array $tokens): array {
+//         /* set fail result */
+//         $result = [
+//             'message' => 'Reset wrong passwords failed',
+//             'success' => FALSE
+//         ];
+
+//         /* init user model */
+//         $user = new User($this->conn, $this->appConfig);
+
+//         /* validate tokens and user id */
+//         if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
+
+//         /* unset error message */
+//         unset($result['message']);
+
+//         /* set success and return result */
+//         $result['success'] = TRUE;
+//         return $result;
+//     }
 
     /* function to verify update password request */
     public function verifyUpdatePass(int $id, string $pass, string $cpass, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Update user password failed',
-            'success' => FALSE
+            MESSAGE => 'Password update failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
-        /* init user model */
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init user model and validate user id*/
         $user = new User($this->conn, $this->appConfig);
-
-        /* validate tokens and user id */
-        if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
+        if ($user->getUser($id)) return $result;
 
         /* confirm password */
         if ($pass !== $cpass) {
-            $result['message'] = 'Passwords mismatch';
-            $result['error'] = 'cpass';
+            $result[MESSAGE] = 'Passwords mismatch';
+            $result[ERROR] = CONFIRM_PASS;
             return $result;
         }
 
         /* unset error message */
-        unset($result['message']);
+        unset($result[MESSAGE]);
 
         /* set success and return result */
-        $result['success'] = TRUE;
+        $result[SUCCESS] = TRUE;
         return $result;
     }
 }

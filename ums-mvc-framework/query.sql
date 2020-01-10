@@ -57,7 +57,7 @@ CREATE TABLE `deleted_users` (
 CREATE TABLE `password_reset_requests` (
 	`id_password_reset_request` int(15) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`user_id` int(15) unsigned NOT NULL,
-	`password_reset_token` varchar(255) NOT NULL,
+	`password_reset_token` varchar(255) NULL,
 	`expire_datetime` datetime NOT NULL,
 
 	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
@@ -69,7 +69,7 @@ CREATE TABLE `pending_emails` (
 	`id_pending_emails` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`user_id` int(15) unsigned NOT NULL,
 	`new_email` varchar(64) NOT NULL,
-	`enabler_token` varchar(255) NOT NULL,
+	`enabler_token` varchar(255) NULL,
 	`expire_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
@@ -86,7 +86,7 @@ CREATE TABLE `pending_users` (
 	`password` varchar(255) NOT NULL,
 	`role_id` int(5) unsigned NOT NULL DEFAULT '2',
 	`registration_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	`enabler_token` varchar(255) NOT NULL,
+	`enabler_token` varchar(255) NULL,
 
 	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`) ON DELETE NO ACTION,
 	UNIQUE `enabler_token` (`enabler_token`)
@@ -96,7 +96,7 @@ CREATE TABLE `pending_users` (
 CREATE TABLE `sessions` (
 	`id_session` int(50) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`user_id` int(15) unsigned NOT NULL,
-	`session_token` varchar(255) NOT NULL,
+	`session_token` varchar(255) NULL,
 	`ip_address` varchar(45) NOT NULL,
 	`expire_datetime` datetime NOT NULL,
 
@@ -113,11 +113,9 @@ CREATE TABLE `user_locks` (
 	`expire_wrong_password` datetime NULL,
 	`count_locks` int(5) NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
+	UNIQUE `user_id` (`user_id`)
 );
-ALTER TABLE `user_locks`
-	ADD UNIQUE `user_id` (`user_id`),
-	DROP INDEX `user_id`;
 
 -- ADD TRIGGER --
 DELIMITER ;;

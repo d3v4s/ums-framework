@@ -17,7 +17,6 @@ define('PENDING_EMAILS_TABLE', 'pending_emails');
 define('PENDING_EMAIL_ID', 'id_pending_email');
 define('NEW_EMAIL', 'new_email');
 
-
 /* CONSTANTS FOR PENDING USERS TABLE */
 define('PENDING_USERS_TABLE', 'pending_users');
 define('PENDING_USER_ID', 'id_pending_user');

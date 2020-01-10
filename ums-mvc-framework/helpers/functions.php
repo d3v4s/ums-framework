@@ -33,7 +33,7 @@ function isSecureConnection(): bool {
 }
 
 /* function to redirect at new url */
-function redirect(string $url = '/') {
+function redirect(string $url='/'.HOME_ROUTE) {
     header('Location: '.$url);
     exit;
 }
@@ -118,8 +118,8 @@ function writeFileIni(array $data, string $filename): bool {
 }
 
 
-function modifyRegexJS(string &$phpRegex) {
-    $phpRegex = trim($phpRegex, '/');
+function modifyRegexJS(string $phpRegex) {
+    return trim($phpRegex, '/');
 }
 
 function toHex(string $data): string {
@@ -129,7 +129,7 @@ function toHex(string $data): string {
 function escapeHtmlDataView(array &$data, bool $escapeKey = FALSE) {
     $newData = [];
     foreach ($data as $key => $val) {
-        if (substr($key, 0, 1) === '_'){
+        if (substr($key, 0, mb_strlen(NO_ESCAPE)) === NO_ESCAPE){
             $newData[$key] = $val;
             continue;
         }
@@ -166,7 +166,6 @@ function escapeHtmlObjView(object &$object) {
 function view(string $view, array $data = []) {
     escapeHtmlDataView($data);
     extract($data);
-    
     ob_start();
     require getPath(getViewsPath(), "$view.tpl.php");
     $content = ob_get_contents();
@@ -175,10 +174,10 @@ function view(string $view, array $data = []) {
     return $content;
 }
 
-function getList(string $nameList): array {
-    $lists = require getPath(getcwd(), 'config', 'lists.php');
-    return $lists[$nameList];
-}
+// function getList(string $nameList): array {
+//     $lists = require getPath(getcwd(), 'config', 'lists.php');
+//     return $lists[$nameList];
+// }
 
 function getRoutes(): array {
     return require getPath(getcwd(), 'config', 'app.routes.php');
@@ -209,7 +208,7 @@ function getDomain(string $url): string {
     $result = parse_url($url);
 
     $domain = $result['scheme']."://".$result['host'];
-    if ($result['port'] !== 80) $domain .= ':' . $result['port']; 
+    if (!($result['port'] === 80 || $result['port'] === 443)) $domain .= ':' . $result['port'];
 
     return $domain;
 }

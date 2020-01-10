@@ -13,7 +13,7 @@ class AppSettingsController extends Controller {
     protected $section;
     protected $appSectionsList = [];
 
-    public function __construct(PDO $conn, array $appConfig, string $layout = SETTINGS_LAYOUT) {
+    public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
         $this->appSectionsList =  array_keys($this->appConfig);  // getList('appSections');
     }
@@ -23,14 +23,14 @@ class AppSettingsController extends Controller {
     /* ##################################### */
 
     /* function to view app settings */
-    public function showAppSettings(string $section = 'app') {
+    public function showAppSettings(string $section=DEFAULT_SETTING_SECTION) {
         /* redirect */
         $this->redirectOrFailIfCanNotChangeSettings();
 
         $this->isSettings = TRUE;
         /* show message error if not valid app section */
         if (!in_array($section, $this->appSectionsList)) {
-            $this->showMessage('INVALID SETTINGS SECTION');
+            $this->showMessage('Invalid settings section', TRUE);
             return;
         }
 
@@ -44,7 +44,7 @@ class AppSettingsController extends Controller {
         );
 
         /* show settings page */
-        $this->content = view(getPath('settings', "admin-settings-$section"), $data);
+        $this->content = view(getPath('settings', $section), $data);
     }
 
     /* function to update settings */
@@ -81,7 +81,7 @@ class AppSettingsController extends Controller {
                     SUCCESS => FALSE,
                     GENERATE_TOKEN => FALSE
                 ];
-                $section = 'app';
+                $section = DEFAULT_SETTING_SECTION;
                 break;
         }
 
@@ -107,7 +107,7 @@ class AppSettingsController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/ums/app/settings/'.$data[SECTION]);
+            redirect('/'.APP_SETTINGS_ROUTE.'/'.$data[SECTION]);
         };
 
         $this->switchResponse($dataOut, $resUpdate[GENERATE_TOKEN], $funcDefault, CSRF_SETTINGS);
@@ -138,6 +138,6 @@ class AppSettingsController extends Controller {
 
     /* function to redirect if user can not update settings */
     private function redirectOrFailIfCanNotChangeSettings() {
-        if (!$this->userRole->{CAN_CHANGE_SETTINGS}) $this->switchFailResponse();
+        if (!$this->userRole[CAN_CHANGE_SETTINGS]) $this->switchFailResponse();
     }
 }

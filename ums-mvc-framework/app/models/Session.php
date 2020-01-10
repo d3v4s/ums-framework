@@ -55,8 +55,8 @@ class Session {
     public function getUserByLoginSessionToken(string $token, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.SESSIONS_TABLE.' JOIN ';
-        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID.' ';
-        $sql .= 'WHERE '.SESSION_TOKEN.' = :token';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.SESSION_TOKEN.' = :token';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['token' => $token]);
 
@@ -81,7 +81,7 @@ class Session {
     /* function to remove login session by session id */
     public function setExpireLoginSession(int $sessionId, string $expireDatetime): bool {
         /* prepare sql query and execute it */
-        $sql = 'UPDATE '.SESSIONS_TABLE.' SET '.EXPIRE_LOGIN_SESSION.'=expireDatetime WHERE '.SESSION_ID.'=:id';
+        $sql = 'UPDATE '.SESSIONS_TABLE.' SET '.EXPIRE_LOGIN_SESSION.'=:expireDatetime WHERE '.SESSION_ID.'=:id';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
             'id' => $sessionId,
