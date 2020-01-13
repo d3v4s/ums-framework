@@ -6,8 +6,8 @@ namespace app\controllers\verifiers;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class FakeUsersVerifier extends Verifier {
-    protected function __construct(array $appConfig) {
-        parent::__construct($appConfig);
+    protected function __construct() {
+        parent::__construct();
     }
 
     /* ##################################### */
@@ -18,25 +18,27 @@ class FakeUsersVerifier extends Verifier {
     public function verifyAddFakeUsers($nFakeUsers, array $tokens): array {
         /* set fail result */
         $res = [
-            'success' => FALSE,
-            'message' => 'Add fake users failed'
+            MESSAGE => 'Add fake users failed',
+            GENERATE_TOKEN => FALSE,
+            SUCCESS => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $res;
+        $res[GENERATE_TOKEN] = TRUE;
 
         /* validate n. fake user */
         if (!is_numeric($nFakeUsers) || $nFakeUsers < 0) {
-            $res['message'] = 'Invalid n. fake users to add';
-            $res['error'] = 'n-users';
+            $res[MESSAGE] = 'Invalid n. fake users to add';
+            $res[ERROR] = N_USERS;
             return $res;
         }
 
         /* unset error message */
-        unset($res['message']);
+        unset($res[MESSAGE]);
 
         /* set success result and return it */
-        $res['success'] = TRUE;
+        $res[SUCCESS] = TRUE;
         return $res;
     }
 }

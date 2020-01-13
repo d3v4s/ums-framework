@@ -26,7 +26,7 @@ class Email {
     }
 
     public function setLayout(string $layout) {
-        $this->layout = getLayoutPath().'/'.getConfig('layout')[$layout].'.tpl.php';
+        $this->layout = getPath(getLayoutPath(), getConfig(LAYOUT)[$layout].'.tpl.php');
     }
 
     public function setData(array $data) {

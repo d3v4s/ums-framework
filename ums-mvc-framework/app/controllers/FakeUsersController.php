@@ -15,7 +15,7 @@ class FakeUsersController extends Controller {
     protected $lastnames = ['Serra', 'Rossi', 'da Vinci', 'Smith', 'Cruz', 'Waters', 'Gilmour', 'Marsh', 'Cartman', 'Stoch'];
     protected $domains = ['protonmail.com', 'gmail.com', 'yahoo.com', 'mail.com', 'hotmail.it', 'libero.it', 'devas.info'];
 
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -26,68 +26,81 @@ class FakeUsersController extends Controller {
     /* function to view fake users page */
     public function showAddFakeUsers() {
         /* redirects */
-        $this->redirectIfNotAddFakeUsers();
-        $this->redirectIfCanNotCreate();
+        $this->redirectOrFailIfNotAddFakeUsers();
+        $this->redirectOrFailIfCanNotCreateUser();
 
         /* add javascript sources and view fake user page */
         array_push($this->jsSrcs,
-            ['src' => '/js/utils/ums/adm-fkusrs.js']
+            [SOURCE => '/js/utils/ums/adm-fkusrs.js']
         );
-        $this->content = view('ums/admin-add-fake-users', ['token' => generateToken('csrfFakeUser')]);
+        $this->content = view('ums/add-fake-users', [TOKEN => generateToken(CSRF_ADD_FAKE_USER)]);
     }
 
     /* function to add fake users */
     public function addFakeUsers() {
         /* redirects */
-        $this->redirectIfNotAddFakeUsers();
-        $this->redirectIfCanNotCreate();
+        $this->redirectOrFailIfNotAddFakeUsers();
+        $this->redirectOrFailIfCanNotCreateUser();
 
         /* get data */
-        $tokens = $this->getPostSessionTokens('XS_TKN', 'csrfFakeUser');
-        $nFakeUsers = $_POST['n-users'];
-        $enabled = isset($_POST['enabled']);
+        $tokens = $this->getPostSessionTokens(CSRF_ADD_FAKE_USER);
+        $nFakeUsers = $_POST[N_USERS];
+        $enabled = isset($_POST[ENABLED]);
+        $onPending = isset($_POST[PENDING]);
 
         /* get verifier instance, and check add fake users request */
         $verifier = FakeUsersVerifier::getInstance($this->appConfig);
         $resAddFakeUsers = $verifier->verifyAddFakeUsers($nFakeUsers, $tokens);
         /* if success */
-        if ($resAddFakeUsers['success']) {
+        if ($resAddFakeUsers[SUCCESS]) {
             /* set default password and role user */
-            $pass = $this->appConfig['app']['passDefault'];
-            $roletype = 'user';
+            $pass = $this->appConfig[UMS][PASS_DEFAULT];
+            $roleId = $this->appConfig[UMS][DEFAULT_USER_ROLE];
             /* init user and counter */
             $user = new User($this->conn, $this->appConfig);
             $usersAdded = 0;
+            /* set function to add user (pending user or not) */ 
+            $funcAdder = $onPending ? 'savePendingUser' : 'saveUser';
             /* start loop fake user creator */
             while ($nFakeUsers-- > 0) {
+                /* get random user properties */
                 $name = $this->getRandomName();
                 $username = $this->getRandomUsername($name);
                 $email = $this->getRandomEmail($name);
-                $dataUsr = compact('email', 'username', 'name', 'pass', 'roletype', 'enabled');
-                if ($user->saveUser($dataUsr)['success']) $usersAdded++;
+                /* set fake user data */
+                $dataUsr = [
+                    USERNAME => $username,
+                    EMAIL => $email,
+                    NAME => $name,
+                    PASSWORD => $pass,
+                    ROLE => $roleId,
+                    ENABLED => $enabled
+                ];
+                /* add fake user */
+                if ($user->{$funcAdder}($dataUsr)[SUCCESS]) $usersAdded++;
             }
-            $resAddFakeUsers['message'] = "$usersAdded fake users added successfully";
-            $resAddFakeUsers['success'] = TRUE;
-            $resAddFakeUsers['userAdded'] = $usersAdded;
+            /* set result */
+            $resAddFakeUsers[MESSAGE] = "$usersAdded fake users added successfully";
+            $resAddFakeUsers[SUCCESS] = TRUE;
         }
 
         /* result data */
         $dataOut = [
-            'success' => $resAddFakeUsers['success'],
-            'message' => $resAddFakeUsers['message'] ?? NULL,
-            'error' => $resAddFakeUsers['error'] ?? NULL
+            SUCCESS => $resAddFakeUsers[SUCCESS],
+            MESSAGE => $resAddFakeUsers[MESSAGE] ?? NULL,
+            ERROR => $resAddFakeUsers[ERROR] ?? NULL
         ];
 
         /* function for default response */
         $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data['success'] ? redirect('/ums/users') : redirect('ums/users/fake');
+            $data[SUCCESS] ? redirect('/'.USERS_LIST_ROUTE) : redirect('/'.FAKE_USERS_ROUTE);
         };
 
-        $this->switchResponse($dataOut, !$resAddFakeUsers['success'], $funcDefault, 'csrfFakeUser');
+        $this->switchResponse($dataOut, (!$resAddFakeUsers[SUCCESS] && $resAddFakeUsers[GENERATE_TOKEN]), $funcDefault, CSRF_ADD_FAKE_USER);
     }
 
     /* ##################################### */
@@ -95,8 +108,8 @@ class FakeUsersController extends Controller {
     /* ##################################### */
 
     /* function to redirect if add fake user is disable on settings app */
-    private function redirectIfNotAddFakeUsers() {
-        if (!$this->appConfig['app']['addFakeUsersPage']) redirect();
+    private function redirectOrFailIfNotAddFakeUsers() {
+        if (!ADD_FAKE_USER_PAGE) $this->switchFailResponse();
     }
 
     /* function to get a random name */

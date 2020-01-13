@@ -3,6 +3,7 @@ $(document).ready(function (){
 	$('#reset-pass-req-form').on('submit', function(event) {
 		/* get button, token, and serialize data */
     	const $xf = $(this).find('#_xf'),
+	    	actionUrl = $(this).attr('action'),
     		$btn = $(this).find('#btn-reset-pass'),
     		data = $(this).find('.send-ajax').serialize();
 
@@ -12,17 +13,15 @@ $(document).ready(function (){
 
     	/* success function */
     	funcSuccess = function(response) {
-    		console.log(response)
 			removeLoading($btn, 'Reset Password');
 			try {
 				showMessage(response.message, !response.success);
-				if(response.success) setTimeout(redirect, 2000, '/');
+				if(response.success) setTimeout(redirect, 2000, response.redirect_to);
 				else {
 					focusError(response);
-					$xf.val(response.ntk);
+					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
-				console.log(e)
 				showMessage('Request failed', true);
 			}
 		};
@@ -33,6 +32,6 @@ $(document).ready(function (){
 			showMessage('Problem to contact server', true);
 		};
 
-    	sendAjaxReq('/auth/reset/password', data, $xf.val(), funcSuccess, funcFail);
+    	sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

@@ -8,37 +8,38 @@ namespace app\controllers\data;
  * 
  */
 class AppSettingsDataFactory extends DataFactory {
-    private $unitsTimeList = [];
+    private $appConfig;
 
     protected function __construct(array $appConfig) {
-        parent::__construct($appConfig);
-        $this->unitsTimeList = getList('unitsTime');
+        parent::__construct();
+        $this->appConfig = $appConfig;
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
-    /* function to set the list of unit times */
-    public function setUnitTimeList(array $unitsTimeList) {
-        $this->unitsTimeList = $unitsTimeList;
-    }
-
     /* function to get data by section */
     public function getAppSettingsData(string $section): array {
         $data = $this->appConfig[$section];
         switch ($section) {
             case 'app':
-                $this->manageDataAppSettings($data);
-                break;
-            case 'rsa':
-                $this->menageDataRsaSettings($data);
+                $this->handlerAppSettingsData($data);
                 break;
             case 'layout':
-                $this->menageDataLayoutSettings($data);
+                $this->handlerLayoutSettingsData($data);
+                break;
+            case 'rsa':
+                $this->handlerDataRsaSettings($data);
+                break;
+            case 'security':
+                $this->handlerDataSecutiySettings($data);
+                break;
+            case 'ums':
+                $this->handlerUmsSettingsData($data);
                 break;
         }
-        $data['token'] = generateToken('csrfSettings');
+        $data[TOKEN] = generateToken(CSRF_SETTINGS);
         return $data;
     }
 
@@ -47,47 +48,35 @@ class AppSettingsDataFactory extends DataFactory {
     /* ##################################### */
 
     /* function to mangae the data of app settings */
-    private function manageDataAppSettings(array &$data) {
-        $data['urlServer'] = getUrlServer();
-        $data['_checkedOnlyHttps'] = $data['onlyHttps'] ? 'checked="checked"' : '';
-        $data['_checkedBlockChangeIp'] = $data['blockChangeIp'] ? 'checked="checked"' : '';
-        $data['_checkedShowMessageException'] = $data['showMessageException'] ? 'checked="checked"' : '';
-        $data['_checkedConnectTimeLoginSession'] = $data['checkConnectTimeLoginSession'] ? 'checked="checked"' : '';
-        $timeSplit = explode(' ', $data['maxTimeUnconnectedLoginSession']);
-        $data['maxTimeUnconnectedLoginSession'] = $timeSplit[0];
-        $data['unitMaxTimeUnconnectedLoginSession'] = $timeSplit[1];
-        $timeSplit = explode(' ', $data['passwordTryTime']);
-        $data['passwordTryTime'] = $timeSplit[0];
-        $data['untiPasswordTryTime'] = $timeSplit[1];
-        $timeSplit = explode(' ', $data['userLockTime']);
-        $data['userLockTime'] = $timeSplit[0];
-        $data['unitUserLockTime'] = $timeSplit[1];
-        $data['_checkedMaxLenghtPassword'] = $data['checkMaxLengthPassword'] ? 'checked="checked"' : '';
-        $data['_checkedRequireHardPassword'] = $data['requireHardPassword'] ? 'checked="checked"' : '';
-        $data['_checkedUseRegex'] = $data['useRegex'] ? 'checked="checked"' : '';
-        $data['_checkedUseRegexEmail'] = $data['useRegexEmail'] ? 'checked="checked"' : '';
-        $data['_checkedRequireConfirmEmail'] = $data['requireConfirmEmail'] ? 'checked="checked"' : '';
-        $data['_checkedUseServerDomainEmailValidationLink'] = $data['useServerDomainEmailValidationLink'] ? 'checked="checked"' : '';
-        $data['_checkedUseServerDomainResetPassLink'] = $data['useServerDomainResetPassLink'] ? 'checked="checked"' : '';
-        $timeSplit = explode(' ', $data['expirationTimeResetPassword']);
-        $data['expirationTimeResetPassword'] = $timeSplit[0];
-        $data['unitExpirationTimeResetPassword'] = $timeSplit[1];
-        $data['_checkedAddFakeUsersPage'] = $data['addFakeUsersPage'] ? 'checked="checked"' : '';
-        $data['unitsTimeList'] = $this->unitsTimeList;
-    }
-
-    /* function to mangae the data of rsa settings */
-    private function menageDataRsaSettings(array &$data) {
-        $data['_checkedRsaKeyStatic'] = $data['rsaKeyStatic'] ? 'checked="checked"' : '';
-        $data['pathPrivKey'] = getcwd() . '/config/rsa/';
-        $data['tokenGenSave'] = generateToken('csrfGenSave');
+    private function handlerAppSettingsData(array &$data) {
+        return;
     }
 
     /* function to mangae the data of layout settings */
-    private function menageDataLayoutSettings(array &$data) {
+    private function handlerLayoutSettingsData(array &$data) {
         $data = [
-            'layout' => $data
+            LAYOUT => $data
         ];
     }
-}
 
+    /* function to mangae the data of rsa settings */
+    private function handlerDataRsaSettings(array &$data) {
+        /* get path of privete key directory */
+        $data[PATH_PRIV_KEY] = getPath(getcwd(), 'config', 'rsa');
+        /* generate token for keys generator */
+        $data[TOKEN_RSA] = generateToken(CSRF_GEN_SAVE_RSA);
+    }
+
+    /* function to mangae the data of security settings */
+    private function handlerSecuritySettingsData(array &$data) {
+        /* set html checked attribute for check buttons */
+        $data[NO_ESCAPE.ONLY_HTTPS] = $data[ONLY_HTTPS] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.BLOCK_CHANGE_IP] = $data[BLOCK_CHANGE_IP] ? 'checked="checked"' : '';
+    }
+
+    /* function to mangae the data of UMS settings */
+    private function handlerUmsSettingsData(array &$data) {
+        /* set html checked attribute for check buttons */
+        $data[NO_ESCAPE.REQUIRE_CONFIRM_EMAIL] = $data[REQUIRE_CONFIRM_EMAIL] ? 'checked="checked"' : '';
+    }
+}

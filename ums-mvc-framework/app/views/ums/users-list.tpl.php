@@ -103,10 +103,10 @@
         	</tbody>
         </table>
     </div>
-    <?php require getViewsPath().'/utils/pagination.php';?>
-    <?php if ($viewAddFakeUsers): ?>
+    <?php require PAGINATION_TEMPLATE;?>
+    <?php if (FAKE_USERS): ?>
 		<div class="container text-left p-5 ml-5">
-    		<a class="btn btn-primary ml-5" href="/ums/users/fake">Add Fake Users</a>
+    		<a class="btn btn-primary ml-5" href="/<?=FAKE_USERS_ROUTE?>">Add Fake Users</a>
     	</div>
     <?php endif; ?>
 </div>

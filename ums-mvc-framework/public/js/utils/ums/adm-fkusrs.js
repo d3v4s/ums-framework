@@ -28,6 +28,6 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		};
 		
-		sendAjaxReq('/ums/users/fake', data, $xf.val(), funcSuccess, funcFail);
+		sendAjaxReq('/ums/users/fake', data, $xf, funcSuccess, funcFail);
 	});
 });

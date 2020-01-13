@@ -12,7 +12,7 @@ require_once __DIR__.'/../../helpers/functions.php';
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class RSAKeyGeneratorController extends Controller {
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -20,127 +20,110 @@ class RSAKeyGeneratorController extends Controller {
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
+    /* ########## SHOW FUNCTIONS ########## */
+
     /* function to view rsa key pair generator page */
     public function showRSAKeyGenerator() {
         /* redirect */
-        $this->redirectIfCanNotGenerateRsaKey();
+        $this->redirectOrFailIfCanNotGenerateRsaKey();
 
         /* set location */
         $this->isRSAGenerator = TRUE;
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            ['src' => '/js/utils/ums/adm-rsa.js']
+            [SOURCE => '/js/utils/ums/adm-rsa.js']
         );
 
-        $this->content = view('ums/admin-rsa-generator', ['token' => generateToken('crsfRSA')]);
+        $this->content = view('ums/rsa-generator', [TOKEN => generateToken(CSRF_GEN_RSA)]);
     }
 
+    /* ########## ACTION FUNCTIONS ########## */
+
     /* function to generate a new rsa key pair */
-    public function rsaKeyGenerate() {
+    public function generateRsaKey() {
         /* redirects */
-        $this->redirectIfCanNotGenerateRsaKey();
-        $this->redirectIfNotXMLHTTPRequest('/ums/generator/rsa');
+        $this->redirectOrFailIfCanNotGenerateRsaKey();
+        $this->redirectIfNotXMLHTTPRequest('/'.RSA_GENERATOR_ROUTE);
 
         /* get tokens */
-        $tokens = $this->getPostSessionTokens('XS_TKN', 'crsfRSA');
+        $tokens = $this->getPostSessionTokens(CSRF_GEN_RSA);
 
         /* get verifier instance, and check gerate rsa key request */
-        $verifier = RSAVerifier::getInstance($this->appConfig);
-        $resKeyGenerate = $verifier->verifyKeyGenerate($tokens);
+        $verifier = RSAVerifier::getInstance();
+        $resKeyGenerate = $verifier->verifyGenerateKey($tokens);
         /* if success */
-        if ($resKeyGenerate['success']) {
+        if ($resKeyGenerate[SUCCESS]) {
             /* set rsa configuration */
-            $confRsa = $this->appConfig['rsa'];
+            $confRsa = $this->appConfig[RSA];
             $config = [
-                "digest_alg" => $confRsa['digestAlg'],
-                "private_key_bits" => $confRsa['privateKeyBits'],
+                "digest_alg" => $confRsa[DIGEST_ALG],
+                "private_key_bits" => $confRsa[PRIVATE_KEY_BITS],
                 "private_key_type" => OPENSSL_KEYTYPE_RSA
             ];
             /* generate a key pair, and set success message */
-            $keyPair = $this->generateRsaKey($config);
-            $resKeyGenerate['message'] = 'Key pair successfully generated';
+            $keyPair = $this->generateKey($config);
+            $resKeyGenerate[MESSAGE] = 'Key pair successfully generated';
         }
 
         /* result data */
         $dataOut = [
-            'success' => $resKeyGenerate['success'],
-            'message' => $resKeyGenerate['message'] ?? NULL,
-            'error' => $resKeyGenerate['error'] ?? NULL,
-            'keyPair' => $keyPair ?? NULL,
-            'oldTok' => $tokens
+            SUCCESS => $resKeyGenerate[SUCCESS],
+            MESSAGE => $resKeyGenerate[MESSAGE] ?? NULL,
+            KEY_PAIR => $keyPair ?? NULL
         ];
 
         /* function to default response */
         $funcDefault = function($data) {
-            redirect('/ums/generator/rsa');
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect('/'.RSA_GENERATOR_ROUTE);
         };
 
-        $this->switchResponse($dataOut, TRUE, $funcDefault, 'crsfRSA');
+        $this->switchResponse($dataOut, $resKeyGenerate[GENERATE_TOKEN], $funcDefault, CSRF_GEN_RSA);
 
-//         $resJSON = [
-//             'success' => $resKeyGenerate['success'],
-//             'message' => $resKeyGenerate['message'] ?? NULL,
-//             'error' => $resKeyGenerate['error'] ?? NULL,
-//             'keyPair' => $keyPair ?? NULL,
-//             'ntk' => generateToken('crsfRSA'),
-//             'oldTok' => $tokens
-//         ];
-//         sendJsonResponse($resJSON);
     }
 
     /* function to generate and save a key on server */
-    public function rsaKeyGenerateSave() {
+    public function generateSaveRsaKey() {
         /* redirect */
-        $this->redirectIfNotAdmin();
+        $this->redirectOrFailIfCanNotGenerateRsaKey();
 
         /* get tokens */
-        $tokens = $this->getPostSessionTokens('XS_TKN_GS', 'csrfGenSave');
+        $tokens = $this->getPostSessionTokens(CSRF_GEN_SAVE_RSA);
 
         /* get instance of verifier and switch by section */
         $verifier = RSAVerifier::getInstance($this->appConfig);
         $resKeySave = $verifier->verifyKeyGenerateSave($tokens);
         /* if success */
-        if ($resKeySave['success']) {
+        if ($resKeySave[SUCCESS]) {
             /* set rsa configuration */
-            $confRsa = $this->appConfig['rsa'];
+            $confRsa = $this->appConfig[RSA];
             $config = [
-                "digest_alg" => $confRsa['digestAlg'],
-                "private_key_bits" => $confRsa['privateKeyBits'],
+                "digest_alg" => $confRsa[DIGEST_ALG],
+                "private_key_bits" => $confRsa[PRIVATE_KEY_BITS],
                 "private_key_type" => OPENSSL_KEYTYPE_RSA,
             ];
             /* generate and save rsa key pair */
-            $resKeySave['success'] = $this->saveRsaPrivKey($this->generateRsaKey($config)['privKey']);
+            $resKeySave[SUCCESS] = $this->saveRsaPrivKey($this->generateKey($config)[PRIV_KEY]);
             /* set message by key pair generate success */ 
-            $resKeySave['message'] = $resKeySave['success'] ? 'Rsa private key saved successfully' : 'Save rsa key failed';
+            $resKeySave[MESSAGE] = $resKeySave[SUCCESS] ? 'Rsa private key saved successfully' : 'Save rsa key failed';
         }
 
         /* result data */
         $dataOut = [
-            'success' => $resKeySave['success'],
-            'message' => $resKeySave['message'] ?? NULL,
-            'error'=> $resKeySave['error'] ?? NULL
+            SUCCESS => $resKeySave[SUCCESS],
+            MESSAGE => $resKeySave[MESSAGE] ?? NULL
         ];
 
         /* function for default response */
         $funcDefault = function($data) {
-            $this->showMessage(strtoupper($data['message']));
+            $this->showMessage(strtoupper($data[MESSAGE]));
         };
 
-        $this->switchResponse($dataOut, TRUE, $funcDefault, 'csrfGenSave');
-
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = 
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-                
-//                 return;
-//         }
+        $this->switchResponse($dataOut, $resKeySave[GENERATE_TOKEN], $funcDefault, CSRF_GEN_SAVE_RSA);
     }
 
     /* ##################################### */
@@ -148,17 +131,17 @@ class RSAKeyGeneratorController extends Controller {
     /* ##################################### */
 
     /* function to redirect if user can not generate rsa key pair */ 
-    private function redirectIfCanNotGenerateRsaKey() {
-        if (!userCanGenerateRsaKey()) redirect();
+    private function redirectOrFailIfCanNotGenerateRsaKey() {
+        if (!$this->userRole[CAN_GENERATE_RSA]) redirect();
     }
 
     /* function to save rsa private key */
     private function saveRsaPrivKey($privKey): bool {
-        return safeFileRewrite(getcwd() . '/config/rsa/' . $this->appConfig['rsa']['rsaPrivKeyFile'], $privKey);
+        return safeFileRewrite(getPath(getcwd(), 'config', 'rsa', $this->appConfig[RSA][RSA_PRIV_KEY_FILE]), $privKey);
     }
 
     /* function to generate rsa key pair */
-    private function generateRsaKey(array $configRsa): array {
+    private function generateKey(array $configRsa): array {
         /* require new private key */
         $res = openssl_pkey_new($configRsa);
         $privKey = '';
@@ -168,6 +151,9 @@ class RSAKeyGeneratorController extends Controller {
         $details = openssl_pkey_get_details($res);
         $publKey = $details['key'];
         /* return private and public key */
-        return compact('privKey', 'publKey');
+        return [
+            PRIV_KEY => $privKey,
+            PUBL_KEY => $publKey
+        ];
     }
 }

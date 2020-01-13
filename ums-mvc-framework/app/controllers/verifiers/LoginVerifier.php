@@ -1,65 +1,77 @@
 <?php
 namespace app\controllers\verifiers;
 
+use app\models\PasswordResetRequest;
+use app\models\PendingEmail;
+use app\models\PendingUser;
 use app\models\User;
-use \PDO;
 use \DateTime;
+use \PDO;
 
 /**
  * Class verifier to verify a login, logout, signup, ... requests
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginVerifier extends Verifier {
-    protected function __construct(array $appConfig, PDO $conn) {
-        parent::__construct($appConfig, $conn);
+    protected function __construct(PDO $conn) {
+        parent::__construct($conn);
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
-    /* function to verify logout request */
-    public function verifyLogout(int $id, array $tokens): array {
+    /* function to verify a login */
+    public function verifyLogin(string $username, string $pass, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Logout failed',
-            'success' => FALSE
+            WRONG_PASSWORD => FALSE,
+            MESSAGE => 'Login failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* get ums configuartions and init user model */
+//         $umsConf = $this->appConfig[UMS];
+        $userModel = new User($this->conn);
+        /* if is valid email, loggin with it */
+        if ($this->isValidEmail($username, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
+            /* if user not found, then set user not found message and return */
+            if (!$user = $userModel->getUserByEmail($username, FALSE)) {
+                $result[MESSAGE] = 'User not found - Wrong email';
+                $result[ERROR] = USER;
+                return $result;
+            }
+        /* else loggin with username, and check if user exists */
+        } else if (!$user = $userModel->getUserByUsername($username, FALSE)) {
+            $result[MESSAGE] = 'User not found - Wrong username';
+            $result[ERROR] = USER;
+            return $result;
+        }
+        
+        /* check if user is locked or disabled */
+        if ($this->isUserLockedOrDisabled($user)) return $result;
 
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
-
-        /* validate tokens and user id */
-        if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
-
-        /* unset error message and set success */
-        unset($result['message']);
-        $result['success'] = TRUE;
-
-        /* return result */
-        return $result;
-    }
-
-    /* function to verify enable account request */
-    public function verifyEnableAccount(string $token): array {
-        /* set fail result */
-        $result = [
-            'message' => 'Enable account failed',
-            'success' => FALSE
-        ];
-
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
-
-        /* validate tokens and user id */
-        if (!($usr = $user->getUserByTokenEnabler($token)) || $this->isUserTempLocked($usr)) return $result;
-
-        /* unset error message */ 
-        unset($result['message']);
-
+        /* verify user password */
+        if (!password_verify($pass, $user->{PASSWORD})) {
+            $result[WRONG_PASSWORD] = TRUE;
+            $result[USER_ID] = $user->{USER_ID};
+            $result[MESSAGE] = 'Wrong password';
+            $result[ERROR] = PASSWORD;
+            return $result;
+        }
+        
+        /* unset password of user obj */
+        unset($user->{PASSWORD});
+        
         /* set success result and return it */
-        $result['user'] = $usr;
-        $result['success'] = TRUE;
+        $result[MESSAGE] = 'User logged in successfully';
+        $result[SUCCESS] = TRUE;
+        $result[USER] = $user;
         return $result;
     }
 
@@ -67,208 +79,233 @@ class LoginVerifier extends Verifier {
     public function verifySignupResendEmail(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Resend email failed',
-            'success' => FALSE
+            MESSAGE => 'Resend email failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
+        
+        
+        /* validate tokens */
+        if (!($this->verifyTokens($tokens))) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
-
-        /* validate tokens and user id */
-        if (!($this->verifyTokens($tokens) && is_numeric($id) && ($usr = $user->getUser($id)))) return $result;
-
+        /* init pending user model */
+        $pendUser = new PendingUser($this->conn);
+        
+        /* validate user id */
+        if (!(is_numeric($id) && ($usr = $pendUser->getPendingUserTokenNotNull($id)))) return $result;
+        
         /* unset error message */
-        unset($result['message']);
-
+        unset($result[MESSAGE]);
+        
         /* set success result and return it */
-        $result['token'] = $usr->token_account_enabler;
-        $result['email'] = $usr->email;
-        $result['success'] = TRUE;
+        $result[TOKEN] = $usr->{ENABLER_TOKEN};
+        $result[EMAIL] = $usr->email;
+        $result[SUCCESS] = TRUE;
         return $result;
     }
 
-    /* function to verify a confirm new email request */
-    public function verifyValidateNewEmail(string $token): array {
+    /* function to verify logout request */
+    public function verifyLogout(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Confirm new email failed',
-            'success' => FALSE
-        ];
-
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
-
-        /* validate tokens and user id */
-        if (!($usr = $user->getUserByTokenConfirmEmail($token)) || $this->isUserTempLocked($usr) || !$this->isUserEnable($usr)) return $result;
-
-        /* check if new email confirmed already exists */
-        if ($usrDel = $user->getUserByEmail($usr->new_email)) {
-            /* check if is valid user */
-            if ($this->isValidUser($usrDel, $this->appConfig['app']['requireConfirmEmail'])) {
-                $result['message'] = 'User already exist with your new email';
-                return $result;
-            }
-            /* if is not valid user set to delete it */
-            $result['deleteUser'] = $usrDel->id;
-        }
-
-        /* unset error message */
-        unset($result['message']);
-
-        /* set success result and return it */
-        $result['userId'] = $usr->id;
-        $result['success'] = TRUE;
-        return $result;
-    }
-
-    /* function to verify a reset password request */
-    public function verifyResetPassReq(string $email, array $tokens): array {
-        /* set fail result */
-        $result = [
-            'message' => 'Password reset request failed',
-            'success' => FALSE
+            MESSAGE => 'Logout failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
+        /* init user model and validate user id */
+        $user = new User($this->conn);
+        if (!$user->getUser($id)) return $result;
+
+        /* unset error message and set success */
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
+
+        /* return result */
+        return $result;
+    }
+
+    /* ############ PASSWORD FUNCTIONS ############ */
+
+    /* function to verify a reset password request */
+    public function verifyPassResetReq(string $email, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Password reset request failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
         /* validate email */
-        if (!$this->isValidEmail($email, $this->appConfig['app']['useRegexEmail'], $this->appConfig['app']['regexEmail'])) {
-            $result['message'] = 'Invalid email';
-            $result['error'] = 'email';
+        if (!$this->isValidEmail($email, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
+            $result[MESSAGE] = 'Invalid email';
+            $result[ERROR] = EMAIL;
             return $result;
         }
 
-        /* check if email user exists */
-        if (!$usr = $user->getUserByEmail($email)) {
-            $result['message'] = 'User not found - Wrong email';
-            $result['error'] = 'email';
+        /* init user model check if email user exists */
+        $userModel = new User($this->conn);
+        if (!$user = $userModel->getUserByEmail($email)) {
+            $result[MESSAGE] = 'User not found - Wrong email';
+            $result[ERROR] = EMAIL;
             return $result;
         }
 
         /* check if user is locked or disabled */
-        if ($this->isUserTempLocked($usr) || !$this->isUserEnable($usr)) return $result;
+        if ($this->isUserLockedOrDisabled($user)) return $result;
 
         /* unset error message */
-        unset($result['message']);
+        unset($result[MESSAGE]);
 
         /* set success result and return it */
-        $result['user'] = $usr;
-        $result['success'] = TRUE;
+        $result[USER] = $user;
+        $result[SUCCESS] = TRUE;
         return $result;
     }
 
     /* function to verify a reset password */
-    public function verifyResetPass(string $token, string $pass, string $cpass, array $tokens): array {
+    public function verifyPassReset(string $token, string $pass, string $cpass, array $tokens): array {
         /* set fail result */
         $result = [
-            'message' => 'Password reset failed',
-            'deleteToken' => FALSE,
-            'success' => FALSE
+            MESSAGE => 'Password reset failed',
+            REMOVE_TOKEN => FALSE,
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* init user model */
-        $user = new User($this->conn, $this->appConfig);
+        $passResReq = new PasswordResetRequest($this->conn);
 
         /* validate tokens and user */
-        if (!$this->verifyTokens($tokens) || !($usr = $user->getUserByTokenResetPassword($token)) || $this->isUserTempLocked($usr) || !$this->isUserEnable($usr)) return $result; 
+        if (!($this->verifyTokens($tokens) && ($user = $passResReq->getUserByResetPasswordToken($token)) && !$this->isUserLockedOrDisabled($user))) return $result; 
+        $result[GENERATE_TOKEN] = TRUE;
+        $result[USER_ID] = $user->{USER_ID};
 
         /* chech if reset password token is expired */
-        if (new DateTime($usr->datetime_req_reset_pass_expire) < new DateTime(date('Y-m-d H:i:s'))) {
-            $result['message'] = 'Link expired';
-            $result['deleteToken'] = TRUE;
-            $result['userId'] = $usr->id;
+        if (new DateTime($user->{EXPIRE_DATETIME}) < new DateTime()) {
+            /* if expire set fail result and return it */
+            $result[MESSAGE] = 'Link expired';
+            $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
 
-        /* get app configurations */
-        $confApp = $this->appConfig['app'];
+        /* get UMS configurations */
+//         $umsConf = $this->appConfig[UMS];
 
         /* validate password */
-        if (!$this->isValidPassword($pass, $confApp['minLengthPassword'], $confApp['checkMaxLengthPassword'], $confApp['maxLengthPassword'], $confApp['requireHardPassword'], $confApp['useRegex'], $confApp['regexPassword'])) {
-            $result['message'] = 'Invalid password';
-            $result['error'] = 'pass';
+        if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX_PASSWORD, REGEX_PASSWORD)) {
+            $result[MESSAGE] = 'Invalid password';
+            $result[ERROR] = PASSWORD;
             return $result;
         }
 
         /* confirm password */
         if ($pass !== $cpass) {
-            $result['message'] = 'Passwords mismatch';
-            $result['error'] = 'cpass';
+            $result[MESSAGE] = 'Passwords mismatch';
+            $result[ERROR] = CONFIRM_PASS;
             return $result;
         }
 
         /* unset error message */
-        unset($result['message']);
+        unset($result[MESSAGE]);
 
         /* set success result and return it */
-        $result['user'] = $usr;
-        $result['success'] = TRUE;
+        $result[SUCCESS] = TRUE;
         return $result;
     }
 
-    /* function to verify a login */
-    public function verifyLogin(string $username, string $pass, array $tokens): array {
+    /* ############ ENABLER FUNCTIONS ############ */
+
+    /* function to verify enable account request */
+    public function verifyEnableAccount(string $token): array {
         /* set fail result */
         $result = [
-            'wrongPass' => FALSE,
-            'message' => 'Login failed',
-            'success' => FALSE
+            MESSAGE => 'Enable account failed',
+            REMOVE_TOKEN => FALSE,
+            SUCCESS => FALSE
         ];
-
-        /* validate tokens */
-        if (!$this->verifyTokens($tokens)) return $result;
         
-        /* init user model */
-        $user = new User($this->conn, $this->appConfig);
+        /* init pending user model */
+        $pendUser = new PendingUser($this->conn);
+        
+        /* validate enabler token and check lock user */
+        if (!($user = $pendUser->getUserByAccountEnablerToken($token, FALSE))) return $result;
 
-        /* get app configuartions */
-        $confApp = $this->appConfig['app'];
-
-        /* if is valid email, loggin with it */
-        if ($this->isValidEmail($username, $confApp['useRegexEmail'], $confApp['regexEmail'])) {
-            /* if user not found */
-            if (!$usr = $user->getUserByEmail($username, FALSE)) {
-                /* if is pending, send confirm email message */
-                if ($user->getUserByNewEmail($username)) {
-                    $result['message'] = 'Confirm your email';
-                    $result['error'] = 'user';
-                    return $result;
-                }
-                /* set user not found message and return */
-                $result['message'] = 'User not found - Wrong email';
-                $result['error'] = 'user';
-                return $result;
-            }
-        /* else loggin with username, and check if user exists */
-        } else if (!$usr = $user->getUserByUsername($username, FALSE)) {
-            $result['message'] = 'User not found - Wrong username';
-            $result['error'] = 'user';
+        $expireTime = new DateTime($user->{REGISTRATION_DATETIME});
+        $expireTime->modify(ENABLER_LINK_EXPIRE_TIME);
+        if ($expireTime < new DateTime()) {
+            $result[MESSAGE] = 'Your enabler link has expire';
+            $result[REMOVE_TOKEN] = TRUE;
+            return $result;
+        }
+        $userModel = new User($this->conn);
+        /* check if email already exists */
+        if ($userModel->getUserByEmail($user->{EMAIL})) {
+            $result[MESSAGE] = 'User already exist with this email';
+            $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
 
-        /* check if user is locked or disabled */
-        if ($this->isUserTempLocked($usr) || !$this->isUserEnable($usr)) return $result;
-
-        /* verify user password */
-        if (!password_verify($pass, $usr->password)) {
-            $result['wrongPass'] = TRUE;
-            $result['userId'] = $usr->id;
-            $result['message'] = 'Wrong password';
-            $result['error'] = 'pass';
+        /* check if username already exists */
+        if ($userModel->getUserByUsername($user->{USERNAME})) {
+            $result[MESSAGE] = 'User already exist with this username';
+            $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
 
-        /* unset password of user obj */
-        unset($usr->password);
+        /* unset error message */
+        unset($result[MESSAGE]);
 
         /* set success result and return it */
-        $result['message'] = 'User logged in successfully';
-        $result['success'] = TRUE;
-        $result['user'] = $usr;
+        $result[USER] = $user;
+        $result[SUCCESS] = TRUE;
+        return $result;
+    }
+
+    /* function to verify a enable new email request */
+    public function verifyEnableNewEmail(string $token): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Confirm new email failed',
+            SUCCESS => FALSE,
+            REMOVE_TOKEN => FALSE
+        ];
+        
+        
+        /* validate tokens and user id init pending email model */
+        $pendMail = new PendingEmail($this->conn);
+        if (!($mail = $pendMail->getUserByEmailEnablerToken($token)) || $this->isUserLockedOrDisabled($mail)) return $result;
+
+        /* check if token is expire */
+        if (new DateTime($mail->{EXPIRE_DATETIME}) < new DateTime()) {
+            $result[MESSAGE] = 'Your enabler link has expire';
+            $result[REMOVE_TOKEN] = TRUE;
+            return $result;
+        }
+
+        /* check if new email confirmed already exists */
+        $userModel = new User($this->conn);
+        if ($userModel->getUserByEmail($mail->{NEW_EMAIL})) {
+            $result[MESSAGE] = 'User already exist with this email';
+            $result[REMOVE_TOKEN] = TRUE;
+            return $result;
+        }
+        
+        /* unset error message */
+        unset($result[MESSAGE]);
+        
+        /* set success result and return it */
+        $result[USER] = $mail;
+        $result[SUCCESS] = TRUE;
         return $result;
     }
 }

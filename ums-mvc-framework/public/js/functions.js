@@ -11,17 +11,41 @@ String.prototype.ucFirst = function() {
     return this.charAt(0).toUpperCase() + this.substr(1);
 }
 
+/* function to crypt and serialize data of input list */
+function cryptSerialize($inputList) {
+	/* init vars */
+	var rsa = new RSAKey(),
+		out = '',
+		val; 
+
+	/* set public key */
+	rsa.setPublic(window.keyN, window.keyE);
+	/* crypt value of input and serialize it */
+	$inputList.each(function(index, input) {
+		/* crypt valure */
+		val = rsa.encrypt(input.value);
+		/* append & */
+		out += index === 0 ? '' : '&';
+		/* append serialized input */
+		out += input.getAttribute('name') + '=' + val;
+	});
+	return out;
+}
+
 /* function to send XML HTTP request */
-function sendAjaxReq(url, data, token, funcSuccess, funcFail=null, headerToken="XS-TKN") {
+function sendAjaxReq(url, data, $token, funcSuccess, funcFail=null) {
+	/* if function fail is null, then set it */ 
 	funcFail = funcFail === null ? function() {
 		showMessage('Problem to contact server', true);
 	} : funcFail;
+	/* send ajax request */
 	$.ajax({
 		method: 'post',
 		data: data,
 		url: url,
 		beforeSend: function(request) {
-			request.setRequestHeader(headerToken, token);
+			/* set csrf token header */
+			request.setRequestHeader($token.attr('name'), $token.val());
 		},
 		success: funcSuccess,
 		failure: funcFail
@@ -41,7 +65,7 @@ function focusError(jsonRes) {
 
 /* fucntion to evidence a error of a element of form */
 function evidenceError($elem) {
-	if ($elem[0].tagName !== 'SELECT') $elem.css('border', '1px solid red');
+	if ($elem.tagName !== 'SELECT') $elem.css('border', '1px solid red');
 	$elem.css('box-shadow', '0 0 5px red');
 }
 

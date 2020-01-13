@@ -6,8 +6,8 @@ namespace app\controllers\verifiers;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class EmailVerifier extends Verifier {
-    protected function __construct(array $appConfig) {
-        parent::__construct($appConfig);
+    protected function __construct() {
+        parent::__construct();
     }
 
     /* ##################################### */
@@ -18,32 +18,34 @@ class EmailVerifier extends Verifier {
     public function verifySendEmail(string $from, string $to, array $tokens): array {
         /* set fail result */
         $res = [
-            'success' => FALSE,
-            'message' => 'Send email failed'
+            MESSAGE => 'Send email failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
         ];
 
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $res;
+        $res[GENERATE_TOKEN] = TRUE;
 
         /* validate from email */
         if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            $res['message'] = 'From email wrong';
-            $res['error'] = 'from';
+            $res[MESSAGE] = 'From email wrong';
+            $res[ERROR] = 'from';
             return $res;
         }
 
         /* validate to email */
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $res['message'] = 'To email wrong';
-            $res['error'] = 'to';
+            $res[MESSAGE] = 'To email wrong';
+            $res[ERROR] = 'to';
             return $res;
         }
 
         /* unset error message */
-        unset($res['message']);
+        unset($res[MESSAGE]);
 
         /*set success result and return it */
-        $res['success'] = TRUE;
+        $res[SUCCESS] = TRUE;
         return $res;
     }
 }

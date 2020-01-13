@@ -9,9 +9,9 @@ namespace app\controllers\data;
 class SiteMapDataFactory extends DataFactory {
     protected $changefreqList = [];
 
-    protected function __construct(array $appConfig) {
-        parent::__construct($appConfig);
-        $this->changefreqList = getList('changefreq');
+    protected function __construct() {
+        parent::__construct();
+        $this->changefreqList = getList(CHANGE_FREQ_LIST);
     }
 
     /* ##################################### */
@@ -26,36 +26,36 @@ class SiteMapDataFactory extends DataFactory {
     /* function to get data by sitemap */
     public function getDataBySitemap() {
         /* load sitemap */
-        if (!($routesXML = simplexml_load_file(getcwd().'/public/sitemap.xml') or FALSE)) return FALSE;
+        if (!($routesXML = simplexml_load_file(getPath(getcwd(), 'public', 'sitemap.xml')) or FALSE)) return FALSE;
 
         /* create data routes */
         $routes = [];
         $nroutes = $routesXML->count();
         for ($i = 0; $i < $nroutes; $i++) {
-            $routes[$i]['loc'] = $routesXML->url[$i]->loc;
-            $routes[$i]['lastmod'] = isset($routesXML->url[$i]->lastmod) ? $routesXML->url[$i]->lastmod->__toString() : '';
-            $routes[$i]['changefreq'] = isset($routesXML->url[$i]->changefreq) ? $routesXML->url[$i]->changefreq->__toString() : '';
-            $routes[$i]['priority'] = isset($routesXML->url[$i]->priority) ? $routesXML->url[$i]->priority->__toString() : '';
+            $routes[$i][LOCATION] = $routesXML->url[$i]->loc;
+            $routes[$i][LASTMOD] = isset($routesXML->url[$i]->lastmod) ? $routesXML->url[$i]->lastmod->__toString() : '';
+            $routes[$i][CHANGEFREQ] = isset($routesXML->url[$i]->changefreq) ? $routesXML->url[$i]->changefreq->__toString() : '';
+            $routes[$i][PRIORITY] = isset($routesXML->url[$i]->priority) ? $routesXML->url[$i]->priority->__toString() : '';
         }
 
         /* remove domain from routes and return the results */
         $domain = $this->removeDomainInRoutes($routes);
         return [
-            'urlServer' => $domain,
-            'routes' => $routes,
-            'token' => generateToken('csrfSitemap'),
-            'changefreqList' => $this->changefreqList
+            URL_SERVER => $domain,
+            ROUTES => $routes,
+            TOKEN => generateToken(CSRF_GEN_SITEMAP),
+            CHANGE_FREQ_LIST => $this->changefreqList
         ];
     }
 
     /* function get data by routes */
     public function getDataByRoutes(): array {
         return [
-            'routes' => array_keys(getRoutes()['GET']),
-            'token' => generateToken('csrfSitemap'),
-            'urlServer' => getUrlServer(),
-            'siteMapExists' => siteMapExists(),
-            'changefreqList' => $this->changefreqList
+            ROUTES => array_keys(getRoutes()['GET']),
+            TOKEN => generateToken(CSRF_GEN_SITEMAP),
+            URL_SERVER => getServerUrl(),
+            SITE_MAP_EXISTS => siteMapExists(),
+            CHANGE_FREQ_LIST => $this->changefreqList
         ];
     }
 
@@ -65,9 +65,9 @@ class SiteMapDataFactory extends DataFactory {
 
     /* function to remove the domain from routes url */
     private function removeDomainInRoutes(array &$routes): string {
-        $domain = getDomain($routes[0]['loc']);
+        $domain = getDomain($routes[0][LOCATION]);
         foreach ($routes as $key => $route) {
-            $routes[$key]['loc'] = str_replace($domain, '', $route['loc']);
+            $routes[$key][LOCATION] = str_replace($domain, '', $route[LOCATION]);
         }
         return $domain;
     }

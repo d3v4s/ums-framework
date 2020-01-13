@@ -11,13 +11,15 @@ use app\controllers\data\SiteMapDataFactory;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class SiteMapGeneratorController extends Controller {
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* ########## SHOW FUNCTIONS ########## */
 
     /* function to view a site map update page */
     public function showSiteMapUpdate() {
@@ -27,8 +29,8 @@ class SiteMapGeneratorController extends Controller {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            ['src' => '/js/utils/ums/adm-site-map.js'],
-            ['src' => '/js/utils/ums/adm-site-map-updt.js']
+            [SOURCE => '/js/utils/ums/adm-site-map.js'],
+            [SOURCE => '/js/utils/ums/adm-site-map-updt.js']
         );
 
         /* get data from data factory instance */
@@ -39,7 +41,7 @@ class SiteMapGeneratorController extends Controller {
             return;
         }
 
-        $this->content = view('ums/admin-site-map-update', $data);
+        $this->content = view('ums/site-map-update', $data);
     }
 
     /* function to view site map generator page */
@@ -49,54 +51,57 @@ class SiteMapGeneratorController extends Controller {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            ['src' => '/js/utils/ums/adm-site-map.js'],
-            ['src' => '/js/utils/ums/adm-site-map-gen.js']
+            [SOURCE => '/js/utils/ums/adm-site-map.js'],
+            [SOURCE => '/js/utils/ums/adm-site-map-gen.js']
         );
 
         /* get data form data factory */
         $data = SiteMapDataFactory::getInstance($this->appConfig)->getDataByRoutes();
 
-        $this->content = view('ums/admin-site-map-generator', $data);
+        $this->content = view('ums/site-map-generator', $data);
     }
 
-    public function siteMapGenerate() {
+    /* ########## ACTION FUNCTIONS ########## */
+
+    /* fucntion to genrate a site map */
+    public function generateSiteMap() {
         /* redirect */
         $this->redirectIfCanNotGenerateSiteMap();
 
         /* get tokens */
-        $tokens = $this->getPostSessionTokens('XS_TKN', 'csrfSitemap');
+        $tokens = $this->getPostSessionTokens(CSRF_GEN_SITEMAP);
         /* get url server and unset it from post */
-        $urlServer = $_POST['url-server'];
-        unset($_POST['url-server']);
+        $urlServer = $_POST[URL_SERVER];
+        unset($_POST[URL_SERVER]);
         /* get post data */
         $data = $_POST;
 
         /* get verifier instance, and check site map generation request */
         $verifier = SiteMapVerifier::getInstance($this->appConfig);
-        $resSiteMapGen = $verifier->verifySiteMapGenerate($urlServer, $data, $tokens);
-        if ($resSiteMapGen['success']) {
+        $resSiteMapGen = $verifier->verifyGenerateSiteMap($urlServer, $data, $tokens);
+        if ($resSiteMapGen[SUCCESS]) {
             /* if succcess save site map and save new result */
-            $resSiteMapGen['success'] = $this->saveSiteMap($resSiteMapGen['routesList']);
-            $resSiteMapGen['message'] = $resSiteMapGen['success'] ? 'Site map successfully generate' : 'Generation site map failed';
+            $resSiteMapGen[SUCCESS] = $this->saveSiteMap($resSiteMapGen[ROUTES]);
+            $resSiteMapGen[MESSAGE] = $resSiteMapGen[SUCCESS] ? 'Site map successfully generate' : 'Generation site map failed';
         }
 
         /* result data */
         $dataOut = [
-            'success' => $resSiteMapGen['success'],
-            'message' => $resSiteMapGen['message'] ?? NULL,
-            'error'=> $resSiteMapGen['error'] ?? NULL
+            SUCCESS => $resSiteMapGen[SUCCESS],
+            MESSAGE => $resSiteMapGen[MESSAGE] ?? NULL,
+            ERROR=> $resSiteMapGen[ERROR] ?? NULL
         ];
 
         /* function to deffault response */
         $funcDefault = function($data) {
-            if (isset($data['message'])) {
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data['success'] ? redirect('/ums/generator/site/map/update') : redirect('/ums/generator/site/map');
+            $data[SUCCESS] ? redirect('/'.SITE_MAP_UPDATE_ROUTE) : redirect('/'.SITE_MAP_GENERATOR_ROUTE);
         };
 
-        $this->switchResponse($dataOut, !$resSiteMapGen['success'], $funcDefault, 'csrfSitemap');
+        $this->switchResponse($dataOut, (!$resSiteMapGen[SUCCESS] && $resSiteMapGen[GENERATE_TOKEN]), $funcDefault, CSRF_GEN_SITEMAP);
 //         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
 //         switch ($header) {
 //             case 'XMLHTTPREQUEST':
@@ -123,43 +128,43 @@ class SiteMapGeneratorController extends Controller {
         $domTree->formatOutput = TRUE;
 
         /* append urlset element */
-        $urlSet = $domTree->createElement('urlset');
-        $urlSet->setAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
-        $domTree->appendChild($urlSet);
+        $urlset = $domTree->createElement('urlset');
+        $urlset->setAttribute('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+        $domTree->appendChild($urlset);
 
-        /* append routes on urlsety element */
+        /* append routes on urlset element */
         foreach ($routes as $route) {
             $url = $domTree->createElement('url');
-            $loc = $domTree->createElement('loc', $route['route']);
+            $loc = $domTree->createElement('loc', $route[ROUTE]);
             $url->appendChild($loc);
-            if (isset($route['lastmod'])) {
-                $lastmod = $domTree->createElement('lastmod', $route['lastmod']);
+            if (isset($route[LASTMOD])) {
+                $lastmod = $domTree->createElement('lastmod', $route[LASTMOD]);
                 $url->appendChild($lastmod);
             }
-            if (isset($route['changefreq'])) {
-                $changefreq = $domTree->createElement('changefreq', $route['changefreq']);
+            if (isset($route[CHANGEFREQ])) {
+                $changefreq = $domTree->createElement('changefreq', $route[CHANGEFREQ]);
                 $url->appendChild($changefreq);
             }
-            if (isset($route['priority'])) {
-                $priority = $domTree->createElement('priority', $route['priority']);
+            if (isset($route[PRIORITY])) {
+                $priority = $domTree->createElement('priority', $route[PRIORITY]);
                 $url->appendChild($priority);
             }
-            $urlSet->appendChild($url);
+            $urlset->appendChild($url);
         }
 
         /* save xml and return id success or not */
         $xml = $domTree->saveXML();
-        return safeFileRewrite(getcwd().'/public/sitemap.xml', $xml);
+        return safeFileRewrite(getPath(getcwd(), 'public', 'sitemap.xml'), $xml);
     }
 
     /* function to redirect if sitemap not exists */
     private function redirectIfSiteMapNotExists() {
-        if (!siteMapExists()) redirect('/ums/generator/site/map');
+        if (!siteMapExists()) redirect('/'.SITE_MAP_GENERATOR_ROUTE);
     }
 
     /* function to redirect if user can not generate site map */
     private function redirectIfCanNotGenerateSiteMap() {
-        if (!userCanGenerateSiteMap()) redirect();
+        if (!$this->userRole[CAN_GENERATE_SITEMAP]) $this->switchFailResponse();
     }
 }
 

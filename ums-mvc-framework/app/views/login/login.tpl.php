@@ -1,18 +1,19 @@
 <div class="container col-md-7 text-center">
     <h1>Login</h1>
-    <form id="login-form" action="/auth/login" method="POST">
+    <form id="login-form" action="/<?=LOGIN_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
-    		<label for="user">Email/Username</label>
-    		<input id="user" placeholder="Email or Username" class="form-control evidence-error send-ajax" type="text" name="user" required="required" autofocus="autofocus">
+    		<label for="<?=USER?>">Email/Username</label>
+    		<input id="<?=USER?>" name="<?=USER?>" placeholder="Email or Username" class="form-control evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
     	<div class="form-group text-md-left">
-    		<label for="pass">Password</label>
-    		<input id="pass" placeholder="Password" class="form-control evidence-error send-ajax-crypt mb-1" type="password" name="pass" required="required">
+    		<label for="<?=PASSWORD?>">Password</label>
+    		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>" placeholder="Password" class="form-control evidence-error send-ajax-crypt mb-1" type="password" required="required">
     		<div class="text-left mx-1">
-        		<a href="/auth/reset/password/req" class="link-danger">Forgot password</a>
+        		<a href="/<?=PASS_RESET_REQ_ROUTE?>" class="link-danger">Forgot password</a>
     		</div>
     	</div>
+    	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_LOGIN?>" value="<?=${TOKEN}?>">
+    	<input id="<?=GET_KEY_TOKEN?>" type="hidden" name="<?=CSRF_KEY_JSON?>" value="<?=${GET_KEY_TOKEN}?>">
     	<noscript>
     		<div class="container-fluid">
     			<h3 class="text-danger">ENABLE JAVASCRIPT TO LOGIN</h3>

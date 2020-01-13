@@ -1,14 +1,12 @@
-$(document).ready(function() {
-	/* sucess function XML HTTP req */
-	funcSuccess = function(response) {
-		try {
-//			const res = JSON.parse(response);
-			window.keyN = response.keyN;
-			window.keyE = response.keyE;
-			$('#_xf').val(response.ntk);
-		} catch (e) {
-			showMessage('Invalid server response', true);
-		}
-	};
-	sendAjaxReq('/app/config/get/key/json', {}, $('#_xf').val(), funcSuccess);
-});
+/* sucess function XML HTTP req */
+funcSuccess = function(response) {
+	/* if success */
+	if (response.success) {
+		/* set public key */
+		window.keyN = response.keyN;
+		window.keyE = response.keyE;
+	/* else show error message */
+	} else showMessage(response.message, true);
+};
+
+sendAjaxReq('/app/config/get/key/json', '', $('#_kxt'), funcSuccess);

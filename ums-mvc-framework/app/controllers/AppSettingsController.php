@@ -13,9 +13,9 @@ class AppSettingsController extends Controller {
     protected $section;
     protected $appSectionsList = [];
 
-    public function __construct(PDO $conn, array $appConfig, string $layout = 'ums') {
+    public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
-        $this->appSectionsList = getList('appSections');
+        $this->appSectionsList =  array_keys($this->appConfig);  // getList('appSections');
     }
 
     /* ##################################### */
@@ -23,14 +23,14 @@ class AppSettingsController extends Controller {
     /* ##################################### */
 
     /* function to view app settings */
-    public function showAppSettings(string $section = 'app') {
+    public function showAppSettings(string $section=DEFAULT_SETTING_SECTION) {
         /* redirect */
-        $this->redirectIfCanNotChangeSettings();
+        $this->redirectOrFailIfCanNotChangeSettings();
 
         $this->isSettings = TRUE;
         /* show message error if not valid app section */
         if (!in_array($section, $this->appSectionsList)) {
-            $this->showMessage('INVALID SETTINGS SECTION');
+            $this->showMessage('Invalid settings section', TRUE);
             return;
         }
 
@@ -40,84 +40,77 @@ class AppSettingsController extends Controller {
 
         /* add js source */
         array_push($this->jsSrcs,
-            ['src' => "/js/utils/ums/adm-sttng-$section.js"]
+            [SOURCE => "/js/utils/ums/adm-sttng-$section.js"]
         );
 
         /* show settings page */
-        $this->content = view("settings/admin-settings-$section", $data);
+        $this->content = view(getPath('settings', $section), $data);
     }
 
     /* function to update settings */
     public function updateSettings(string $section) {
         /* redirect */
-        $this->redirectIfCanNotChangeSettings();
+        $this->redirectOrFailIfCanNotChangeSettings();
 
         /* get tokens and post data */
-        $tokens = $this->getPostSessionTokens('XS_TKN', 'csrfSettings');
+        $tokens = $this->getPostSessionTokens(CSRF_SETTINGS);
         $data = $_POST;
 
         /* get instance of verifier and switch by section */
         $verifier = AppSettingsVerifier::getInstance($this->appConfig);
+        
         switch ($section) {
             case 'app':
-                $resUpdate = $verifier->verifyUpdateAppSettings($data, $tokens);
-                break;
-            case 'rsa':
-                $resUpdate = $verifier->verifyUpdateRsaSettings($data, $tokens);
+                $resUpdate = $verifier->verifyAppSettingsUpdate($data, $tokens);
                 break;
             case 'layout':
-                $resUpdate = $verifier->verifyUpdateLayoutSettings($data, $tokens);
+                $resUpdate = $verifier->verifyLayoutSettingsUpdate($data, $tokens);
+                break;
+            case 'rsa':
+                $resUpdate = $verifier->verifyRsaSettingsUpdate($data, $tokens);
+                break;
+            case 'security':
+                $resUpdate = $verifier->verifySecuritySettingsUpdate($data, $tokens);
+                break;
+            case 'ums':
+                $resUpdate = $verifier->verifyUmsSettingsUpdate($data, $tokens);
                 break;
             default:
-                $resUpdate['message'] = 'Invalid settings section';
-                $resUpdate['success'] = FALSE;
-                $section = 'app';
+                $resUpdate =[
+                    MESSAGE => 'Invalid settings section',
+                    SUCCESS => FALSE,
+                    GENERATE_TOKEN => FALSE
+                ];
+                $section = DEFAULT_SETTING_SECTION;
                 break;
         }
 
         /* if success */
-        if ($resUpdate['success']) {
+        if ($resUpdate[SUCCESS]) {
             /* save settings */
-            $res = $this->saveSettingsIni($resUpdate['data'], $section);
-            $resUpdate['message'] = $res['message'];
-            $resUpdate['success'] = $res['success'];
+            $res = $this->saveSettingsIni($resUpdate[DATA], $section);
+            $resUpdate[MESSAGE] = $res[MESSAGE];
+            $resUpdate[SUCCESS] = $res[SUCCESS];
         }
 
         /* result data */
         $dataOut = [
-            'success' => $resUpdate['success'],
-            'message' => $resUpdate['message'] ?? NULL,
-            'error' => $resUpdate['error'] ?? NULL,
-            'section' => $section
+            SUCCESS => $resUpdate[SUCCESS],
+            MESSAGE => $resUpdate[MESSAGE] ?? NULL,
+            ERROR => $resUpdate[ERROR] ?? NULL,
+            SECTION => $section
         ];
 
         /* function for default response */
         $funcDefault = function($data) {
-            if (isset($data['message'])){
-                $_SESSION['message'] = $data['message'];
-                $_SESSION['success'] = $data['success'];
+            if (isset($data[MESSAGE])){
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/ums/app/settings/'.$data['section']);
+            redirect('/'.APP_SETTINGS_ROUTE.'/'.$data[SECTION]);
         };
 
-        $this->switchResponse($dataOut, TRUE, $funcDefault, 'csrfSettings');
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = [
-//                     'success' => $resUpdate['success'],
-//                     'message' => $resUpdate['message'] ?? NULL,
-//                     'error' => $resUpdate['error'] ?? NULL
-//                 ];
-//                 $resJSON['ntk'] = generateToken('csrfSettings');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-                
-//                 break;
-//         }
+        $this->switchResponse($dataOut, $resUpdate[GENERATE_TOKEN], $funcDefault, CSRF_SETTINGS);
     }
 
     /* ##################################### */
@@ -126,19 +119,25 @@ class AppSettingsController extends Controller {
 
     /* function to save settings on ini file */
     private function saveSettingsIni(array $data, string $section): array {
+        /* fail result */
         $res = [
-            'message' => 'Save settings failed',
-            'success' => FALSE
+            MESSAGE => 'Save settings failed',
+            SUCCESS => FALSE
         ];
+
+        /* validate section */
         if (!in_array($section, $this->appSectionsList)) return $res;
+
+        /* set update section config and save it */
         $appConfig = $this->appConfig;
         $appConfig[$section] = $data;
-        if ($res['success'] = writeFileIni($appConfig, getcwd().'/config/config.ini')) $res['message'] = 'Settings succesfully saved';
+        if ($res[SUCCESS] = writeFileIni($appConfig, getPath(getcwd(), 'config', 'config.ini'))) $res[MESSAGE] = 'Settings succesfully saved';
+        /* return result */
         return $res;
     }
 
     /* function to redirect if user can not update settings */
-    private function redirectIfCanNotChangeSettings() {
-        if (!userCanChangeSettings()) redirect();
+    private function redirectOrFailIfCanNotChangeSettings() {
+        if (!$this->userRole[CAN_CHANGE_SETTINGS]) $this->switchFailResponse();
     }
 }

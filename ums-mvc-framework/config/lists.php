@@ -1,25 +1,28 @@
 <?php
 
 return [
-    'userRoles' => [
-        'user',
-        'editor',
-        'admin'
+//     'appSections' => [
+//         'App' => 'app',
+//         'RSA Key' => 'rsa',
+//         'Layout' => 'layout'
+//     ],
+
+    'users_for_page_list' => [
+        5, 10, 20, 50, 100
     ],
 
-    'appSections' => [
-        'App' => 'app',
-        'RSA Key' => 'rsa',
-        'Layout' => 'layout'
+    'accepet_langs' => [
+        'en',
+        'it'
     ],
 
-    'unitsTime' => [
-        'minutes',
-        'hour',
-        'day'
-    ],
+//     'time_units' => [
+//         'minutes',
+//         'hour',
+//         'day'
+//     ],
 
-    'changefreq' => [
+    'change_freq' => [
         'always',
         'hourly',
         'daily',
@@ -29,17 +32,26 @@ return [
         'never'
     ],
 
-    'orderBy' => [
-        'id',
-        'name',
-        'username',
-        'email',
-        'roletype',
-        'enabled'
+    'user_cols' => [
+        USER_ID => 'ID',
+        NAME => 'Name',
+        USERNAME => 'Username',
+        EMAIL => 'Email',
+        ROLE => 'Roletype', 
+        ENABLED => 'Enabled'
     ],
 
-    'orderDir' => [
-        'ASC',
-        'DESC'
+    'order_by' => [
+        USER_ID,
+        NAME,
+        USERNAME,
+        EMAIL,
+        ROLE,
+        ENABLED
+    ],
+
+    'order_dir' => [
+        ASC,
+        DESC
     ]
 ];

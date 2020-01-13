@@ -2,6 +2,10 @@
 namespace app\db;
 use \PDO;
 
+/**
+ * Class to create pdo connection
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class DbPdo {
     protected $conn;
     static protected $instance;
