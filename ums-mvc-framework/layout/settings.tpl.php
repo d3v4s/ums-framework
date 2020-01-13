@@ -70,45 +70,50 @@
 					<li class="nav-item <?=$this->isHome ? 'active' : ''?>">
 						<a class="nav-link" href="/">Home</a>
 					</li>
-					<?php if (isUserLoggedin()): ?>
-						<?php if (userCanUpdate()): ?>
-							<li class="nav-item <?=$this->isUsersList ? 'active' : ''?>">
-								<a class="nav-link" href="/ums/users/">Users List</a>
+					<?php if ($this->loginSession): ?>
+						<?php if ($this->loginSession->{USER_ID} !== DEFAULT_ROLE): ?>
+							<li class="nav-item">
+								<a class="nav-link" href="/ums">UMS</a>
 							</li>
 						<?php endif; ?>
-						<?php if (userCanChangeSettings()): ?>
-        					<li class="nav-item <?=$this->isSettings ? 'active' : ''?>">
+						<!-- < ?php if (userCanUpdate()): ?>
+							<li class="nav-item < ?=$this->isUsersList ? 'active' : ''?>">
+								<a class="nav-link" href="/ums/users/">Users List</a>
+							</li>
+						< ?php endif; ?>
+						< ?php if (userCanChangeSettings()): ?>
+        					<li class="nav-item < ?=$this->isSettings ? 'active' : ''?>">
         						<a class="nav-link" href="/ums/app/settings">App Settings</a>
         					</li>
-    					<?php endif; ?>
-    					<?php if (userCanCreate()): ?>
-    						<li class="nav-item <?=$this->isNewUser ? 'active' : ''?>">
+    					< ?php endif; ?>
+    					< ?php if (userCanCreate()): ?>
+    						<li class="nav-item < ?=$this->isNewUser ? 'active' : ''?>">
         						<a class="nav-link" href="/ums/user/new">New User</a>
         					</li>
-    					<?php endif; ?>
-    					<?php if (userCanSendEmail()): ?>
-    						<li class="nav-item <?=$this->isNewEmail ? 'active' : ''?>">
+    					< ?php endif; ?>
+    					< ?php if (userCanSendEmail()): ?>
+    						<li class="nav-item < ?=$this->isNewEmail ? 'active' : ''?>">
         						<a class="nav-link" href="/ums/email/new">Send Email</a>
         					</li>
-    					<?php endif; ?>
+    					< ?php endif; ?> -->
     					<li class="nav-item dropdown">
     						<a class="nav-link dropdown-toggle" href="/user/settings" id="account" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account</a>
     						<div id="dropdown-account" class="dropdown-menu mx-auto" aria-labelledby="account">
     							<h4 class="text-center"><a href="/user/info">	<?=getUserLoggedUsername()?></a></h4>
     							<div class="justify-content-center text-left p-4 mx-auto">
         							<p>
-        								Full name: <span class="text-primary"><?=getUserLoggedFullName()?></span><br>
-        								Email: <span class="text-primary"><?=getUserLoggedEmail()?></span>
-        								<?php if (isNotSimpleUser()): ?>
+        								Full name: <span class="text-primary"><?=$this->loginSession->{NAME}?></span><br>
+        								Email: <span class="text-primary"><?=$this->loginSession->{EMAIL}?></span>
+        								<?php if (!$this->isSimpleUser()): ?>
         									<br>
-        									Role: <span class="text-primary"><?=getUserLoggedRole()?></span>
+        									Role: <span class="text-primary"><?=$this->userRole[ROLE]?></span>
         								<?php endif;?>
         							</p>
     							</div>
     							<div class="container justify-content-center text-center p-2 row mx-auto">
     								<a href="/user/settings" class="btn btn-warning m-2"><i class="fas fa-cog"></i> Settings</a>
     								<form id="logout-form" action="/auth/logout" method="post">
-    									<input id="_xf-out" type="hidden" name="_xf-out" value="<?=$this->tokenLogout?>">
+    									<input id="_xf-out" type="hidden" name="<?=CSRF_LOGOUT?>" value="<?=$this->tokenLogout?>">
     	    							<button id="btn-logout" class="btn btn-danger m-2" type="submit"><i id="ico-btn" class="fas fa-sign-out-alt"></i> Logout</button>
     								</form>
     							</div>

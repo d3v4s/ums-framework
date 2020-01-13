@@ -1,15 +1,14 @@
 <div class="container col-md-7 text-center">
     <h1>Reset Password</h1>
-    <form id="reset-pass-form" action="/user/reset/password" method="post">
+    <form id="reset-pass-form" action="/<?=PASS_RESET_ROUTE?>" method="post">
 		<div class="form-group text-md-left">
-    		<label for="pass">Password</label>
-    		<input id="pass" name="pass"  placeholder="Password" class="form-control validate-password confirm-password-1 evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">
+    		<label for="<?=PASSWORD?>">Password</label>
+    		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>"  placeholder="Password" class="form-control validate-password confirm-password-1 evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">
     	</div>
     	<div class="form-group text-md-left">
-    		<label for="cpass">Confirm password</label>
-    		<input id="cpass" name="cpass" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
+    		<label for="<?=CONFIRM_PASS?>">Confirm password</label>
+    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
-    	<div id="errors"></div>
     	<noscript>
     		<div class="container-fluid">
     			<h3 class="text-danger">ENABLE JAVASCRIPT TO RESET YOUR PASSWORD</h3>
@@ -22,7 +21,8 @@
   				<span id="text-btn">Reset</span>
 	    	</button>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
-    	<input type="hidden" name="token" value="<?=$tokenReset?>" class="send-ajax">
+    	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_PASS_RESET?>" value="<?=${TOKEN}?>">
+    	<input id="<?=GET_KEY_TOKEN?>" type="hidden" name="<?=CSRF_KEY_JSON?>" value="<?=${GET_KEY_TOKEN}?>">
+    	<input type="hidden" name="<?=PASSWORD_RESET_TOKEN?>" value="<?=${PASSWORD_RESET_TOKEN}?>" class="send-ajax">
     </form>
 </div>

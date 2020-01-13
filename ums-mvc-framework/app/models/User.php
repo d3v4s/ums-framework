@@ -23,7 +23,7 @@ class User {
     /* ############# CREATE FUNCTIONS ############# */
 
     /* function to save new user */
-    public function saveUser(array $data): array {
+    public function saveUser(array $data, bool $cryptPass=TRUE): array {
         /* set fail result */
         $result = [
             MESSAGE => 'Save user failed',
@@ -32,7 +32,7 @@ class User {
         
 //         $data[PASSWORD] = $data[PASSWORD]; // ?? $this->appConfig[UMS][PASS_DEFAULT];
         /* create hash of password */
-        $password = password_hash($data[PASSWORD], PASSWORD_DEFAULT);
+        $password = $cryptPass ? password_hash($data[PASSWORD], PASSWORD_DEFAULT) : $data[PASSWORD];
 //         $roleId = $data[ROLE] ?? $this->appConfig[DEFAULT_USER_ROLE];
         
         /* prepare sql query and execute it */
@@ -62,6 +62,28 @@ class User {
 
         /* return result */
         return $result;
+    }
+
+    /* fucntion to create locks for user */
+    public function createUserLock($id) {
+        $sql = 'INSERT INTO '.USER_LOCK_TABLE.' ('.USER_ID_FRGN.') VALUES (:id)';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'id' => $id
+        ]);
+        
+        /* if sql query success, then set success result */
+        if ($stmt->rowCount()) {
+//             $result[USER_ID] = $this->conn->lastInsertId();
+            return $this->getUserLock($id);
+//             $result[MESSAGE] = 'New user saved successfully';
+//             $result[SUCCESS] = TRUE;
+            /* else set error info result */
+        }
+//         else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        /* return result */
+        return FALSE;
     }
 
     /* ############# READ FUNCTIONS ############# */
@@ -148,11 +170,11 @@ class User {
 
     /* function to get user lock property */
     public function getUserLock(int $id) {
-        /* set fail results */
-        $result = [
-            MESSAGE => 'Invalid id',
-            SUCCESS => FALSE
-        ];
+//         /* set fail results */
+//         $result = [
+//             MESSAGE => 'Invalid id',
+//             SUCCESS => FALSE
+//         ];
         
         /* prepare sql query */
         $sql = 'SELECT * FROM '.USER_LOCK_TABLE.' WHERE '.USER_ID_FRGN.' = :id';
@@ -163,15 +185,16 @@ class User {
         ]);
         
         /* check statement, get lock property and return success result */
-        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_OBJ))) {
-            unset($result[MESSAGE]);
-            $result[SUCCESS] = TRUE;
-            $result[USER] = $userLock;
-            return $result;
+        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) {
+//             unset($result[MESSAGE]);
+//             $result[SUCCESS] = TRUE;
+//             $result[USER] = $userLock;
+//             $result;
+            return $userLock;
         }
         
         /* return fail result */
-        return $result;
+        return FALSE;
     }
 
     public function countUsers(string $search = ''): int {
@@ -230,6 +253,25 @@ class User {
         
         return $result;
     }
+
+    /* function to disable a user */
+    public function disabledUser(int $id) : array {
+        $result = [
+            MESSAGE => 'Fail disable user',
+            SUCCESS => FALSE
+        ];
+        
+        $stmt = $this->conn->prepare('UPDATE '.USERS_TABLE.' SET '.ENABLED.'=0 WHERE '.USER_ID.'=:id');
+        $stmt->execute(['id' => $id]);
+        
+        if($stmt->rowCount()) {
+            $result[SUCCESS] = TRUE;
+            $result[MESSAGE] = 'User disabled';
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        return $result;
+    }
+    
 
     /* function to lock a user */
     public function lockUser(int $id, string $expireLock): array {
@@ -332,7 +374,7 @@ class User {
         ];
         
         /* prepare sql query and execute it */
-        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORD.'=0, '.EXPIRE_TIME_WRONG_PASSWORD.'=:datetime ';
+        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORDS.'=0, '.EXPIRE_TIME_WRONG_PASSWORD.'=:datetime ';
         $sql .= 'WHERE '.USER_ID_FRGN.'=:id';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
@@ -587,24 +629,6 @@ class User {
 
 //         return $result;
 //     }
-
-//     public function disabledUser(int $id) : array {
-//         $result = [
-//             'message' => 'Fail disable user',
-//             'success' => FALSE
-//         ];
-
-//         $stmt = $this->conn->prepare('UPDATE users SET enabled=0 WHERE id=:id');
-//         $stmt->execute(['id' => $id]);
-
-//         if($stmt->rowCount()) {
-//             $result['success'] = TRUE;
-//             $result['message'] = 'User disabled';
-//         } else $result['errorInfo'] = $stmt->errorInfo();
-
-//         return $result;
-//     }
-
 
 //     public function getUserByNewEmail(string $newEmail, bool $unsetPassword = TRUE) {
 //         $email = filter_var($newEmail, FILTER_VALIDATE_EMAIL);

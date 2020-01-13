@@ -24,7 +24,7 @@ class PasswordResetRequest {
     public function newPasswordResetReq(int $userId, string $ipAddress, string $expireDatetime) {
         /* set fail result */
         $result = [
-            MESSAGE => 'Adding new login session failed',
+            MESSAGE => 'Create a new password reset request failed',
             SUCCESS => FALSE
         ];
 
@@ -41,10 +41,10 @@ class PasswordResetRequest {
         ]);
 
         /* if sql query success, then return success result */
-        if ($stmt->rowCount()) {
+        if ($stmt && $stmt->rowCount()) {
             $result[TOKEN] = $token;
             $result[SUCCESS] = TRUE;
-            $result[MESSAGE] = 'New user saved successfully';
+            $result[MESSAGE] = 'New password reset request created successfully';
         /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
 
@@ -57,7 +57,7 @@ class PasswordResetRequest {
     /* function to get user by login session token */
     public function getUserByResetPasswordToken(string $token, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */
-        $sql = 'SELECT * FROM '.PASSWORD_RESET_TOKEN.' JOIN ';
+        $sql = 'SELECT * FROM '.PASSWORD_RESET_REQ_TABLE.' JOIN ';
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
         $sql .= ' WHERE '.PASSWORD_RESET_TOKEN.' = :token';
         $stmt = $this->conn->prepare($sql);

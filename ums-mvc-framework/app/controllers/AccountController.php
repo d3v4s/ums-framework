@@ -1,16 +1,16 @@
-``<?php
+<?php
 namespace app\controllers;
 
+use app\controllers\verifiers\Verifier;
+use app\controllers\data\AccountDataFactory;
+use app\controllers\verifiers\AccountVerifier;
+use app\models\PendingEmail;
+use app\models\DeletedUser;
 use app\models\User;
 use \PDO;
-use app\controllers\verifiers\Verifier;
-use app\controllers\verifiers\AccountVerifier;
-use app\controllers\data\AccountDataFactory;
-use app\models\DeletedUser;
-use app\models\PendingEmail;
 
 /**
- * Class controller to manage thr account requests
+ * Class controller to manage the account requests
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class AccountController extends Controller {
@@ -45,7 +45,7 @@ class AccountController extends Controller {
         );
         
         /* get data from data factory */
-        $data = AccountDataFactory::getInstance($this->appConfig)->getUserData($this->loginSession->{USER_ID});
+        $data = AccountDataFactory::getInstance($this->conn)->getUserData($this->loginSession->{USER_ID});
         /* if wait email confir, then add javascript sorce for new email settings */
         if ($data[WAIT_EMAIL_CONFIRM]) $this->jsSrcs[] = [SOURCE => '/js/utils/user/user-new-email-settings.js'];
         
@@ -85,7 +85,7 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete account request */
-        $verifier = Verifier::getInstance($this->appConfig, $this->conn);
+        $verifier = Verifier::getInstance($this->conn);
         $resDelete = $verifier->verifyDelete($id, $tokens);
         /* if success */
         if($resDelete[SUCCESS]) {
@@ -146,7 +146,7 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check update user request */
-        $verifier = Verifier::getInstance($this->appConfig, $this->conn);
+        $verifier = Verifier::getInstance($this->conn);
         $resUpdate = $verifier->verifyUpdate($id, $name, $email, $username, $tokens);
         /* if success */
         if($resUpdate[SUCCESS]) {

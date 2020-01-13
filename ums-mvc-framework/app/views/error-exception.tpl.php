@@ -1,35 +1,35 @@
  <h1 class="text-center p-3 mx-auto my-auto">ERROR</h1>
- <?php if($showMessageException): ?>
+ <?php if(SHOW_MESSAGE_EXCEPTION): ?>
  	<div class="container-fluid">
         <div class="table-responsive col-md-4  mx-auto">
             <table class="table table-striped" id="users-table">
             	<tbody>
             		<tr>
-            			<th class="text-center" colspan="2"><?=$exception['toString']?></th>
+            			<th class="text-center" colspan="2"><?=${EXCEPTION}[TO_STRING]?></th>
             		</tr>
             		<tr>
             			<td class="text-primary">Code</td>
-            			<td><?=$exception['code']?></td>
+            			<td><?=${EXCEPTION}[CODE]?></td>
         			</tr>
         			<tr>
             			<td class="text-primary">Message</td>
-            			<td><?=$exception['message']?></td>
+            			<td><?=${EXCEPTION}[MESSAGE]?></td>
         			</tr>
         			<tr>
             			<td class="text-primary">File</td>
-            			<td><?=$exception['file']?></td>
+            			<td><?=${EXCEPTION}[FILE]?></td>
         			</tr>
         			<tr>
             			<td class="text-primary">Line</td>
-            			<td><?=$exception['line']?></td>
+            			<td><?=${EXCEPTION}[LINE]?></td>
         			</tr>
         			<tr>
             			<td class="text-primary">Previous</td>
-            			<td><?=$exception['previous']?></td>
+            			<td><?=${EXCEPTION}[PREVIOUS]?></td>
         			</tr>
         			<tr>
             			<td class="text-primary">Trace</td>
-            			<td><?=$exception['traceString']?></td>
+            			<td><?=${EXCEPTION}[TRACE_STRING]?></td>
         			</tr>
             	</tbody>
             </table>

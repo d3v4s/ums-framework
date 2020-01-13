@@ -50,7 +50,7 @@ class AppSettingsVerifier extends Verifier {
         }
 
         /* validate email from */
-        if (!$this->isValidEmail($data[SEND_EMAIL_FROM], FALSE)) {
+        if (!$this->isValidEmail($data[SEND_EMAIL_FROM], 3, 255, FALSE)) {
             $result[MESSAGE] = 'Invalid send email from';
             $result[ERROR] = SEND_EMAIL_FROM;
             return $result;
@@ -241,7 +241,7 @@ class AppSettingsVerifier extends Verifier {
         }
 
         /* validate enabler email from */
-        if (!$this->isValidEmail($data[ENABLER_EMAIL_FROM], FALSE)) {
+        if (!$this->isValidEmail($data[ENABLER_EMAIL_FROM], 3, 255, FALSE)) {
             $result[MESSAGE] = 'Invalid email for enabler email';
             $result[ERROR] = ENABLER_EMAIL_FROM;
             return $result;
@@ -249,7 +249,7 @@ class AppSettingsVerifier extends Verifier {
 
         
         /* validate reset password email from */
-        if (!$this->isValidEmail($data[PASS_RESET_EMAIL_FROM], FALSE)) {
+        if (!$this->isValidEmail($data[PASS_RESET_EMAIL_FROM], 3, 255, FALSE)) {
             $result[MESSAGE] = 'Invalid reset password email from';
             $result[ERROR] = PASS_RESET_EMAIL_FROM;
             return $result;

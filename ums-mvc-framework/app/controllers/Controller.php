@@ -1,14 +1,14 @@
 <?php
 namespace app\controllers;
 
-use \PDO;
-use \DateTime;
-use \Exception;
-use app\models\Email;
-use app\models\User;
 use app\controllers\verifiers\Verifier;
 use app\models\Session;
+use app\models\Email;
+use app\models\User;
 use app\models\Role;
+use \DateTime;
+use \Exception;
+use \PDO;
 
 /**
  * Class controller to implement principal properties and functions
@@ -19,7 +19,7 @@ class Controller {
     protected $conn;
     protected $appConfig;
     protected $layout;
-    protected $tokenLogout = '';
+//     protected ${LOGOUT_TOKEN = '';
     /* CSP properties */
     protected $setCSPHeader = TRUE;
     protected $CSPDefaultSrc = "'self'";
@@ -76,7 +76,10 @@ class Controller {
 
     public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout=DEFAULT_LAYOUT) {
         /* get config if is null */
+        $this->conn = $conn;
         $this->appConfig = $appConfig ?? getConfig();
+        $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
+        $this->lang = $this->getLang();
         /* if require redirect on https */
         if ($this->appConfig[SECURITY][ONLY_HTTPS]) $this->redirectOnSecureConnection();
         /* get login session */
@@ -89,13 +92,9 @@ class Controller {
             /* manage session */
             $this->handlerSession();
             /* generate logout token */
-            $this->tokenLogout = generateToken(CSRF_LOGOUT);
+            $this->{LOGOUT_TOKEN} = generateToken(CSRF_LOGOUT);
             array_push($this->jsSrcs, [SOURCE => '/js/utils/login/logout.js']);
         }
-
-        $this->lang = $this->getLang();
-        $this->conn = $conn;
-        $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
     }
 
     /* ##################################### */
@@ -156,7 +155,7 @@ class Controller {
 
     /* function to send 404 code and show page not found */
     public function showPageNotFound() {
-        header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
+        header($_SERVER["SERVER_PROTOCOL"].' 404 Not Found', true, 404);
         $this->content = view(PAGE_NOT_FOUND);
     }
 
@@ -187,16 +186,20 @@ class Controller {
         /* get tokens and init json result */
         $tokens = $this->getPostSessionTokens(CSRF_KEY_JSON);
         $resJSON = [];
+        /* init verifier */
         /* if valide token, then send key */
-        if ($tokens[0] === $tokens[1]) {
-            /* generate new token */
-//             $resJSON[NEW_TOKEN] = generateToken();
+        if (Verifier::getInstance()->verifyTokens($tokens)) {
+            /* set success result */
+            $resJSON[SUCCESS] = TRUE;
             /* get key and set on result */
             $keys = $this->getKey();
             $resJSON[KEY_N] = $keys[KEY_N];
             $resJSON[KEY_E] = $keys[KEY_E];
+        } else {
+            /* set fail result */
+            $resJSON[MESSAGE] = 'Fail';
+            $resJSON[SUCCESS] = FALSE;
         }
-
         /* send json response */
         sendJsonResponse($resJSON);
     }
@@ -206,7 +209,7 @@ class Controller {
     /* ##################################### */
 
     /* function to send response json (XML HTTP) or default */
-    protected function switchFailResponse(string $message='Fail', string $redirectTo=NULL) {
+    protected function switchFailResponse(string $message='Fail', string $redirectTo='/'.HOME_ROUTE) {
         /* get request with header */
         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
         /* switc the response according to the header */
@@ -221,14 +224,14 @@ class Controller {
             /* default function */
             default:
                 /* if is set redirect to, then set session message and redirect */
-                if (isset($redirectTo)) {
-                    $_SESSION[MESSAGE] = $message;
-                    $_SESSION[SUCCESS] = FALSE;
-                    redirect($redirectTo);
-                }
-                /* else display fail message and exit */
-                $this->showMessageAndExit($message, TRUE);
-                exit;
+                $_SESSION[MESSAGE] = $message;
+                $_SESSION[SUCCESS] = FALSE;
+                redirect($redirectTo);
+//                 if (isset($redirectTo)) {
+//                 }
+//                 /* else display fail message and exit */
+//                 $this->showMessageAndExit($message, TRUE);
+//                 exit;
         }
     }
 
@@ -251,15 +254,15 @@ class Controller {
     }
     
     /* function to get tokens of session and post */
-    protected function getPostSessionTokens(string $nameToken = CSRF): array {
+    protected function getPostSessionTokens(string $nameToken=CSRF): array {
 //         $postToken = $_POST[$postTokenName] ?? 'tkn';
         /* reformat name token for header */
         $headerToken = str_replace('-', '_', $nameToken);
         $headerToken = mb_strtoupper($headerToken);
         /* get post token from header */
-        $postToken = $_SERVER['HTTP_'.$headerToken] ?? 'tkn';
+        $postToken = $_SERVER['HTTP_'.$headerToken] ?? 'X';
         /* get session token and unset it */
-        $sessionToken = $_SESSION[$nameToken] ?? '';
+        $sessionToken = isset($_SESSION[$nameToken]) && $_SESSION[$nameToken][EXPIRE_DATETIME] > new DateTime() ? $_SESSION[$nameToken][TOKEN] : '';
         unset($_SESSION[$nameToken]);
         /* return tokens */
         return [$postToken, $sessionToken];
@@ -300,34 +303,35 @@ class Controller {
     /* function to manage wrong passwords */
     protected function handlerWrongPassword(int $id) {
         /* init user model, and get user id */
-        $user = new User($this->conn);
-        $usrLock = $user->getUserLock($id);
+        $userModel = new User($this->conn);
+        if (!(($usrLock = $userModel->getUserLock($id)) || ($usrLock = $userModel->createUserLock($id)))) $this->switchFailResponse();
         /* if wrong password expire datetime is not set or is expire */
-        if (!isset($usrLock->{EXPIRE_WRONG_PASSWORD}) || new DateTime($usrLock->{EXPIRE_WRONG_PASSWORD}) < new DateTime()){
+        if (!isset($usrLock[EXPIRE_TIME_WRONG_PASSWORD]) || new DateTime($usrLock[EXPIRE_TIME_WRONG_PASSWORD]) < new DateTime()){
             /* set expire time and reset wrong passwords*/
             $expireDatetime = getExpireDatetime(PASS_TRY_TIME);
-            $user->resetWrongPasswords($id, $expireDatetime);
+            $userModel->resetWrongPasswords($id, $expireDatetime);
+            $usrLock = $userModel->getUserLock($id);
         }
 
         /* increment counter wrong password and set on user */
-        $user->setCountWrongPass($id, ++$usrLock->{COUNT_WRONG_PASSWORDS});
+        $userModel->setCountWrongPass($id, ++$usrLock[COUNT_WRONG_PASSWORDS]);
 
         /* init verifier and verify user lock */
-        $verifier = Verifier::getInstance($this->appConfig, $this->conn);
-        $res = $verifier->verifyWrongPassword($usrLock->{COUNT_WRONG_PASSWORDS}, $usrLock->{COUNT_LOCKS});
+        $verifier = Verifier::getInstance($this->conn);
+        $res = $verifier->verifyWrongPassword($usrLock[COUNT_WRONG_PASSWORDS], $usrLock[COUNT_LOCKS]);
 
         /* if require lock */
         if ($res[LOCK]) {
             /* reset wrong password */
-            $user->resetWrongPasswords($id);
+            $userModel->resetWrongPasswords($id);
             /* get lock expire time */
             $expireLock = getExpireDatetime(USER_LOCK_TIME);
-            $user->lockUser($id, $expireLock);
+            $userModel->lockUser($id, $expireLock);
             /* increment count locks and set on user */
-            $user->setCountUserLocks($id, ++$usrLock->{COUNT_LOCKS});
+            $userModel->setCountUserLocks($id, ++$usrLock[COUNT_LOCKS]);
 
         /* else if is require disable, then disable the user */
-        } else if ($res[DISABLE]) $user->disabledUser($id);
+        } else if ($res[DISABLE]) $userModel->disabledUser($id);
     }
 
     /* SESSION FUNCTIONS */
@@ -631,9 +635,8 @@ class Controller {
         /* reset login session if client change ip */
         if ($this->appConfig[SECURITY][BLOCK_CHANGE_IP]) $this->resetLoginSessionIfChangeIp();
         /* check if session is expire, then reset it */
-        if (new DateTime($this->loginSession->{EXPIRE_LOGIN_SESSION}) < new DateTime()) {
-            $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
-
+        if (new DateTime($this->loginSession->{EXPIRE_DATETIME}) < new DateTime()) {
+            $this->resetLoginSession();
             /* set result data */
             $dataOut = [
                 MESSAGE => 'Your session has expired',

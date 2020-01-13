@@ -15,6 +15,8 @@ define('DEFAULT_USERS_FOR_PAGE', 10);
 define('PAGE_NOT_FOUND', 'error-404');
 define('PAGE_EXCEPTION', 'error-exception');
 define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', '30 minutes');
+define('MAX_WRONG_PASSWORDS', 1000);
+define('MAX_LOCKS', 500);
 define('PASS_TRY_TIME', '5 minutes');
 define('USER_LOCK_TIME', '15 minutes');
 define('MIN_LENGTH_NAME', 4);
@@ -23,11 +25,21 @@ define('MIN_LENGTH_USERNAME', 3);
 define('MAX_LENGTH_USERNAME', 64);
 define('MIN_LENGTH_PASS', 8);
 define('MAX_LENGTH_PASS', 255);
+define('MIN_LENGTH_EMAIL', 5);
+define('MAX_LENGTH_EMAIL', 64);
 define('ENABLER_LINK_EXPIRE_TIME', '1 day');
 define('PASS_RESET_EXPIRE_TIME', '3 hour');
-define('DOMAIN_LOGIN_SESSION_COOCKIE', getServerUrl());
+define('RESEND_LOCK_EXPIRE_TIME', '3 minutes');
+define('DOMAIN_LOGIN_SESSION_COOCKIE', 'localhost');
 define('DEFAULT_SETTING_SECTION', 'app');
 define('COOKIE_EXPIRE_DAYS', 30);
+define('CSRF_TOKEN_EXPIRE_TIME', '10 minutes');
+define('DATE_TIME_ZONE_DEFAULT', 'Europe/Rome');
+
+/* TEMPLATE CONSTANTS */
+define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php'));
+define('PAGINATION_TEMPLATE', getPath(getViewsPath(),'utils', 'pagination.tpl.php'));
+
 
 /* ROLES CONSTANTS */
 define('ADMIN_ROLE_ID', '0');
@@ -47,9 +59,11 @@ define('REGEX_USERNAME', '/^[a-zA-Z\d._\-?&%$]+$/');
 define('USE_REGEX_EMAIL', TRUE);
 define('REGEX_EMAIL', '/^[a-zA-Z\d\-_%.]+@[a-zA-Z\d\-.]+\.[a-zA-Z]+$/');
 define('USE_REGEX_PASSWORD', TRUE);
-define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{8,}$/');
+define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{'.MIN_LENGTH_PASS.',}$/');
+// define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W]))[A-Za-z\d\W]{'.MIN_LENGTH_PASS.',}$/');
+// define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{8,}$/');
 
-/* CONTANTS USED FOR HTML DATA */ 
+/* CONTANTS USED FOR HTML AND JS SOURCES */ 
 define('NAME_LAYOUT_DATA', 'name-layout-');
 define('VAL_LAYOUT_DATA', 'val-layout-');
 define('SITEMAP_ROUTE', 'route-');
@@ -66,6 +80,21 @@ define('DISABLED', 'disabled');
 define('CHECKED', 'checked="checked"');
 define('OLD_PASS', 'old_pass');
 define('CONFIRM_PASS', 'confirm_pass');
+define('TOKEN', '_xf');
+define('TOKEN_RSA', 'tkn_rsa');
+define('TOKEN_DELETE', 'tkn_dlt');
+define('TOKEN_UPDATE', 'tkn_upd');
+define('TOKEN_RESEND_ENABLER_EMAIL', 'tkn_rsnd_eml');
+define('TOKEN_DELETE_NEW_EMAIL', 'tkn_rsnd_eml');
+define('GET_KEY_TOKEN', '_kxt');
+define('NEW_TOKEN', 'ntk');
+define('LOGOUT_TOKEN', '_xf_out');
+define('ERROR', 'error');
+define('SUCCESS', 'success');
+define('MESSAGE', 'message');
+define('KEY_N', 'keyN');
+define('KEY_E', 'keyE');
+define('REDIRECT_TO', 'redirect_to');
 
 /* ROUTES CONSTANTS */
 define('HOME_ROUTE', '');
@@ -145,24 +174,12 @@ define('ACCEPT_LANG_LIST', [
 define('DATA', 'data');
 define('LOCK', 'lock');
 define('USER', 'user');
-define('ERROR', 'error');
-define('TOKEN', 'tkn');
-define('NEW_TOKEN', 'ntk');
-define('TOKEN_RSA', 'tkn_rsa');
-define('TOKEN_DELETE', 'tkn_dlt');
-define('TOKEN_UPDATE', 'tkn_upd');
-define('TOKEN_RESEND_ENABLER_EMAIL', 'tkn_rsnd_eml');
-define('TOKEN_DELETE_NEW_EMAIL', 'tkn_rsnd_eml');
 define('LINK', 'link');
 define('SIGNUP', 'signup');
-define('MESSAGE', 'message');
 define('SECTION', 'section');
-define('SUCCESS', 'success');
 define('DISABLE', 'disable');
 define('PUBL_KEY', 'publ_key');
 define('PRIV_KEY', 'priv_key');
-define('KEY_N', 'keyN');
-define('KEY_E', 'keyE');
 define('KEY_PAIR', 'key_pair');
 define('EXCEPTION', 'exception');
 define('ERROR_INFO', 'error_info');
@@ -172,8 +189,7 @@ define('GENERATE_TOKEN', 'gen_token');
 define('REMOVE_TOKEN', 'remove_token');
 define('PATH_PRIV_KEY', 'path_priv_key');
 define('WRONG_PASSWORD', 'wrong_password');
-define('LAST_RESEND_REQ', 'last_res_req');
-define('TIME_UNIT', 'time_unit_');
+define('RESEND_LOCK_EXPIRE', 'rsnd_lck_expr_tm');
 define('PENDING', 'pending');
 define('N_USERS', 'n_users');
 define('SUBJETC', 'subject');

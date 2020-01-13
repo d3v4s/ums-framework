@@ -5,7 +5,7 @@
 <!-- 			<button id="btn-logout" class="btn btn-danger m-2" type="submit"><i id="ico-btn" class="fas fa-sign-out-alt"></i> Logout</button> -->
 <!-- 		</form> -->
 <!-- 	</div> -->
-    <form id="user-update-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE?>" method="POST">
+    <form id="user-update-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="name">Full name</label>
     		<input id="name" name="<?=NAME?>" value="<?=$this->loginSession->{NAME}?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">

@@ -1,8 +1,8 @@
 <?php
 namespace app\models;
 
-use \PDO;
 use \DateTime;
+use \PDO;
 
 class Session {
     protected $conn;
@@ -63,7 +63,7 @@ class Session {
         /* if find user chech if session is expire */
         if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if is expire session */
-            if ($user->{EXPIRE_DATETIME} < new DateTime()) {
+            if (new DateTime($user->{EXPIRE_DATETIME}) < new DateTime()) {
                 /* remove session token and return false */
                 $this->removeLoginSession($user->{SESSION_ID});
                 return FALSE;
@@ -81,7 +81,7 @@ class Session {
     /* function to remove login session by session id */
     public function setExpireLoginSession(int $sessionId, string $expireDatetime): bool {
         /* prepare sql query and execute it */
-        $sql = 'UPDATE '.SESSIONS_TABLE.' SET '.EXPIRE_LOGIN_SESSION.'=:expireDatetime WHERE '.SESSION_ID.'=:id';
+        $sql = 'UPDATE '.SESSIONS_TABLE.' SET '.EXPIRE_DATETIME.'=:expireDatetime WHERE '.SESSION_ID.'=:id';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
             'id' => $sessionId,

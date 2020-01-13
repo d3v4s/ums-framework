@@ -55,38 +55,38 @@
 		</div>
 		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
 			<a class="navbar-brand" href="/">DevAS</a>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-ums" aria-controls="navbar-ums" aria-expanded="false" aria-label="Toggle navigation">
+			<button id="collapse-navbar" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-ums" aria-controls="#navbar-ums" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div id="navbar-ums" class="collapse navbar-collapse">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item <?=$this->isHome ? 'active' : ''?>">
-						<a class="nav-link" href="/">Home</a>
+						<a class="nav-link" href="/<?=HOME_ROUTE?>">Home</a>
 					</li>
 					<?php if ($this->loginSession): ?>
-						<?php if ($this->loginSession->{USER_ID} !== DEFAULT_ROLE): ?>
+						<?php if ($this->loginSession->{ROLE_ID_FRGN} !== DEFAULT_ROLE): ?>
 							<li class="nav-item">
-								<a class="nav-link" href="/ums">UMS</a>
+								<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>">UMS</a>
 							</li>
 						<?php endif; ?>
     					<li class="nav-item dropdown">
-    						<a class="nav-link dropdown-toggle" href="/<?=ACCOUNT_SETTINGS_ROUTE?>" id="account" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account</a>
-    						<div id="dropdown-account" class="dropdown-menu mx-auto" aria-labelledby="account">
+    						<a id="account" class="nav-link dropdown-toggle" href="/<?=ACCOUNT_SETTINGS_ROUTE?>" data-toggle="dropdown" data-target="#dropdown-account" aria-controls="#dropdown-account" aria-haspopup="true" aria-expanded="false">Account</a>
+    						<div id="dropdown-account" class="dropdown-menu mx-auto">
     							<h4 class="text-center"><a href="/user/info"><?=$this->loginSession->{USERNAME}?></a></h4>
     							<div class="justify-content-center text-left p-4 mx-auto">
         							<p>
         								Full name: <span class="text-primary"><?=$this->loginSession->{NAME}?></span><br>
         								Email: <span class="text-primary"><?=$this->loginSession->{EMAIL}?></span>
-        								<?php if ($this->loginSession->{USER_ID} !== DEFAULT_ROLE): ?>
+        								<?php if ($this->loginSession->{ROLE_ID_FRGN} !== DEFAULT_ROLE): ?>
         									<br>
-        									Role: <span class="text-primary"><?=getUserLoggedRole()?></span>
+        									Role: <span class="text-primary"><?=$this->userRole[ROLE]?></span>
         								<?php endif;?>
         							</p>
     							</div>
     							<div class="container justify-content-center text-center p-2 row mx-auto">
-    								<a href="/user/settings" class="btn btn-warning m-2"><i class="fas fa-cog"></i> Settings</a>
-    								<form id="logout-form" action="/auth/logout" method="post">
-    									<input id="_xf-out" type="hidden" name="_xf-out" value="<?=$this->tokenLogout?>">
+    								<a href="/<?=ACCOUNT_SETTINGS_ROUTE?>" class="btn btn-warning m-2"><i class="fas fa-cog"></i> Settings</a>
+    								<form id="logout-form" action="/<?=LOGOUT_ROUTE?>" method="post">
+    									<input id="<?=LOGOUT_TOKEN?>" type="hidden" name="<?=CSRF_LOGOUT?>" value="<?=$this->{LOGOUT_TOKEN}?>">
     	    							<button id="btn-logout" class="btn btn-danger m-2" type="submit"><i id="ico-btn" class="fas fa-sign-out-alt"></i> Logout</button>
     								</form>
     							</div>

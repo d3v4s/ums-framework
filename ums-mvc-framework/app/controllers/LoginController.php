@@ -1,12 +1,12 @@
 <?php
 namespace app\controllers;
 
-use app\models\User;
-use app\controllers\verifiers\Verifier;
 use app\controllers\verifiers\LoginVerifier;
-use app\models\PendingEmail;
+use app\controllers\verifiers\Verifier;
 use app\models\PasswordResetRequest;
+use app\models\PendingEmail;
 use app\models\PendingUser;
+use app\models\User;
 use \DateTime;
 use \PDO;
 
@@ -47,7 +47,10 @@ class LoginController extends Controller {
         );
 
         /* show login page */
-        $this->content = view('login/login', [TOKEN => generateToken(CSRF_LOGIN)]);
+        $this->content = view('login/login', [
+            TOKEN => generateToken(CSRF_LOGIN),
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+        ]);
     }
 
     /* function to view signup page */
@@ -72,13 +75,17 @@ class LoginController extends Controller {
             [SOURCE => '/js/utils/login/signup.js']
         );
         
-        $this->content = view('login/signup', [TOKEN => generateToken(CSRF_SIGNUP)]);
+        $this->content = view('login/signup', [
+            TOKEN => generateToken(CSRF_SIGNUP),
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+        ]);
     }
 
     /* function to view signup confirm page */
     public function showSignupConfirm() {
         /* redirects */
         $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->redirectOrFailIfLogin();
         $this->redirectIfNotSignupSession();
         
         /* get user id of signup session */
@@ -107,7 +114,7 @@ class LoginController extends Controller {
     /* function to view reset password request page */
     public function showPasswordResetRequest() {
         /* redirect */
-        $this->redirectIfLoggin();
+        $this->redirectOrFailIfLogin();
         
         /* set page title */
         $this->title .= ' - Forgot Password';
@@ -126,7 +133,7 @@ class LoginController extends Controller {
     /* function to view reset password page */
     public function showPasswordReset(string $token) {
         /* redirect */
-        $this->redirectIfLoggin();
+        $this->redirectOrFailIfLogin();
         
         /* show page not found if is not valid token */
         $passResReq = new PasswordResetRequest($this->conn);
@@ -151,6 +158,7 @@ class LoginController extends Controller {
         
         /* data to be view */
         $data = [
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
             TOKEN => generateToken(CSRF_PASS_RESET),
             PASSWORD_RESET_TOKEN => $token
         ];
@@ -169,19 +177,22 @@ class LoginController extends Controller {
         $tokens = $this->getPostSessionTokens(CSRF_LOGIN);
         $username = $_POST[USER] ?? '';
         $pass = $_POST[PASSWORD] ?? '';
-        
         /* decrypt password */
         $pass = $this->decryptData($pass);
         
         /* get verifier instance, and check the login request */
         $verifier = LoginVerifier::getInstance($this->conn);
         $resLogin = $verifier->verifyLogin($username, $pass, $tokens);
+
+        /* set url to redirect */
+        $redirectTo = '/'.LOGIN_ROUTE;
         /* if success */
         if($resLogin[SUCCESS]) {
             /* init user model and create a login session */
             $user = new User($this->conn);
             $user->resetLockCounts($resLogin[USER]->{USER_ID});
-            $this->createLoginSession($resLogin[USER]);
+            $this->createLoginSession($resLogin[USER]->{USER_ID});
+            $redirectTo = '/';
         /* else if is wrong password, increments it */
         } else if ($resLogin[WRONG_PASSWORD]) $this->handlerWrongPassword($resLogin[USER_ID]);
         
@@ -191,11 +202,13 @@ class LoginController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect() : redirect('/'.LOGIN_ROUTE);
+            redirect($data[REDIRECT_TO]);
+//             $data[SUCCESS] ? redirect() : redirect('/'.LOGIN_ROUTE);
         };
         
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resLogin[SUCCESS],
             ERROR => $resLogin[ERROR] ?? NULL,
             MESSAGE => $resLogin[MESSAGE] ?? NULL
@@ -212,12 +225,11 @@ class LoginController extends Controller {
         
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_SIGNUP);
-        $email = $_POST[EMAIL] ?? '';
-        $username = $_POST[USERNAME] ?? '';
         $name = $_POST[NAME] ?? '';
+        $username = $_POST[USERNAME] ?? '';
+        $email = $_POST[EMAIL] ?? '';
         $pass = $_POST[PASSWORD] ?? '';
         $cpass = $_POST[CONFIRM_PASS] ?? '';
-        
         /* decrypt passwords */
         $pass = $this->decryptData($pass);
         $cpass = $this->decryptData($cpass);
@@ -225,6 +237,9 @@ class LoginController extends Controller {
         /* get verifier instance, and check the signup request */
         $verifier = Verifier::getInstance($this->conn);
         $resSignup = $verifier->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
+
+        /* set url to redirect */
+        $redirectTo = '/'.SIGNUP_ROUTE;
         /* if succcess */
         if($resSignup[SUCCESS]) {
             $userData = [
@@ -232,30 +247,35 @@ class LoginController extends Controller {
                 USERNAME => $username,
                 EMAIL => $email,
                 PASSWORD => $pass,
-                ROLE_ID => $this->appConfig[UMS][DEFAULT_USER_ROLE]
+                ROLE_ID_FRGN => DEFAULT_ROLE
             ];
+            
             /* if email confirm is require */
             if ($this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) {
                 /* save user on pending table */
                 $pendUser = new PendingUser($this->conn);
-                $res = $pendUser->savePendingUser($userData);
+                $resUser = $pendUser->savePendingUser($userData);
                 /* if success create signup session */
-                if ($res[SUCCESS]) {
+                if ($resUser[SUCCESS]) {
                     $this->resetSession();
-                    $this->sendEnablerEmail($email, $res[TOKEN]);
+                    $this->sendEnablerEmail($email, $resUser[TOKEN]);
                     $_SESSION[SIGNUP] = TRUE;
-                    $_SESSION[USER_ID] = $res[USER_ID];
+                    $_SESSION[USER_ID] = $resUser[USER_ID];
+                    $redirectTo = '/'.CONFIRM_SIGNUP_ROUTE;
                 }
             } else {
                 /* save user */
                 $user = new User($this->conn);
-                $res = $user->saveUser($userData);
+                $resUser = $user->saveUser($userData);
                 /* if success create login session */
-                if ($res[SUCCESS]) $this->createLoginSession($res[USER_ID]);
+                if ($resUser[SUCCESS]) {
+                    $this->createLoginSession($resUser[USER_ID]);
+                    $redirectTo = '/'.HOME_ROUTE;
+                }
             }
             /* set result */
-            $resSignup[MESSAGE] = $res[MESSAGE];
-            $resSignup[SUCCESS] = $res[SUCCESS];
+            $resSignup[MESSAGE] = $resUser[MESSAGE];
+            $resSignup[SUCCESS] = $resUser[SUCCESS];
         }
         
         /* function for default response */
@@ -264,15 +284,15 @@ class LoginController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect('/'.($data[REQUIRE_CONFIRM_EMAIL] ? CONFIRM_SIGNUP_ROUTE : HOME_ROUTE)) : redirect('/'.SIGNUP_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
         
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resSignup[SUCCESS],
             ERROR => $resSignup[ERROR] ?? NULL,
-            MESSAGE => $resSignup[MESSAGE] ?? NULL,
-            REQUIRE_CONFIRM_EMAIL => $this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]
+            MESSAGE => $resSignup[MESSAGE] ?? NULL
         ];
 
         $this->switchResponse($dataOut, (!$resSignup[SUCCESS] && $resSignup[GENERATE_TOKEN]), $funcDefault, CSRF_SIGNUP);
@@ -282,13 +302,13 @@ class LoginController extends Controller {
     public function signupResendEmail() {
         /* redirects */
         $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->redirectOrFailIfLogin();
         $this->redirectIfNotSignupSession();
 
-        if (isset($_SESSION[LAST_RESEND_REQ])) {
-            $nextReqTime = $_SESSION[LAST_RESEND_REQ];
-            $nextReqTime->modify('5 minutes');
-            if ($nextReqTime > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request', '/'.CONFIRM_SIGNUP_ROUTE);
-        }
+        /* set url to redirect */
+        $redirectTo = '/'.CONFIRM_SIGNUP_ROUTE;
+        /* check last request */
+        if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request', $redirectTo);
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_ACC);
@@ -297,10 +317,15 @@ class LoginController extends Controller {
         /* get verifier instance, and check the resend validator email request */
         $verifier = LoginVerifier::getInstance($this->conn);
         $resResendEmail = $verifier->verifySignupResendEmail($userId, $tokens);
+
+        /* if verifier succes */
         if ($resResendEmail[SUCCESS]) {
-            $this->sendEmailValidation($resResendEmail[EMAIL], $resResendEmail[TOKEN]);
-            $resResendEmail[MESSAGE] = 'Email successfully sended';
-            $_SESSION[LAST_RESEND_REQ] = new DateTime();
+            if ($resResendEmail[SUCCESS] = $this->sendEnablerEmail($resResendEmail[EMAIL], $resResendEmail[TOKEN])) {
+                $resResendEmail[MESSAGE] = 'Email successfully sended at '.$resResendEmail[EMAIL];
+                $_SESSION[RESEND_LOCK_EXPIRE] = new DateTime();
+                $_SESSION[RESEND_LOCK_EXPIRE]->modify(RESEND_LOCK_EXPIRE_TIME);
+//                 $_SESSION[LAST_RESEND_REQ]
+            } else $resResendEmail[MESSAGE] = 'Send email failed';
         }
 
         /* function for default response */
@@ -309,11 +334,12 @@ class LoginController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.CONFIRM_SIGNUP_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resResendEmail[SUCCESS],
             MESSAGE => $resResendEmail[MESSAGE] ?? NULL
         ];
@@ -330,6 +356,9 @@ class LoginController extends Controller {
         $tokens = $this->getPostSessionTokens(CSRF_LOGOUT);
 //         $id = $this->loginSession->{USER_ID};
 
+        /* set url to redirect */
+        $redirectTo = '/'.HOME_ROUTE;
+
         /* get verifier instance, and check the logout request */
         $verifier = LoginVerifier::getInstance($this->conn);
         $resLogout = $verifier->verifyLogout($this->loginSession->{USER_ID}, $tokens);
@@ -344,11 +373,12 @@ class LoginController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect();
+            redirect($data[REDIRECT_TO]);
         };
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resLogout[SUCCESS],
             MESSAGE => $resLogout[MESSAGE] ?? NULL
         ];
@@ -359,7 +389,7 @@ class LoginController extends Controller {
     /* function to mangae reset password request */ 
     public function passwordResetRequest() {
         /* redirect */
-        $this->redirectIfLoggin();
+        $this->redirectOrFailIfLogin();
 
         /* get tokens and email */
         $tokens = $this->getPostSessionTokens(CSRF_PASS_RESET_REQ);
@@ -368,20 +398,23 @@ class LoginController extends Controller {
         /* get verifier instance, and check the reset password request */
         $verifier = LoginVerifier::getInstance($this->conn);
         $resPassResetReq = $verifier->verifyPassResetReq($email, $tokens);
+
+        /* set url to redirect */
+        $redirectTo = '/'.PASS_RESET_REQ_ROUTE;
+        /* if verifier success */
         if ($resPassResetReq[SUCCESS]) {
             /* init password reset request model */
             $passResReq = new PasswordResetRequest($this->conn);
             /* remove all previus request */
             $passResReq->removePasswordResetReqForUser($resPassResetReq[USER]->{USER_ID});
             /* calc expire datae time add a new request */
-            $expireDatetime = getExpireDatetime($this->appConfig[UMS][PASS_RESET_EXPIRE_TIME]);
+            $expireDatetime = getExpireDatetime(PASS_RESET_EXPIRE_TIME);
             $res = $passResReq->newPasswordResetReq($resPassResetReq[USER]->{USER_ID}, $_SERVER['REMOTE_ADDR'], $expireDatetime);
             /* if success */
-            if ($res[SUCCESS]) {
-                /* send email */
-                $res[SUCCESS] = $this->sendEmailResetPassword($email, $res[TOKEN]);
-                $res[MESSAGE] = $res[SUCCESS] ? 'Email for password reset succesfully sended' : 'Send email failed';
-            }
+            if ($res[SUCCESS] && $res[SUCCESS] = $this->sendEmailResetPassword($email, $res[TOKEN])) {
+                $res[MESSAGE] = 'Password reset email sended succesfully';
+                $redirectTo = '/'.LOGIN_ROUTE;
+            } else $res[MESSAGE] = 'Send email failed';
 
             /* set success and messsage */
             $resPassResetReq[SUCCESS] = $res[SUCCESS];
@@ -394,13 +427,14 @@ class LoginController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.LOGIN_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resPassResetReq[SUCCESS],
-            ERROE => $resPassResetReq[ERROR] ?? NULL,
+            ERROR => $resPassResetReq[ERROR] ?? NULL,
             MESSAGE => $resPassResetReq[MESSAGE] ?? NULL
         ];
 
@@ -410,9 +444,11 @@ class LoginController extends Controller {
     /* function to reset a password */
     public function passwordReset() {
         /* redirects */
-        $this->redirectIfLoggin();
+        $this->redirectOrFailIfLogin();
         $tokenReset = $_POST[PASSWORD_RESET_TOKEN] ?? '';
-        $this->redirectIfNotXMLHTTPRequest('/'.PASS_RESET_ROUTE."/$tokenReset");
+        /* set url to redirect */
+        $redirectTo = '/'.PASS_RESET_ROUTE."/$tokenReset";
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_PASS_RESET);
@@ -440,6 +476,7 @@ class LoginController extends Controller {
             if ($resUser[SUCCESS]) {
                 $passResReq->removePasswordResetReqForUser($resResetPass[USER_ID]);
                 $resResetPass[MESSAGE] = 'Password reset successfully';
+                $redirectTo = '/'.LOGIN_ROUTE;
             /* else show error message */
             } else $resResetPass[MESSAGE] = $resUser[MESSAGE];
 
@@ -454,11 +491,12 @@ class LoginController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.LOGIN_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resResetPass[SUCCESS],
             ERROR => $resResetPass[ERROR] ?? NULL,
             MESSAGE => $resResetPass[MESSAGE] ?? NULL
@@ -475,16 +513,18 @@ class LoginController extends Controller {
         $verifier = LoginVerifier::getInstance($this->conn);
         $resEnable = $verifier->verifyEnableAccount($token);
         
+        
         /* if verifier fails, show page not found and return */
+        /* set url to redirect */
+        $redirectTo = '/'.SIGNUP_ROUTE;
         if (!$resEnable[SUCCESS]) {
             /* if link is expire redirect to signup and remove token*/
             if ($resEnable[REMOVE_TOKEN]) {
                 $pendUser = new PendingUser($this->conn);
                 $pendUser->removeAccountEnablerToken($token);
-                $this->switchFailResponse($resEnable[MESSAGE], '/'.SIGNUP_ROUTE);
+                $this->switchFailResponse($resEnable[MESSAGE], $redirectTo);
             /* else show page not found */
             } else $this->showPageNotFound();
-
             return;
         }
 
@@ -500,8 +540,7 @@ class LoginController extends Controller {
         ];
         /* init user model and save user */
         $user = new User($this->conn);
-        $res = $user->saveUser($dataUsr);
-
+        $res = $user->saveUser($dataUsr, FALSE);
         /* set session message */
         if (isset($res[MESSAGE])){
             $_SESSION[MESSAGE] = $res[MESSAGE];
@@ -509,7 +548,7 @@ class LoginController extends Controller {
         }
 
         /* if enable user fails, redirect on signup page */
-        if (!$res[SUCCESS]) redirect('/'.SIGNUP_ROUTE);
+        if (!$res[SUCCESS]) redirect($redirectTo);
         
         /* remove account enabler token and redirect on login page */
         $pendUser = new PendingUser($this->conn);
@@ -526,13 +565,15 @@ class LoginController extends Controller {
         $verifier = LoginVerifier::getInstance($this->conn);
         $resValidate = $verifier->verifyEnableNewEmail($token);
         
+        /* set url to redirect */
+        $redirectTo = '/'.($this->loginSession ? HOME_ROUTE : SIGNUP_ROUTE);
         /* if verifier fails, show page not found and return */
         if (!$resValidate[SUCCESS]) {
             /* if link is expire redirect to signup and remove token*/
             if ($resValidate[REMOVE_TOKEN]) {
                 $pendEmail = new PendingEmail($this->conn);
                 $pendEmail->removeAllEmailEnablerToken($resValidate->{USER_ID});
-                $this->switchFailResponse($resValidate[MESSAGE], '/'.HOME_ROUTE);
+                $this->switchFailResponse($resValidate[MESSAGE], $redirectTo);
             /* else show page not found */
             } else $this->showPageNotFound();
             return;
@@ -549,17 +590,17 @@ class LoginController extends Controller {
         }
         
         /* if fail redirect on signup page */
-        if (!$res[SUCCESS]) redirect('/auth/signup');
+        if (!$res[SUCCESS]) redirect($redirectTo);
         
         /* else remove token to confirm new email */
         $pendEmail = new PendingEmail($this->conn);
         $pendEmail->removeAllEmailEnablerToken($resValidate[USER]->{USER_ID});
         
         /* if user is not login redirect on login page */
-        if (!$this->loginSession) redirect('/'.LOGIN_ROUTE);
+        $redirectTo = '/'.($this->loginSession ? HOME_ROUTE : LOGIN_ROUTE);
         
         /* else redirect to home */
-        redirect();
+        redirect($redirectTo);
     }
 
     /* ##################################### */

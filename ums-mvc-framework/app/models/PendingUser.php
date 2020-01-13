@@ -56,7 +56,6 @@ class PendingUser {
             $result[TOKEN] = $token;
         /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
-        
         /* return result */
         return $result;
     }
@@ -69,6 +68,23 @@ class PendingUser {
         $stmt = $this->conn->prepare('SELECT * FROM '.PENDING_USERS_TABLE.' WHERE '.PENDING_USER_ID.'=:id');
         $stmt->execute(['id' => $id]);
 
+        /* if find user return it */
+        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+            /* if require unset password */
+            if ($unsetPassword) unset($user->{PASSWORD});
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to get pending user by id where token is not null*/
+    public function getPendingUserTokenNotNull(int $id, bool $unsetPassword = TRUE) {
+        /* prepare sql query, then execute */
+        $sql ='SELECT * FROM '.PENDING_USERS_TABLE.' WHERE '.PENDING_USER_ID.'=:id AND '.ENABLER_TOKEN.' IS NOT NULL';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        
         /* if find user return it */
         if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if require unset password */
@@ -95,35 +111,35 @@ class PendingUser {
         return FALSE;
     }
 
-    /* function to get pending user by id */
-    public function isPendingUsername(string $username, string $minDatetime) {
-        /* prepare sql query, then execute */
-        $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
-        $sql .= USERNAME.'=:username AND '.ENABLER_TOKEN.' IS NOT NULL AND '.REGISTRATION_DATETIME.'>:datetime';
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            'username' => $username,
-            'datetime' => $minDatetime 
-        ]);
+//     /* function to get pending user by id */
+//     public function isPendingUsername(string $username, string $minDatetime) {
+//         /* prepare sql query, then execute */
+//         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
+//         $sql .= USERNAME.'=:username AND '.ENABLER_TOKEN.' IS NOT NULL AND '.REGISTRATION_DATETIME.'>:datetime';
+//         $stmt = $this->conn->prepare($sql);
+//         $stmt->execute([
+//             'username' => $username,
+//             'datetime' => $minDatetime 
+//         ]);
         
-        /* return true if find user, false otherwise */
-        return $stmt && $stmt->fetch(PDO::FETCH_OBJ);
-    }
+//         /* return true if find user, false otherwise */
+//         return $stmt && $stmt->fetch(PDO::FETCH_OBJ);
+//     }
 
-    /* function to get pending user by id */
-    public function isPendingEmail(string $email, string $minDatetime) {
-        /* prepare sql query, then execute */
-        $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
-        $sql .= EMAIL.'=:email AND '.ENABLER_TOKEN.' IS NOT NULL AND '.REGISTRATION_DATETIME.'>:datetime';
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            'email' => $email,
-            'datetime' => $minDatetime
-        ]);
+//     /* function to get pending user by id */
+//     public function isPendingEmail(string $email, string $minDatetime) {
+//         /* prepare sql query, then execute */
+//         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
+//         $sql .= EMAIL.'=:email AND '.ENABLER_TOKEN.' IS NOT NULL AND '.REGISTRATION_DATETIME.'>:datetime';
+//         $stmt = $this->conn->prepare($sql);
+//         $stmt->execute([
+//             'email' => $email,
+//             'datetime' => $minDatetime
+//         ]);
         
-        /* return true if find user, false otherwise */
-        return $stmt && $stmt->fetch(PDO::FETCH_OBJ);
-    }
+//         /* return true if find user, false otherwise */
+//         return $stmt && $stmt->fetch(PDO::FETCH_OBJ);
+//     }
 
     /* ############# UPDATE FUNCTIONS ############# */
 

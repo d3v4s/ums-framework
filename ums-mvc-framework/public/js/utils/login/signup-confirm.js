@@ -3,6 +3,7 @@ $(document).ready(function() {
 	$('#signup-confirm-form').on('submit', function(event) {
 		/* get button, token, and serialize data */
 		const $xf = $(this).find('#_xf'),
+			actionUrl = $(this).attr('action'),
 			$btn = $(this).find('#btn-resend-email'),
 			data = $(this).find('.send-ajax').serialize();
 
@@ -12,11 +13,11 @@ $(document).ready(function() {
 
     	/* success function */
     	funcSuccess = function(response) {
+    		console.log(response);
 			removeLoading($btn, 'Resend email');
 			try {
+				if (response.ntk !== undefined) $xf.val(response.ntk);
 				showMessage(response.message, !response.success);
-				
-				$xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Resend email failed', true);
 			}
@@ -28,6 +29,6 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		};
 
-    	sendAjaxReq('/auth/signup/confirm/email/resend', data, $xf.val(), funcSuccess, funcFail);
+    	sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

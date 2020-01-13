@@ -3,6 +3,7 @@ namespace app\controllers\data;
 
 use app\models\Role;
 use app\models\PendingEmail;
+use \PDO;
 
 /**
  * Class data factory, to manage response data of user request
@@ -10,8 +11,8 @@ use app\models\PendingEmail;
  */
 class AccountDataFactory extends DataFactory {
 
-    protected function __construct() {
-        parent::__construct();
+    protected function __construct(PDO $conn) {
+        parent::__construct($conn);
     }
 
     /* function to get user data */

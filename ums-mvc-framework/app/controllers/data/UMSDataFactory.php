@@ -1,10 +1,10 @@
 <?php
 namespace app\controllers\data;
 
-use \PDO;
-use \DateTime;
-use \app\models\User;
+use app\models\User;
 use app\models\Role;
+use \DateTime;
+use \PDO;
 
 /**
  * Class data factory, used for generate
@@ -180,7 +180,7 @@ class UMSDataFactory extends DataFactory {
         /* init message */
         $messageLockUser = '';
         /* if user has a lock, then set message and format the date */
-        if (($isLock = (isset($user->{EXPIRE_LOCK}) && $user->{EXPIRE_LOCK} > new DateTime()))) {
+        if (($isLock = (isset($user->{EXPIRE_LOCK}) && new DateTime($user->{EXPIRE_LOCK}) > new DateTime()))) {
             $user->{EXPIRE_LOCK} = date($this->appConfig[APP][DATETIME_FORMAT], strtotime($user->{EXPIRE_LOCK}));
             $messageLockUser = '<br>Temporarily locked';
         }

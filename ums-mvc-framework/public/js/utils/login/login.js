@@ -2,23 +2,20 @@ $(document).ready(function() {
 	/* submit event on login form to send XML HTTP request */
 	$('#login-form').on('submit', function(event) {
 		/* get button and token */
-		const $btn = $(this).find('#btn-login'),
-			$xf = $(this).find('#_xf');
+		const $xf = $(this).find('#_xf'),
+			$btn = $(this).find('#btn-login'),
+			actionUrl = $(this).attr('action'),
+			$cryptElem = $(this).find('.send-ajax-crypt');
+		/* serialize data */
+		var data = $(this).find('.send-ajax').serialize();
 
 		/* block default submit form and show loading */
 		event.preventDefault();
 		showLoading($btn);
 
 		try {
-			/* init rsa, pass and serialize data */
-			var rsa = new RSAKey(),
-				pass = $(this).find('#pass.send-ajax-crypt').val(),
-				data = $(this).find('.send-ajax').serialize();
-
 			/* crypt password and append on data */
-			rsa.setPublic(window.keyN, window.keyE);
-			pass = rsa.encrypt(pass);
-			data += '&pass=' + pass;
+			data += '&' + cryptSerialize($cryptElem);
 		} catch (e) {
 			removeLoading($btn, 'Login');
 			showMessage('Login failed', true);
@@ -30,12 +27,14 @@ $(document).ready(function() {
 			removeLoading($btn, 'Login');
 			try {
 				showMessage(response.message, !response.success);
-				if (response.success) setTimeout(redirect, 2000, '/');
+				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
 				else {
 					focusError(response);
-					$xf.val(response.ntk);
+					console.log(response.ntk !== undefined);
+					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
+				console.log(e);
 				showMessage('Login failed', true);
 			}
 		};
@@ -46,6 +45,6 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		};
 
-		sendAjaxReq('/auth/login', data, $xf.val(), funcSuccess, funcFail);
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

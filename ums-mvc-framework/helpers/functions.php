@@ -193,9 +193,11 @@ function getConfig(string $section = NULL): array {
 function generateToken(string $name = CSRF): string {
 //     if (isset($_SESSION[$name])) return $_SESSION[$name];
     /* get token */
-    $token = getSecureRandomString();
+    $token = isset($_SESSION[$name]) ? $_SESSION[$name][TOKEN] : getSecureRandomString();
     /* set token on session */
-    $_SESSION[$name] = $token;
+    $_SESSION[$name][TOKEN] = $token;
+    $_SESSION[$name][EXPIRE_DATETIME] = new DateTime();
+    $_SESSION[$name][EXPIRE_DATETIME]->modify(CSRF_TOKEN_EXPIRE_TIME);
     /* return token */
     return $token;
 }

@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="it">
 	<head>
+		<?php if ($this->setCSPHeader): ?>
+<!-- 			<meta http-equiv="Content-Security-Policy" content="< ?=$this->cspContent?>"> -->
+		<!-- 
+			<meta http-equiv="X-Content-Security-Policy" content="< ?=$this->cspContent?>">
+    		<meta http-equiv="X-WebKit-CSP" content="< ?=$this->cspContent?>">
+		-->
+		<?php endif; ?>
 		<meta charset="utf-8"/>
 		<meta http-equiv="Content-Type" content="<?=$this->contentType?>"/>
 
@@ -54,7 +61,7 @@
 			</div>
 		</div>
 		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-			<a class="navbar-brand" href="/">DevAS</a>
+			<a class="navbar-brand" href="/">UMS</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-ums" aria-controls="navbar-ums" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
@@ -63,21 +70,36 @@
 					<li class="nav-item <?=$this->isHome ? 'active' : ''?>">
 						<a class="nav-link" href="/">Home</a>
 					</li>
-					<?php if ($this->loginSession): ?>
-						<?php if ($this->loginSession->{USER_ID} !== DEFAULT_ROLE): ?>
-							<li class="nav-item">
-								<a class="nav-link" href="/ums">UMS</a>
+					<?php if (isUserLoggedin()): ?>
+						<?php if (userCanUpdate()): ?>
+							<li class="nav-item <?=$this->isUsersList ? 'active' : ''?>">
+								<a class="nav-link" href="/ums/users/">Users List</a>
 							</li>
 						<?php endif; ?>
+						<?php if (userCanChangeSettings()): ?>
+        					<li class="nav-item <?=$this->isSettings ? 'active' : ''?>">
+        						<a class="nav-link" href="/ums/app/settings">App Settings</a>
+        					</li>
+    					<?php endif; ?>
+    					<?php if (userCanCreate()): ?>
+    						<li class="nav-item <?=$this->isNewUser ? 'active' : ''?>">
+        						<a class="nav-link" href="/ums/user/new">New User</a>
+        					</li>
+    					<?php endif; ?>
+    					<?php if (userCanSendEmail()): ?>
+    						<li class="nav-item <?=$this->isNewEmail ? 'active' : ''?>">
+        						<a class="nav-link" href="/ums/email/new">Send Email</a>
+        					</li>
+    					<?php endif; ?>
     					<li class="nav-item dropdown">
-    						<a class="nav-link dropdown-toggle" href="/<?=ACCOUNT_SETTINGS_ROUTE?>" id="account" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account</a>
+    						<a class="nav-link dropdown-toggle" href="/user/settings" id="account" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Account</a>
     						<div id="dropdown-account" class="dropdown-menu mx-auto" aria-labelledby="account">
-    							<h4 class="text-center"><a href="/user/info"><?=$this->loginSession->{USERNAME}?></a></h4>
+    							<h4 class="text-center"><a href="/user/info">	<?=getUserLoggedUsername()?></a></h4>
     							<div class="justify-content-center text-left p-4 mx-auto">
         							<p>
-        								Full name: <span class="text-primary"><?=$this->loginSession->{NAME}?></span><br>
-        								Email: <span class="text-primary"><?=$this->loginSession->{EMAIL}?></span>
-        								<?php if ($this->loginSession->{USER_ID} !== DEFAULT_ROLE): ?>
+        								Full name: <span class="text-primary"><?=getUserLoggedFullName()?></span><br>
+        								Email: <span class="text-primary"><?=getUserLoggedEmail()?></span>
+        								<?php if (isNotSimpleUser()): ?>
         									<br>
         									Role: <span class="text-primary"><?=getUserLoggedRole()?></span>
         								<?php endif;?>
@@ -92,7 +114,7 @@
     							</div>
     						</div>
     					</li>
-					<?php else: ?>
+					<?php else : ?>
     					<li class="nav-item <?=$this->isLogin ? 'active' : ''?>">
     						<a class="nav-link" href="/auth/login">Login</a>
     					</li>
@@ -140,7 +162,7 @@
 					<span>
     					<a href="#">Back to top</a>
     					<br><br>
-    					UMS - User Management System &bull; by Andrea Serra (DevAS) &bull; <a target="_blank" href="https:/github.com/d3v4s">Github</a>
+    					UMS - User Management System &bull; by Andrea Serra &bull; <a target="_blank" href="https:/github.com/d3v4s">Github</a>
 					</span>
 				</div>
 			</div>

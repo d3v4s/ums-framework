@@ -1,10 +1,10 @@
 <?php
 namespace app\controllers\verifiers;
 
-use app\models\User;
-use \PDO;
-use \DateTime;
 use app\models\PendingEmail;
+use app\models\User;
+use \DateTime;
+use \PDO;
 
 /**
  * Class verifier, to validate a requests
@@ -76,7 +76,7 @@ class Verifier {
         }
 
         /* validate username */
-        if (!$this->isValidInput($username, MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, USE_REGEX, REGEX_USERNAME)) {
+        if (!$this->isValidInput($username, MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, USE_REGEX_USERNAME, REGEX_USERNAME)) {
             $result[MESSAGE] = 'Invalid username';
             $result[ERROR] = USERNAME;
             return $result;
@@ -94,7 +94,7 @@ class Verifier {
 
 
         /* validate email */
-        if (!$this->isValidEmail($email, USE_REGEX_EMAIL, REGEX_EMAIL)) {
+        if (!$this->isValidEmail($email, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
             $result[MESSAGE] = 'Invalid email';
             $result[ERROR] = EMAIL;
             return $result;
@@ -108,7 +108,7 @@ class Verifier {
         }
 
         /* validate password */
-        if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX, REGEX_PASSWORD)) {
+        if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX_PASSWORD, REGEX_PASSWORD)) {
             $result[MESSAGE] = 'Invalid password';
             $result[ERROR] = PASSWORD;
             return $result;
@@ -172,7 +172,7 @@ class Verifier {
         }
 
         /* validate email */
-        if (!$this->isValidEmail($email, USE_REGEX_EMAIL, REGEX_EMAIL)) {
+        if (!$this->isValidEmail($email, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
             $result[MESSAGE] = 'Invalid email';
             $result[ERROR] = EMAIL;
             return $result;
@@ -250,24 +250,24 @@ class Verifier {
         return $result;
     }
 
-    /* ##################################### */
-    /* PROTECTED FUNCTIONS */
-    /* ##################################### */
-
     /* function to validate the tokens */
-    protected function verifyTokens(array $tokens): bool {
+    public  function verifyTokens(array $tokens): bool {
         /* check if tokens are not set or are empty, then compare tokens */
         return isset($tokens[0]) && isset($tokens[1]) && !empty($tokens[0]) && !empty($tokens[1]) && $tokens[0] === $tokens[1];
     }
 
+    /* ##################################### */
+    /* PROTECTED FUNCTIONS */
+    /* ##################################### */
+
     /* function to validate a input */
     protected function isValidInput(string $input, int $minLength, int $maxLength, bool $useRegex, string $regex = ''): bool {
-        return strlen($input) > $minLength && strlen($input) < $maxLength && (!$useRegex || preg_match($regex, $input));
+        return strlen($input) >= $minLength && strlen($input) <= $maxLength && (!$useRegex || preg_match($regex, $input));
     }
 
     /* function to laidate a email */
-    protected function isValidEmail(string $email, bool $useRegex, string $regex=''): bool {
-        return ($email = filter_var($email, FILTER_VALIDATE_EMAIL)) && (!$useRegex || preg_match($regex, $email));
+    protected function isValidEmail(string $email, int $minLength, int $maxLength, bool $useRegex, string $regex=''): bool {
+        return strlen($email) >= $minLength && strlen($email) <= $maxLength && ($email = filter_var($email, FILTER_VALIDATE_EMAIL)) && (!$useRegex || preg_match($regex, $email));
     }
 
 //     /* fuinction to validate a password */

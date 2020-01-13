@@ -18,6 +18,9 @@ require_once getPath(getcwd(), 'const', 'config.const.php');
 /* get database config */
 $dbConf = require getPath(getcwd(), 'config', 'db.config.php');
 
+/* set default datetime */
+date_default_timezone_set(DATE_TIME_ZONE_DEFAULT);
+
 try {
     /* get database connection */
     $conn = DbFactory::create($dbConf)->getConn();
