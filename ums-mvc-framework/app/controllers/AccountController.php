@@ -84,7 +84,12 @@ class AccountController extends Controller {
         );
 
         /* generate token and show change password page */
-        $this->content = view(getPath('account','change-pass'), [TOKEN => generateToken(CSRF_CHANGE_PASS)]);
+        $this->content = view(getPath('account','change-pass'), [
+            /* set tokens */
+            TOKEN => generateToken(CSRF_CHANGE_PASS),
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+            
+        ]);
     }
 
     /* ########## ACTION FUNCTIONS ########## */
@@ -267,7 +272,7 @@ class AccountController extends Controller {
             $user->resetLockCounts($id);
 
             /* update user password */
-            $resUser = $user->updateUserPass($id, $pass);
+            $resUser = $user->updatePassword($id, $pass);
 
             /* if success set redirecy to account info */
             if ($resUser[SUCCESS]) $redirectTo = '/'.ACCOUNT_INFO_ROUTE;

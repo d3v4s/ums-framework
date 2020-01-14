@@ -1,16 +1,16 @@
 <div class="container col-md-7 text-center p-3">
     <form id="change-pass-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
-    		<label for="old-pass">Old password</label>
-    		<input id="old-pass" name="<?=OLD_PASS?>"  placeholder="Old password" class="form-control evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">
+    		<label for="<?=OLD_PASS?>">Old password</label>
+    		<input id="<?=OLD_PASS?>" name="<?=OLD_PASS?>"  placeholder="Old password" class="form-control evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">
     	</div>
 		<div class="form-group text-md-left">
-    		<label for="pass">Password</label>
-    		<input id="pass" name="<?=PASSWORD?>"  placeholder="Password" class="form-control validate-password confirm-password-1 evidence-error send-ajax-crypt" type="password" required="required">
+    		<label for="<?=PASSWORD?>">Password</label>
+    		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>"  placeholder="Password" class="form-control validate-password confirm-password-1 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
     	<div class="form-group text-md-left">
-    		<label for="cpass">Confirm password</label>
-    		<input id="cpass" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
+    		<label for="<?=CONFIRM_PASS?>">Confirm password</label>
+    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
     	<noscript>
     		<div class="container-fluid">
@@ -24,6 +24,7 @@
   				<span id="text-btn">Change</span>
 	    	</button>
     	</div>
+    	<input id="<?=GET_KEY_TOKEN?>" type="hidden" name="<?=CSRF_KEY_JSON?>" value="<?=${GET_KEY_TOKEN}?>">
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_CHANGE_PASS?>" value="<?=${TOKEN}?>">
     </form>
 </div>

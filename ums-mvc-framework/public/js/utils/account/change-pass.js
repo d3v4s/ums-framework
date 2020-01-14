@@ -4,7 +4,7 @@ $(document).ready(function (){
 		/* get button and token */
 		const $btn = $(this).find('#btn-change'),
 			actionUrl = $(this).attr('action'),
-			$cryptData = $('.send-ajax-crypt'),
+			$cryptData = $(this).find('.send-ajax-crypt'),
 			$xf = $(this).find('#_xf');
 
 		/* block default submit form and show loading */
@@ -13,7 +13,8 @@ $(document).ready(function (){
 
 		try {
 			/* crypt and serialize passwords */
-			const data = cryptSerialize($cryptData);
+			var data = cryptSerialize($cryptData);
+			console.log(data);
 		} catch (e) {
 			removeLoading($btn, 'Change');
 			showMessage('Change passord failed', true);
