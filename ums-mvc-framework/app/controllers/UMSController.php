@@ -27,7 +27,8 @@ class UMSController extends Controller {
     /* function to show the ums home */
     public function showUmsHome() {
         $this->redirectOrFailIfSimpleUser();
-        
+        $data = UMSDataFactory::getInstance($this->conn)->getHomeData();
+        $this->content = view(getPath('ums','users-list'), $data);
     }
 
     /* function to view the user list page */

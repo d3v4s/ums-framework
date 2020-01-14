@@ -5,6 +5,7 @@ use app\models\User;
 use app\models\Role;
 use \DateTime;
 use \PDO;
+use app\models\PendingEmail;
 
 /**
  * Class data factory, used for generate
@@ -22,15 +23,26 @@ class UMSDataFactory extends DataFactory {
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
+    public function getHomeData() {
+        /* init user model and count users */
+        $userModel = new User($this->conn);
+        $totUsers = $userModel->countUsers();
+
+        $pendMailModel = new PendingEmail($this->conn);
+        $totPendMails = $pendMailModel->countPendMails;
+
+        return [
+            TOT_USERS => $totUsers
+        ];
+    }
+
     /* function to get data of users list */
     public function getUsersListData(string $orderBy, string $orderDir, int $page, int $usersForPage, string $search): array {
-        /* get app config and init user model */
-//         $appConfig = $this->appConfig['app'];
-        $user = new User($this->conn);
+        /* init user model */
+        $userModel = new User($this->conn);
 
         /* count user */
-        $totUsers = $user->countUsers($search);
-//         $usersForPageList = USERS_FOR_PAGE_LIST;
+        $totUsers = $userModel->countUsers($search);
         /* calc users for page and n. pages */
         $usersForPage = in_array($usersForPage, USERS_FOR_PAGE_LIST) ? $usersForPage : DEFAULT_USERS_FOR_PAGE;
         $maxPages = (int) ceil($totUsers/$usersForPage);
@@ -112,7 +124,7 @@ class UMSDataFactory extends DataFactory {
             SEARCH_QUERY => $searchQuery,
             PAGE => $page,
             USERS_FOR_PAGE => $usersForPage,
-            TOT_USER => $totUsers,
+            TOT_USERS => $totUsers,
             MAX_PAGES => $maxPages,
             START_PAGE => $startPage,
             STOP_PAGE => $stopPage,
@@ -132,11 +144,9 @@ class UMSDataFactory extends DataFactory {
             CLASS_PAGIN_ARROW_LEFT => $classPaginationArrowLeft,
             LINK_PAGIN_ARROW_RIGHT => $linkPaginationArrowRight,
             CLASS_PAGIN_ARROW_RIGHT => $classPaginationArrowRight,
-//             'usersForPageList' => $usersForPageList,
             BASE_LINK_PAGIN => $baseLinkPagination,
             CLOSE_LINK_PAGIN => $closeUrl,
-//             'viewAddFakeUsers' => $appConfig['addFakeUsersPage'],
-            USERS => $user->getUsersAndRole($orderBy, $orderDir, $search, $start, $usersForPage),
+            USERS => $userModel->getUsersAndRole($orderBy, $orderDir, $search, $start, $usersForPage),
             BASE_LINK_USER_FOR_PAGE => "$baseLinkPagination$page/",
             SEARCH_ACTION => "{$baseLinkPagination}1$closeUrl"
         ];

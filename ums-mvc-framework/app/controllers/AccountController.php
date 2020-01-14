@@ -9,6 +9,8 @@ use app\models\DeletedUser;
 use app\models\User;
 use \DateTime;
 use \PDO;
+use app\models\PasswordResetRequest;
+use app\models\Session;
 
 /**
  * Class controller to manage the account requests
@@ -112,13 +114,24 @@ class AccountController extends Controller {
             /* init user model and delete user */
             $userModel = new User($this->conn);
             $resUser = $userModel->deleteUser($id);
-            $delModel = new DeletedUser($this->conn);
-            $delModel->saveDeletedUser($resDelete[USER]);
+            /* if delete success */
+            if ($resUser[SUCCESS]) {
+                /* init delete model and save user deleted */
+                $delModel = new DeletedUser($this->conn);
+                $delModel->saveDeletedUser($resDelete[USER]);
+                /* init pending mail model and remove all user tokens */
+                $pendMailModel = new PendingEmail($this->conn);
+                $pendMailModel->removeAllEmailEnablerToken($id);
+                /* init password reset request model and remove all user tokens */
+                $pendPassResReqModel = new PasswordResetRequest($this->conn);
+                $pendPassResReqModel->removePasswordResetReqForUser($id);
+                /* init session model and remove all user tokens */
+                $sessionModel = new Session($this->conn);
+                $sessionModel->removeAllLoginSessionTokens($id);
+            }
             /* set result */
             $resDelete[MESSAGE] = $resUser[MESSAGE];
             $resDelete[SUCCESS] = $resUser[SUCCESS];
-            /* if success reset session */
-            if ($resUser[SUCCESS]) $this->resetLoginSession();
         }
 
         /* result data */

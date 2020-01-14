@@ -219,7 +219,7 @@ define('ORDER_BY', 'order_by');
 define('SEARCH_QUERY', 'search_query');
 define('PAGE', 'page');
 define('USERS_FOR_PAGE', 'users_for_page');
-define('TOT_USER', 'tot_user');
+define('TOT_USERS', 'tot_user');
 define('MAX_PAGES', 'max_pages');
 define('START_PAGE', 'strt_pg');
 define('STOP_PAGE', 'stp_pg');
