@@ -39,6 +39,7 @@ define('DELETE_SESSION_EXPIRE_TIME', '5 minutes');
 
 /* TEMPLATE CONSTANTS */
 define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php'));
+define('SHOW_SESSION_MESSAGE', getPath(getViewsPath(), 'utils', 'show-session-message.tpl.php'));
 define('PAGINATION_TEMPLATE', getPath(getViewsPath(),'utils', 'pagination.tpl.php'));
 
 

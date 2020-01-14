@@ -438,10 +438,7 @@ class AccountController extends Controller {
         $expireDatetime = new DateTime();
         $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
         /* set delete session */
-        $_SESSION[DELETE_SESSION] = [
-            USER_ID => $this->loginSession->{USER_ID},
-            EXPIRE_DATETIME => $expireDatetime
-        ];
+        $_SESSION[DELETE_SESSION] = [EXPIRE_DATETIME => $expireDatetime];
     }
 
     /* function to redirect if is not valid delete session */

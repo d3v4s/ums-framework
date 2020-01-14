@@ -53,7 +53,7 @@ class User {
             );
         
         /* if sql query success, then set success result */
-        if ($stmt->rowCount()) {
+        if ($stmt && $stmt->rowCount()) {
             $result[USER_ID] = $this->conn->lastInsertId();
             $result[MESSAGE] = 'New user saved successfully';
             $result[SUCCESS] = TRUE;
@@ -88,8 +88,11 @@ class User {
 
     /* ############# READ FUNCTIONS ############# */
 
+    /* function to get user with roles */
     public function getUsersAndRole(string $orderBy = USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+        /* set sql query */ 
         $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
+        /* if it is set, append search query */
         if (!empty($search)) {
             $sql .= ' WHERE '.USER_ID.' = :searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
@@ -97,10 +100,13 @@ class User {
             $sql .= EMAIL.'LIKE :search OR ';
             $sql .= ROLE_ID_FRGN.' LIKE :search ';
         }
+        /* validate order by, order direction, start and num of row */
         $orderBy = in_array($orderBy, ORDER_BY_LIST) ? $orderBy : USER_ID;
         $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
         $start = is_numeric($start) ? $start : 0;
         $nRow = is_numeric($nRow) ? $nRow : 20;
+
+        /* prepare and execute sql query */
         $sql .= "ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
         $stmt = $this->conn->prepare($sql);
         $data = empty($search)? [] : [
@@ -108,6 +114,8 @@ class User {
             'search' => '%'.$search.'%'
         ];
         $stmt->execute($data);
+
+        /* if success, then return users list */
         if ($stmt) {
             $users = $stmt->fetchAll(PDO::FETCH_OBJ);
             foreach ($users as $user) unset($user->password);
@@ -197,8 +205,11 @@ class User {
         return FALSE;
     }
 
+    /* function to count the users on table */
     public function countUsers(string $search = ''): int {
+        /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE;
+        /* if it is set, append search query */
         if (!empty($search)) {
             $sql .= ' WHERE '.USER_ID.'=:searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
@@ -206,11 +217,13 @@ class User {
             $sql .= EMAIL.' LIKE :search';
 //             $sql .= 'roletype LIKE :search';
         }
+        /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
             'searchId' => $search,
             'search' => "%$search%"
         ]);
+        /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
     
@@ -254,7 +267,7 @@ class User {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($param);
         /* if success set success result */
-        if ($stmt->rowCount() || $stmt->errorCode() == 0) { // || $stmt->errorCode() == 0) {
+        if ($stmt->rowCount() || $stmt->errorCode() == 0) {
             $result[SUCCESS] = TRUE;
             $result[MESSAGE] = 'User successfully updated';
         /* else set error info */
@@ -265,17 +278,21 @@ class User {
 
     /* function to disable a user */
     public function disabledUser(int $id) : array {
+        /* set fail result */
         $result = [
             MESSAGE => 'Fail disable user',
             SUCCESS => FALSE
         ];
-        
+
+        /* prepare and execute sql query */
         $stmt = $this->conn->prepare('UPDATE '.USERS_TABLE.' SET '.ENABLED.'=0 WHERE '.USER_ID.'=:id');
         $stmt->execute(['id' => $id]);
-        
+
+        /* if success then set success result */
         if($stmt->rowCount()) {
             $result[SUCCESS] = TRUE;
             $result[MESSAGE] = 'User disabled';
+        /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
         
         return $result;
@@ -476,17 +493,29 @@ class User {
 
     /* ############# DELETE FUNCTIONS ############# */
 
+    /* function to delete a user */
     public function deleteUser(int $id): array {
+        /* set fail result */
         $result = [
             MESSAGE => 'Delete user failed',
-            'success' => FALSE
+            SUCCESS => FALSE
         ];
-        $stmt = $this->conn->prepare('DELETE FROM '.USERS_TABLE.' WHERE '.USER_ID.'=:id');
-        
+
+        /* disable foreign key check */
+        $sql = 'SET FOREIGN_KEY_CHECKS=0;';
+        /* delete query */
+        $sql .= 'DELETE FROM '.USERS_TABLE.' WHERE '.USER_ID.'=:id;';
+        /* enable foreign key check */
+        $sql .= 'SET FOREIGN_KEY_CHECKS=1';
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $id]);
-        if ($stmt->rowCount()){
+
+        /* if success then set success result */
+        if ($stmt->errorCode() == 0){
             $result[SUCCESS] = TRUE;
             $result[MESSAGE] = 'User deleted';
+        /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
         
         return $result;

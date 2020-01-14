@@ -30,7 +30,6 @@ $(document).ready(function() {
 				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
 				else {
 					focusError(response);
-					console.log(response.ntk !== undefined);
 					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
