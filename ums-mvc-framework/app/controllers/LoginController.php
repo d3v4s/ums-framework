@@ -261,7 +261,7 @@ class LoginController extends Controller {
                     $this->sendEnablerEmail($email, $resUser[TOKEN]);
                     $_SESSION[SIGNUP] = TRUE;
                     $_SESSION[USER_ID] = $resUser[USER_ID];
-                    $redirectTo = '/'.CONFIRM_SIGNUP_ROUTE;
+                    $redirectTo = '/'.SIGNUP_ROUTE.'/'.CONFIRM_ROUTE;
                 }
             } else {
                 /* save user */
@@ -306,7 +306,7 @@ class LoginController extends Controller {
         $this->redirectIfNotSignupSession();
 
         /* set url to redirect */
-        $redirectTo = '/'.CONFIRM_SIGNUP_ROUTE;
+        $redirectTo = '/'.SIGNUP_ROUTE.'/'.CONFIRM_ROUTE;
         /* check last request */
         if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request', $redirectTo);
 

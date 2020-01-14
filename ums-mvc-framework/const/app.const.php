@@ -35,6 +35,7 @@ define('DEFAULT_SETTING_SECTION', 'app');
 define('COOKIE_EXPIRE_DAYS', 30);
 define('CSRF_TOKEN_EXPIRE_TIME', '10 minutes');
 define('DATE_TIME_ZONE_DEFAULT', 'Europe/Rome');
+define('DELETE_SESSION_EXPIRE_TIME', '5 minutes');
 
 /* TEMPLATE CONSTANTS */
 define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php'));
@@ -82,13 +83,13 @@ define('OLD_PASS', 'old_pass');
 define('CONFIRM_PASS', 'confirm_pass');
 define('TOKEN', '_xf');
 define('TOKEN_RSA', 'tkn_rsa');
-define('TOKEN_DELETE', 'tkn_dlt');
-define('TOKEN_UPDATE', 'tkn_upd');
-define('TOKEN_RESEND_ENABLER_EMAIL', 'tkn_rsnd_eml');
-define('TOKEN_DELETE_NEW_EMAIL', 'tkn_rsnd_eml');
+define('DELETE_TOKEN', '_xf_del');
+define('UPDATE_TOKEN', '_xf_upd');
+define('DELETE_NEW_EMAIL_TOKEN', '_xf_del_ml');
+define('RESEND_ENABLER_EMAIL_TOKEN', '_xf_res_ml');
+define('LOGOUT_TOKEN', '_xf_out');
 define('GET_KEY_TOKEN', '_kxt');
 define('NEW_TOKEN', 'ntk');
-define('LOGOUT_TOKEN', '_xf_out');
 define('ERROR', 'error');
 define('SUCCESS', 'success');
 define('MESSAGE', 'message');
@@ -114,14 +115,16 @@ define('EMAIL_ENABLER_ROUTE', 'validate/new/email');
 define('LOGIN_ROUTE', 'auth/login');
 define('SIGNUP_ROUTE', 'auth/signup');
 define('LOGOUT_ROUTE', 'auth/logout');
-define('CONFIRM_SIGNUP_ROUTE', SIGNUP_ROUTE.'/confirm');
+// define('CONFIRM_SIGNUP_ROUTE', SIGNUP_ROUTE.'/confirm');
 define('RESEND_EMAIL_ROUTE', 'email/resend');
 define('DELETE_EMAIL_ROUTE', 'email/delete');
 define('PASS_RESET_REQ_ROUTE', 'auth/reset/password');
 define('PASS_RESET_ROUTE', 'user/reset/password');
+define('ACCOUNT_INFO_ROUTE', 'user/info');
 define('ACCOUNT_SETTINGS_ROUTE', 'user/settings');
 define('GET_JSON_CONFIG_ROUTE', 'app/config/get/json');
 define('GET_JSON_KEY_ROUTE', 'app/config/get/key/json');
+define('CONFIRM_ROUTE', 'confirm');
 define('UPDATE_ROUTE', 'update');
 define('DELETE_ROUTE', 'delete');
 define('SAVE_ROUTE', 'save');
@@ -165,6 +168,7 @@ define('CHANGE_FREQ_LIST', [
     'yearly',
     'never'
 ]);
+
 define('ACCEPT_LANG_LIST', [
     'en',
     'it'
@@ -238,6 +242,7 @@ define('CLASS_ENABLE_ACC', 'clss_enbl');
 define('IS_LOCK', 'is_lock');
 define('MESSAGE_LOCK_ACC', 'msg_lck_acc');
 define('WAIT_EMAIL_CONFIRM', 'wt_cnf_mail');
+define('DELETE_SESSION', 'dlt_ssn');
 
 /* CONSTANTS FOR PAGINATION */
 define('LINK_PAGIN_ARROW_LEFT', 'lnk_pgn_arlft');

@@ -1,12 +1,13 @@
 <?php
 namespace app\controllers;
 
-use app\controllers\verifiers\Verifier;
-use app\controllers\data\AccountDataFactory;
 use app\controllers\verifiers\AccountVerifier;
+use app\controllers\data\AccountDataFactory;
+use app\controllers\verifiers\Verifier;
 use app\models\PendingEmail;
 use app\models\DeletedUser;
 use app\models\User;
+use \DateTime;
 use \PDO;
 
 /**
@@ -24,14 +25,19 @@ class AccountController extends Controller {
     
     /* ########## SHOW FUNCTIONS ########## */
 
-//     /* function to view delete account page */
-//     public function showDeleteAccount() {
-//         /* redirect */
-//         $this->redirectOrFailIfNotLogin();
+    /* function to view delete account page */
+    public function showDeleteAccount() {
+        /* redirect */
+        $this->redirectOrFailIfNotLogin();
 
-//         /* generate token and show page */
-//         $this->content = view(getPath('user','user-delete'), [TOKEN => generateToken(CSRF_DELETE_ACCOUNT)]);
-//     }
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/utils/account/delete.js']
+        );
+
+        /* generate token and show page */
+        $this->content = view(getPath('account','delete'), [TOKEN => generateToken(CSRF_DELETE_ACCOUNT)]);
+    }
 
     /* function to show the account settings */
     public function showAccountSettings() {
@@ -41,18 +47,26 @@ class AccountController extends Controller {
         /* add javascript sources */
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/validate.js'],
-            [SOURCE => '/js/utils/user/user-settings.js']
+            [SOURCE => '/js/utils/account/settings.js']
         );
         
         /* get data from data factory */
         $data = AccountDataFactory::getInstance($this->conn)->getUserData($this->loginSession->{USER_ID});
         /* if wait email confir, then add javascript sorce for new email settings */
-        if ($data[WAIT_EMAIL_CONFIRM]) $this->jsSrcs[] = [SOURCE => '/js/utils/user/user-new-email-settings.js'];
+        if ($data[WAIT_EMAIL_CONFIRM]) $this->jsSrcs[] = [SOURCE => '/js/utils/account/new-email-settings.js'];
         
         /* show user settings page */
-        $this->content = view('account/settings', $data);
+        $this->content = view(getPath('account','settings'), $data);
     }
 
+    /* function to view acoount info page */
+    public function showAccountInfo() {
+        /* redirect */
+        $this->redirectOrFailIfNotLogin();
+
+        /* generate token and show change account info page */
+        $this->content = view(getPath('account','info'), [USER => $this->loginSession]);
+    }
     /* function to view password change page */
     public function showChangePassword() {
         /* redirect */
@@ -66,11 +80,11 @@ class AccountController extends Controller {
             [SOURCE => '/js/crypt/rsa.js'],
             [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
-            [SOURCE => '/js/utils/user/change-pass.js']
+            [SOURCE => '/js/utils/account/change-pass.js']
         );
 
         /* generate token and show change password page */
-        $this->content = view('account/change-pass', [TOKEN => generateToken(CSRF_CHANGE_PASS)]);
+        $this->content = view(getPath('account','change-pass'), [TOKEN => generateToken(CSRF_CHANGE_PASS)]);
     }
 
     /* ########## ACTION FUNCTIONS ########## */
@@ -79,6 +93,7 @@ class AccountController extends Controller {
     public function deleteAccount() {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
+        $this->redirectOrFailIfNotDeleteSession();
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_ACCOUNT);
@@ -145,6 +160,9 @@ class AccountController extends Controller {
         $name = $_POST[NAME] ?? '';
         $id = $this->loginSession->{USER_ID};
 
+        /* set redirect to */
+        $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE;
+
         /* get verifier instance, and check update user request */
         $verifier = Verifier::getInstance($this->conn);
         $resUpdate = $verifier->verifyUpdate($id, $name, $email, $username, $tokens);
@@ -159,10 +177,14 @@ class AccountController extends Controller {
             if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $userData[EMAIL] = $email;
             /* else if is change email, then add email on pending and send enabler link */
             elseif ($resUpdate[CHANGED_EMAIL]) {
+                /* init pending model */
                 $pendMailModel = new PendingEmail($this->conn);
+                /* calc expire datetime */
                 $expireDatetime = getExpireDatetime(ENABLER_LINK_EXPIRE_TIME);
+                /* remove all previus request and add a new pending mail */
+                $pendMailModel->removeAllEmailEnablerToken($this->loginSession->{USER_ID});
                 $resPend = $pendMailModel->newPendingEmail($id, $email, $expireDatetime);
-                /* if success send email, else set fail */
+                /* if success send email and set success result */
                 $resUpdate[SUCCESS] = $resPend[SUCCESS] && $this->sendEnablerEmail($email, $resPend[TOKEN], 'ENABLE YOUR EMAIL', TRUE);
             }
             if ($resUpdate[SUCCESS]) {
@@ -170,11 +192,10 @@ class AccountController extends Controller {
                 $userModel = new User($this->conn);
                 /* update user */
                 $resUser = $userModel->updateUser($id, $userData);
-//                 if ($resUser[SUCCESS]) {
-//                     /* if success get user id and recreate the login session */
-//                     $usr = $userModel->getUser($id);
-//                     $this->createSessionLogin($usr);
-//                 }
+
+                /* if success set redirecy to account info */
+                if ($resUser[SUCCESS]) $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+
                 /* set result */
                 $resUpdate[MESSAGE] = $resUser[MESSAGE];
                 $resUpdate[SUCCESS] = $resUser[SUCCESS];
@@ -184,6 +205,7 @@ class AccountController extends Controller {
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resUpdate[SUCCESS],
             ERROR => $resUpdate[ERROR] ?? NULL,
             MESSAGE => $resUpdate[MESSAGE] ?? NULL
@@ -195,7 +217,7 @@ class AccountController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.ACCOUNT_SETTINGS_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
         $this->switchResponse($dataOut, (!$resUpdate[SUCCESS] && $resUpdate[GENERATE_TOKEN]), $funcDefault, CSRF_UPDATE_ACCOUNT);
@@ -217,7 +239,9 @@ class AccountController extends Controller {
     public function changePassword() {
         /* redirects */
         $this->redirectOrFailIfNotLogin();
-        $this->redirectIfNotXMLHTTPRequest(ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_PASS_ROUTE);
+        /* set redirect to */
+        $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE;
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_CHANGE_PASS);
@@ -234,13 +258,21 @@ class AccountController extends Controller {
         /* get verifier instance, and check change password request */
         $verifier = AccountVerifier::getInstance($this->conn);
         $resPass = $verifier->verifyChangePass($id, $oldPass, $pass, $cpass, $tokens);
+
+
         /* if success */
         if($resPass[SUCCESS]) {
             /* init user model and reset wrong passwords lock */
             $user = new User($this->conn);
             $user->resetLockCounts($id);
-            /* update user password and set result */
+
+            /* update user password */
             $resUser = $user->updateUserPass($id, $pass);
+
+            /* if success set redirecy to account info */
+            if ($resUser[SUCCESS]) $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+
+            /* set result */
             $resPass[MESSAGE] = $resUser[MESSAGE];
             $resPass[SUCCESS] = $resUser[SUCCESS];
         /* else set error message */
@@ -248,6 +280,7 @@ class AccountController extends Controller {
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resPass[SUCCESS],
             ERROR => $resPass[ERROR] ?? NULL,
             MESSAGE => $resPass[MESSAGE]?? NULL
@@ -259,7 +292,7 @@ class AccountController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect('/'.ACCOUNT_SETTINGS_ROUTE) : redirect('/'.ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_PASS_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
         $this->switchResponse($dataOut, (!$resPass[SUCCESS] && $resPass[GENERATE_TOKEN]), $funcDefault);
@@ -286,7 +319,7 @@ class AccountController extends Controller {
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_NEW_EMAIL);
-        $id = $this->loginSession->{USERID};
+        $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete new email request */
         $verifier = AccountVerifier::getInstance($this->conn);
@@ -336,9 +369,11 @@ class AccountController extends Controller {
 
     public function resendEmailEnabler() {
         /* redirects */
-        $this->redirectIfNotLoggin();
-        $this->redirectIfNotEmailConfirmRequire();
+        $this->redirectOrFailIfNotLogin();
+        $this->redirectOrFailIfConfirmEmailNotRequire();
 
+        if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request');
+        
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_EMAIL);
         $id = $this->loginSession->{USER_ID};
@@ -349,8 +384,11 @@ class AccountController extends Controller {
         /* if success */
         if ($resResendEmail[SUCCESS]) {
             /* send email validation and set result */
-            $resResendEmail[SUCCESS] = $this->sendEnablerEmail($resResendEmail[TO], $resResendEmail[TOKEN], 'ENABLE YOUR EMAIL', TRUE);
-            $resResendEmail[MESSAGE] = $resResendEmail[SUCCESS] ? 'Email sent successfully' : 'Sending email failed';
+            if ($resResendEmail[SUCCESS] = $this->sendEnablerEmail($resResendEmail[TO], $resResendEmail[TOKEN], 'ENABLE YOUR EMAIL', TRUE)) {
+                $_SESSION[RESEND_LOCK_EXPIRE] = new DateTime();
+                $_SESSION[RESEND_LOCK_EXPIRE]->modify(RESEND_LOCK_EXPIRE_TIME);
+                $resResendEmail[MESSAGE] = 'Email sent successfully';
+            } else $resResendEmail[MESSAGE] = 'Sending email failed';
         }
 
         /* result data */
@@ -383,5 +421,26 @@ class AccountController extends Controller {
                 
 //                 break;
 //         }
+    }
+
+    /* ##################################### */
+    /* PRIVATE FUNCTIONS */
+    /* ##################################### */
+
+    /* function to create a delete session */
+    private function creteDeleteSession() {
+        /* calc expire time */
+        $expireDatetime = new DateTime();
+        $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
+        /* set delete session */
+        $_SESSION[DELETE_SESSION] = [
+            USER_ID => $this->loginSession->{USER_ID},
+            EXPIRE_DATETIME => $expireDatetime
+        ];
+    }
+
+    /* function to redirect if is not valid delete session */
+    private function redirectOrFailIfNotDeleteSession(){
+        if (isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][DELETE_SESSION_EXPIRE_TIME] > new DateTime()) $this->switchFailResponse();
     }
 } 

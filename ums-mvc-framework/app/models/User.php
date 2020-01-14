@@ -217,18 +217,25 @@ class User {
 
     /* ############# UPDATE FUNCTIONS ############# */
 
+    /* function to update a user */
     public function updateUser(int $id, array $data): array {
+        /* set fail result */
         $result = [
             MESSAGE => 'Update user failed',
             SUCCESS => FALSE
         ];
+
+        /* set user param */
         $param = [
             'name' => $data[NAME],
             'username' => $data[USERNAME],
             'id' => $id
         ];
-        
+
+        /* set sql query */
         $sql = 'UPDATE '.USERS_TABLE.' SET '.NAME.'=:name, '.USERNAME.'=:username';
+
+        /* if is setted add params */
         if (isset($data[EMAIL])) {
             $sql .= ', '.EMAIL.'=:email';
             $param['email'] = $data[EMAIL];
@@ -242,13 +249,15 @@ class User {
             $param['role_id'] = $data[ROLE_ID_FRGN];
         }
         $sql .= ' WHERE '.USER_ID.'=:id';
-        
+
+        /* get statement and execute query */
         $stmt = $this->conn->prepare($sql);
-        
         $stmt->execute($param);
-        if ($stmt->rowCount()) { // || $stmt->errorCode() == 0) {
+        /* if success set success result */
+        if ($stmt->rowCount() || $stmt->errorCode() == 0) { // || $stmt->errorCode() == 0) {
             $result[SUCCESS] = TRUE;
             $result[MESSAGE] = 'User successfully updated';
+        /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
         
         return $result;

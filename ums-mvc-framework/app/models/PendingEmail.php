@@ -58,7 +58,7 @@ class PendingEmail {
     public function getPendingEmailByUserId(string $userId) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE;
-        $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND '.ENABLER_TOKEN.'IS NOT NULL';
+        $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND '.ENABLER_TOKEN.' IS NOT NULL';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $userId]);
 

@@ -9,7 +9,7 @@
 		<meta name="keywords" content="<?=$this->keywords?>"/>
 		<meta name="robots" content="<?=$this->robots?>"/>
 		<meta name="googlebot" content="<?=$this->googlebot?>"/>
-		
+
 		<!-- Tells Google not to show the sitelinks search box -->
 		<!-- <meta name="google" content="nositelinkssearchbox"/> -->
 
@@ -22,7 +22,6 @@
 		<!-- For adult site - Filtered by SafeSearch -->
 		<!-- <meta name="rating" content="adult"/>
 		<meta name="rating" content="RTA-5042-1996-1400-1577-RTA"/> -->
-		
 
 		<meta name="author" content="Andrea Serra"/>
 		<link rel="icon" href="/favicon.ico" nonce="<?=$this->CSPImgNonce?>"/>
@@ -64,7 +63,7 @@
 						<a class="nav-link" href="/<?=HOME_ROUTE?>">Home</a>
 					</li>
 					<?php if ($this->loginSession): ?>
-						<?php if ($this->loginSession->{ROLE_ID_FRGN} !== DEFAULT_ROLE): ?>
+						<?php if (!$this->isSimpleUser()): ?>
 							<li class="nav-item">
 								<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>">UMS</a>
 							</li>
@@ -72,7 +71,7 @@
     					<li class="nav-item dropdown">
     						<a id="account" class="nav-link dropdown-toggle" href="/<?=ACCOUNT_SETTINGS_ROUTE?>" data-toggle="dropdown" data-target="#dropdown-account" aria-controls="#dropdown-account" aria-haspopup="true" aria-expanded="false">Account</a>
     						<div id="dropdown-account" class="dropdown-menu mx-auto">
-    							<h4 class="text-center"><a href="/user/info"><?=$this->loginSession->{USERNAME}?></a></h4>
+    							<h4 class="text-center"><a href="/<?=ACCOUNT_INFO_ROUTE?>"><?=$this->loginSession->{USERNAME}?></a></h4>
     							<div class="justify-content-center text-left p-4 mx-auto">
         							<p>
         								Full name: <span class="text-primary"><?=$this->loginSession->{NAME}?></span><br>
