@@ -7,16 +7,16 @@
 <!-- 	</div> -->
     <form id="user-update-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
-    		<label for="name">Full name</label>
-    		<input id="name" name="<?=NAME?>" value="<?=${USER}->{NAME}?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
+    		<label for="<?=NAME?>">Full name</label>
+    		<input id="<?=NAME?>" name="<?=NAME?>" value="<?=${USER}->{NAME}?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
     	</div>
     	<div class="form-group text-md-left">
-    		<label for="username">Username</label>
-    		<input id="username" name="<?=USERNAME?>" value="<?=${USER}->{USERNAME}?>" placeholder="Username" class="form-control validate-username evidence-error send-ajax" type="text" required="required">
+    		<label for="<?=USERNAME?>">Username</label>
+    		<input id="<?=USERNAME?>" name="<?=USERNAME?>" value="<?=${USER}->{USERNAME}?>" placeholder="Username" class="form-control validate-username evidence-error send-ajax" type="text" required="required">
     	</div>
     	<div class="form-group text-md-left">
-    		<label for="email">Email</label>
-    		<input id="email" name="<?=EMAIL?>" value="<?=${USER}->{EMAIL}?>" placeholder="Email" class="form-control validate-email evidence-error send-ajax" type="email" required="required">
+    		<label for="<?=EMAIL?>">Email</label>
+    		<input id="<?=EMAIL?>" name="<?=EMAIL?>" value="<?=${USER}->{EMAIL}?>" placeholder="Email" class="form-control validate-email evidence-error send-ajax" type="email" required="required">
     	</div>
     	<?php if (${WAIT_EMAIL_CONFIRM}): ?>
     		<div class="form-group text-md-left">
