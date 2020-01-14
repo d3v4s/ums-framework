@@ -1,9 +1,10 @@
 $(document).ready(function(){
 	/* click event on delete user button to send XML HTTP request */
 	$('#user-update-form #btn-delete').click(function(event) {
-		/* get form and button */
-		const $form = $('#user-update-form'),
-			$btn = $(this);
+		/* get form, button and action url */
+		const $btn = $(this),
+			$form = $('#user-update-form'),
+			actionUrl = $btn.attr('href');
 
 		/* block default submit form and show loading */
 		event.preventDefault();
@@ -15,53 +16,11 @@ $(document).ready(function(){
 	    	buttonFail  : "No",
 	    	message     : "Delete your account?"
 
-		}).done(function(){ /* confirm function */
-			/* get token */
-			const $xf = $form.find('#_xf');
-
-			/* success function */
-			funcSuccess = function(response) {
-				removeLoading($btn, 'Delete');
-				
-				try {
-					showMessage(response.message, !response.success);
-					if (response.success) setTimeout(redirect, 2000, '/');
-					else $xf.val(response.ntk);
-				} catch (e) {
-					showMessage('Delete user failed', true);
-				}
-			};
-
-			/* fail function */
-			funcFail = function() {
-				removeLoading($btn, 'Delete');
-				showMessage('Problem to contact server', true);
-			};
-
-			sendAjaxReq('/user/settings/delete/confirm', {}, $xf.val(), funcSuccess, funcFail);
-//			$.ajax({
-//				method: 'post',
-//				data: data,
-//				url: '/user/settings/delete/confirm',
-//				success: function(response) {
-//					removeLoading($btn, 'Delete');
-//	
-//					try {
-//						const response = JSON.parse(response);
-//						
-//						showMessage(response.message, !response.success);
-//						if (response.success) setTimeout(redirect, 2000, '/');
-//						else $xf.val(response.ntk);
-//					} catch (e) {
-//						showMessage('Delete user failed', true);
-//					}
-//				},
-//				failure: function() {
-//					removeLoading($btn, 'Delete');
-//					showMessage('Problem to contact server', true);
-//				}
-//			});
+		}).done(function(){
+			/* confirm function */
+			redirect(actionUrl);
 		}).fail(function(){
+			/* fail function*/
 			removeLoading($btn, 'Delete');
 		});
 	});
@@ -69,8 +28,9 @@ $(document).ready(function(){
 	/* submit event on update user form to send XML HTTP request */
 	$('#user-update-form').on('submit', function(event) {
 		/* get button, token and serialize data */
-		const $xf = $(this).find('#_xf'),
+		const $xf = $(this).find('#_xf_upd'),
 			$btn = $(this).find('#btn-update'),
+			actionUrl = $(this).attr('action'),
 			data = $(this).find('.send-ajax').serialize();
 
 		/* block default submit form and show loading */
@@ -83,10 +43,10 @@ $(document).ready(function(){
 
 			try {
 				showMessage(response.message, !response.success);
-				if (response.success) setTimeout(redirect, 2000, '/');
+				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
 				else {
 					focusError(response);
-					$xf.val(response.ntk);
+					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
 				showMessage('User update failed', true);
@@ -99,7 +59,8 @@ $(document).ready(function(){
 			showMessage('Problem to contact server', true);
 		};
 
-		sendAjaxReq('/user/settings/update', data, $xf.val(), funcSuccess, funcFail);
+		console.log($xf);
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 //		$.ajax({
 //			method: 'post',
 //			data: data,

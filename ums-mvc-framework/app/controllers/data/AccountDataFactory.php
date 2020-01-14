@@ -4,6 +4,7 @@ namespace app\controllers\data;
 use app\models\Role;
 use app\models\PendingEmail;
 use \PDO;
+use app\models\User;
 
 /**
  * Class data factory, to manage response data of user request
@@ -17,14 +18,16 @@ class AccountDataFactory extends DataFactory {
 
     /* function to get user data */
     public function getUserData($userId): array {
+        $userModel = new User($this->conn);
         $roleModel = new Role($this->conn);
         $pendMailModel = new PendingEmail($this->conn);
         return [
-            TOKEN_DELETE => generateToken(CSRF_DELETE_ACCOUNT),
-            TOKEN_UPDATE => generateToken(CSRF_UPDATE_ACCOUNT),
-            TOKEN_RESEND_ENABLER_EMAIL => generateToken(CSRF_RESEND_ENABLER_EMAIL),
-            TOKEN_DELETE_NEW_EMAIL => generateToken(CSRF_DELETE_NEW_EMAIL),
+//             DELETE_TOKEN => generateToken(CSRF_DELETE_ACCOUNT),
+            UPDATE_TOKEN => generateToken(CSRF_UPDATE_ACCOUNT),
+            DELETE_NEW_EMAIL_TOKEN => generateToken(CSRF_DELETE_NEW_EMAIL),
+            RESEND_ENABLER_EMAIL_TOKEN => generateToken(CSRF_RESEND_ENABLER_EMAIL),
             ROLES => $roleModel->getNameAndIdRoles(),
+            USER => $userModel->getUser($userId),
             WAIT_EMAIL_CONFIRM => $pendMailModel->getPendingEmailByUserId($userId)
         ];
     }

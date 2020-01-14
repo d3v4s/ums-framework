@@ -144,8 +144,8 @@ class Verifier {
         $result[GENERATE_TOKEN] = TRUE;
 
         /* init user model and validate user id */
-        $user = new User($this->conn);
-        if (!($usr = $user->getUser($id))) return $result;
+        $userModel = new User($this->conn);
+        if (!($user = $userModel->getUser($id))) return $result;
 
         /* get configuration of app */
 //         $umsConf = $this->appConfig[UMS];
@@ -165,7 +165,7 @@ class Verifier {
         }
 
         /* if username is chsnaged, then check if it already exists */
-        if ($usr->{USERNAME} !== $username && $user->getUserByUsername($username)) {
+        if ($user->{USERNAME} !== $username && $userModel->getUserByUsername($username)) {
             $result[MESSAGE] = 'User already exist with this username';
             $result[ERROR] = USERNAME;
             return $result;
@@ -179,8 +179,8 @@ class Verifier {
         }
 
         /* if email is changed, then check if it already exists */
-        if ($usr->email !== $email) {
-            if ($user->getUserByEmail($email)) {
+        if ($user->{EMAIL} !== $email) {
+            if ($userModel->getUserByEmail($email)) {
                 $result[MESSAGE] = 'User already exist with this email';
                 $result[ERROR] = EMAIL;
                 return $result;

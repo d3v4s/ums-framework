@@ -24,6 +24,6 @@
   				<span id="text-btn">Change</span>
 	    	</button>
     	</div>
-    	<input id="_xf" type="hidden" name="<?=CSRF_CHANGE_PASS?>" value="<?=${TOKEN}?>">
+    	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_CHANGE_PASS?>" value="<?=${TOKEN}?>">
     </form>
 </div>

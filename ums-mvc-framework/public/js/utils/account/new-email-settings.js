@@ -2,8 +2,9 @@ $(document).ready(function() {
 	/* click event on delete new email button to send XML HTTP request */
 	$('#user-update-form #btn-delete-new-email').click(function(event) {
 		/* get button and token */
-		const $form = $('#user-update-form'),
-			$btn = $(this);
+		const $btn = $(this),
+			actionUrl = $btn.val(),
+			$form = $('#user-update-form');
 
 		/* block default click event and disable button */
 		event.preventDefault();
@@ -17,7 +18,7 @@ $(document).ready(function() {
 
 		}).done(function() { /* confirm function */
 			/* get token */
-			const $xf = $form.find('#_xf');
+			const $xf = $form.find('#_xf_del_ml');
 
 			/* success function */
 			funcSuccess = function(response) {
@@ -25,7 +26,7 @@ $(document).ready(function() {
 				try {
 					showMessage(response.message, !response.success);
 					if (response.success) setTimeout(function() {location.reload();}, 2000);
-					else $xf.val(response.ntk);
+					else if (response.ntk !== undefined) $xf.val(response.ntk);
 				} catch (e) {
 					showMessage('Delete new email failed', true);
 				}
@@ -37,7 +38,7 @@ $(document).ready(function() {
 				showMessage('Problem to contact server', true);
 			};
 
-			sendAjaxReq('/user/settings/new/email/delete', {}, $xf.val(), funcSuccess, funcFail);
+			sendAjaxReq(actionUrl, {}, $xf, funcSuccess, funcFail);
 //			$.ajax({
 //				method: 'post',
 //				data: data,
@@ -58,9 +59,10 @@ $(document).ready(function() {
 	/* click event on delete user button to send XML HTTP request */
 	$('#user-update-form #btn-resend-email').click(function(event) {
 		/* get form, button and token */
-		const $form = $('#user-update-form'),
-			$btn = $(this),
-			$xf = $form.find('#_xf');
+		const $btn = $(this),
+			actionUrl = $btn.val(),
+			$form = $('#user-update-form'),
+			$xf = $form.find('#_xf_res_ml');
 
 		/* block default submit form and show disable button */
 		event.preventDefault();
@@ -71,7 +73,7 @@ $(document).ready(function() {
 			enableElement($btn);
 			try {
 				showMessage(response.message, !response.success);
-				$xf.val(response.ntk);
+				if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Email resend failed', true);
 			}
@@ -83,7 +85,7 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		};
 
-		sendAjaxReq('/user/settings/new/email/resend/validation', {}, $xf.val(), funcSuccess, funcFail);
+		sendAjaxReq(actionUrl, {}, $xf, funcSuccess, funcFail);
 //		$.ajax({
 //			method: 'post',
 //			data: data,

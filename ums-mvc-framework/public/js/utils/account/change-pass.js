@@ -3,24 +3,17 @@ $(document).ready(function (){
 	$('#change-pass-form').on('submit', function(event) {
 		/* get button and token */
 		const $btn = $(this).find('#btn-change'),
+			actionUrl = $(this).attr('action'),
+			$cryptData = $('.send-ajax-crypt'),
 			$xf = $(this).find('#_xf');
-		
+
 		/* block default submit form and show loading */
 		event.preventDefault();
 		showLoading($btn);
 
 		try {
-			/* init rsa and get passwords */
-			var rsa = new RSAKey(),
-			oldPass = $('#old-pass.send-ajax-crypt').val()
-			pass = $('#pass.send-ajax-crypt').val(),
-			cpass = $('#cpass.send-ajax-crypt').val();
-
-			/* crypt password */
-			rsa.setPublic(window.keyN, window.keyE);
-			oldPass = rsa.encrypt(oldPass);
-			pass = rsa.encrypt(pass);
-			cpass = rsa.encrypt(cpass);
+			/* crypt and serialize passwords */
+			const data = cryptSerialize($cryptData);
 		} catch (e) {
 			removeLoading($btn, 'Change');
 			showMessage('Change passord failed', true);
@@ -32,10 +25,10 @@ $(document).ready(function (){
 			removeLoading($btn, 'Change');
 			try {
 				showMessage(response.message, !response.success);
-				if (response.success) setTimeout(redirect, 2000, '/user/settings');
+				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
 				else {
 					focusError(response);
-					$xf.val(response.ntk);
+					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
 				showMessage('Change passord failed', true);
@@ -48,31 +41,6 @@ $(document).ready(function (){
 			showMessage('Problem to contact server', true);
 		};
 
-		/* set data to be sended */
-		data = {
-			"old-pass": oldPass,
-			"pass": pass,
-			"cpass": cpass,
-			"_xf": $xf.val()
-		};
-
-		sendAjaxReq('/user/settings/pass/update', data, $xf.val(), funcSuccess, funcFail);
-//		$.ajax({
-//			method: 'post',
-//			data: {
-//    			'old-pass': oldPass,
-//    			pass: pass,
-//    			cpass: cpass,
-//    			_xf: $xf.val()
-//			},
-//			url: '/user/settings/pass/update',
-//			success: function(response) {
-//    			
-//			},
-//			failure: function() {
-//				removeLoading($btn, 'Change');
-//				showMessage('Problem to contact server', true);
-//			}
-//		});
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });
