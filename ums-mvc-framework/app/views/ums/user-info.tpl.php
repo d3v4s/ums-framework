@@ -3,112 +3,58 @@
         <table class="table table-striped" id="users-table">
         	<tbody>
         		<tr>
-        			<th class="align-middle" colspan="2">User: <?=$user->username?></th>
+        			<th class="align-middle" colspan="2">User: <?=${USER}->{USERNAME}?></th>
         		</tr>
         		<tr>
         			<td class="text-primary align-middle">ID</td>
-        			<td class="align-middle"><?=$user->id?></td>
+        			<td class="align-middle"><?=${USER}->{USER_ID}?></td>
     			</tr>
     			<tr>
         			<td class="text-primary align-middle">Full name</td>
-        			<td class="align-middle"><?=$user->name?></td>
+        			<td class="align-middle"><?=${USER}->{NAME}?></td>
     			</tr>
     			<tr>
         			<td class="text-primary align-middle">Username</td>
-        			<td class="align-middle"><?=$user->username?></td>
+        			<td class="align-middle"><?=${USER}->{USERNAME}?></td>
     			</tr>
     			<tr>
         			<td class="text-primary align-middle">Email</td>
-        			<td class="align-middle"><?=$user->email?></td>
+        			<td class="align-middle"><?=${USER}->{EMAIL}?></td>
     			</tr>
-    			<?php if (isUserAdmin()): ?>
+    			<?php if (${VIEW_ROLE}): ?>
         			<tr>
             			<td class="text-primary align-middle">Role</td>
-            			<td class="align-middle"><?=$user->roletype?></td>
+            			<td class="align-middle"><?=${USER}->{ROLE}?></td>
         			</tr>
     			<?php endif; ?>
     			<tr>
     				<td class="text-primary align-middle">Registration date</td>
-    				<td class="align-middle"><?=$user->registration_day?></td>
+    				<td class="align-middle"><?=${USER}->{REGISTRATION_DATETIME}?></td>
     			</tr>
-    			<?php if ($viewNewEmail): ?>
-        			<tr>
-        				<td class="text-primary align-middle">
-        					New email<?=$_messageNewEmail?>
-        					<br>
-        					<form id="delete-new-email-form" action="/ums/user/delete/new/email" method="post">
-        						<button id="btn-delete-new-email" class="btn btn-link link-danger p-0" type="submit">Delete new email</button>
-        						<input id="_xf-dnm" name="_xf-dnm" value="<?=$tokenDeleteNewEmail?>" type="hidden">
-        						<input name="id" value="<?=$user->id?>" class="send-ajax" type="hidden">
-        					</form>
-    					</td>
-        				<td class="align-middle"><?=$user->new_email?></td>
-        			</tr>
-    			<?php endif; ?>
     			<tr>
-    				<td class="text-primary align-middle">
-    					N. wrong password<?=$_messageWrongPassword?>
-    					<br>
-    					<span class="text-secondary">Max wrong passwords: <?=$maxWrongPass?></span>
-					</td>
-    				<td class="align-middle"><?=$user->n_wrong_password?></td>
-				</tr>
-    			<?php if ($viewDateTimeResetWrongPass): ?>
-    				<tr>
-        				<td class="text-primary align-middle">
-        					Date time reset wrong passwords
-        					<br>
-        					<form id="reset-wrong-pass-form" action="/ums/user/update/reset/wrong/pass" method="post">
-        						<button id="btn-reset-wrong-pass" class="btn btn-link link-danger p-0" type="submit">Reset wrong passwords</button>
-        						<input id="_xf-rwp" name="_xf-rwp" value="<?=$tokenResetWrongPass?>" type="hidden">
-        						<input name="id" value="<?=$user->id?>" class="send-ajax" type="hidden">
-        					</form>
-    					</td>
-        				<td class="align-middle"><?=$user->datetime_reset_wrong_password?></td>
-    				</tr>
-    			<?php endif; ?>
-    			<tr>
-    				<td class="text-primary align-middle">N. locks<?=$_messageLockUser?></td>
-    				<td class="align-middle"><?=$user->n_locks?></td>
-				</tr>
-				<?php if ($viewDateTimeUnlockUser): ?>
-    				<tr>
-        				<td class="text-primary align-middle">
-        					Date time unlock user<?=$_messageUnlockUser?>
-        					<br>
-        					<form id="reset-lock-user-form" action="/ums/user/update/reset/lock" method="post">
-        						<button id="btn-reset-lock" class="btn btn-link link-danger p-0" type="submit">Reset lock user</button>
-        						<input id="_xf-rlu" name="_xf-rlu" value="<?=$tokenResetLockUser?>" type="hidden">
-        						<input name="id" value="<?=$user->id?>" class="send-ajax" type="hidden">
-        					</form>
-    					</td>
-        				<td class="align-middle"><?=$user->datetime_unlock_user?></td>
-    				</tr>
-    			<?php endif; ?>
-    			<tr>
-    				<td colspan="2" class="align-middle <?=$classEnabledAccount?>"><?=$_messageEnable?></td>
+    				<td colspan="2" class="align-middle <?=${CLASS_ENABLE_ACC}?>"><?=${NO_ESCAPE.MESSAGE_ENABLE_ACC}.${NO_ESCAPE.MESSAGE_LOCK_ACC}?></td>
     			</tr>
         	</tbody>
         </table>
     </div>
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
-    	    <?php if (userCanUpdate()): ?>
-    	    	<a class="btn btn-warning mx-3 my-1" href="/ums/user/<?=$user->id?>/update"><i class="fa fa-pen fa-xs"></i> Update</a>
+    	    <?php if (${CAN_UPDATE_USER}): ?>
+    	    	<a class="btn btn-warning mx-3 my-1" href="/<?=USER_ROUTE.'/'.${USER}->{USER_ID}.'/'.UPDATE_ROUTE?>"><i class="fa fa-pen fa-xs"></i> Update</a>
     	    <?php endif; ?>
-    	    <?php if (userCanDelete()): ?>
-    	    	<form id="delete-user-form" action="/ums/user/<?=$user->id?>/delete/confirm" method="post">
-    	    		<a id="btn-delete-user" href="/ums/user/<?=$user->id?>/delete" class="btn btn-danger mx-3 my-1">
+    	    <?php if (${CAN_DELETE_USER}): ?>
+    	    	<form id="delete-user-form" action="/<?=USER_ROUTE.'/'.DELETE_ROUTE?>" method="get">
+    	    		<button id="btn-delete-user" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fa fa-trash-alt fa-xs"></i>
 	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
   						<span id="text-btn">Delete</span>
-	    			</a>
-    		    	<input id="_xf-du" name="_xf-du" value="<?=$tokenDeleteUser?>" type="hidden">
-    		    	<input name="id" value="<?=$user->id?>" class="send-ajax" type="hidden">
+	    			</button>
+    		    	<input id="<?=TOKEN?>" name="<?=CSRF_DELETE_USER?>" value="<?=${TOKEN}?>" type="hidden">
+    		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
     	    	</form>
     	    <?php endif; ?>
-    	    <?php if (userCanChangePasswords()): ?>
-    	    	<a class="btn btn-primary mx-3 my-1" href="/ums/user/<?=$user->id?>/update/pass"><i class="fas fa-key"></i> Change Password</a>
+    	    <?php if (${CAN_CHANGE_PASSWORD}): ?>
+    	    	<a class="btn btn-primary mx-3 my-1" href="/<?=USER_ROUTE.'/'.${USER}->{USER_ID}.'/'.PASS_UPDATE_ROUTE?>"><i class="fas fa-key"></i> Change Password</a>
 	    	<?php endif; ?>
     	</div>
     </div>

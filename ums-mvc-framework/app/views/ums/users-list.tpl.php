@@ -2,13 +2,13 @@
 <div class="container-fluid">
     <header class="p-3">
     	<nav class="navbar navbar-expand-md justify-content-center">
-    		<form id="search-form" class="form-inline" action="<?=$searchAction?>" method="get">
+    		<form id="search-form" class="form-inline" action="<?=${SEARCH_ACTION}?>" method="get">
                 <input 	
                 		class="form-control mr-sm-2"
-                		name="search" id="search"
+                		name="<?=SEARCH?>" id="search"
                 		type="text"
                 		placeholder="Search"
-                		value="<?=$search?>"
+                		value="<?=${SEARCH}?>"
                 		aria-label="Search"
                 		autofocus="autofocus"
         		>
@@ -19,10 +19,10 @@
     	</nav>
     	<div class="row justify-content-center col-7 mx-auto">
     		<label class="my-auto mx-2">Users for page</label>
-    		<?php foreach ($usersForPageList as $ufp): ?>
+    		<?php foreach (USERS_FOR_PAGE_LIST as $ufp): ?>
     			<a
-    				class="btn btn-<?=$usersForPage == $ufp ? 'secondary disabled' : 'primary'?> p-1 px-2 m-2"
-    				href="<?=$baseLinkUfp . $ufp . $searchQuery?>"
+    				class="btn btn-<?=${USERS_FOR_PAGE} == $ufp ? 'secondary disabled' : 'primary'?> p-1 px-2 m-2"
+    				href="<?=${BASE_LINK_USER_FOR_PAGE} . $ufp . ${SEARCH_QUERY}?>"
 				><?=$ufp?></a>
     		<?php endforeach; ?>
     	</div>
@@ -32,34 +32,34 @@
         	<thead>
         		<tr>
         			<th colspan="9" class="text-center">
-        				<span>TOTAL USERS <?=$totUsers?> - Page <?=$page?>/<?=$maxPages?></span>
+        				<span>TOTAL USERS <?=${TOT_USERS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
         		<tr>
         			<th class="w-5">
-        				<a href="<?=$linkHeadId?>">#</a>
-        				<i class="<?=$classHeadId?>"></i>
+        				<a href="<?=${LINK_HEAD_ID}?>">#</a>
+        				<i class="<?=${CLASS_HEAD_ID}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=$linkHeadName?>">NAME</a>
-        				<i class="<?=$classHeadName?>"></i>
+        				<a href="<?=${LINK_HEAD_USERNAME}?>">USERNAME</a>
+        				<i class="<?=${CLASS_HEAD_USERNAME}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=$linkHeadUsername?>">USERNAME</a>
-        				<i class="<?=$classHeadUsername?>"></i>
+        				<a href="<?=${LINK_HEAD_NAME}?>">NAME</a>
+        				<i class="<?=${CLASS_HEAD_NAME}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=$linkHeadEmail?>">EMAIL</a>
-        				<i class="<?=$classHeadEmail?>"></i>
+        				<a href="<?=${LINK_HEAD_EMAIL}?>">EMAIL</a>
+        				<i class="<?=${CLASS_HEAD_EMAIL}?>"></i>
         			</th>
 					<th>
-        				<a href="<?=$linkHeadEnabled?>">STATE</a>
-        				<i class="<?=$classHeadEnabled?>"></i>
+        				<a href="<?=${LINK_HEAD_ENABLED}?>">STATE</a>
+        				<i class="<?=${CLASS_HEAD_ENABLED}?>"></i>
         			</th>
-        			<?php if (isUserAdmin()): ?>
+        			<?php if (${VIEW_ROLE}): ?>
             			<th>
-            				<a href="<?=$linkHeadRole?>">ROLE</a>
-            				<i class="<?=$classHeadRole?>"></i>
+            				<a href="<?=${LINK_HEAD_ROLE}?>">ROLE</a>
+            				<i class="<?=${CLASS_HEAD_ROLE}?>"></i>
             			</th>
         			<?php endif; ?>
         			<th>
@@ -68,30 +68,30 @@
         	</thead>
         	<tbody>
         	<?php
-            	if (isset($users)) :
-            	    foreach ($users as $user):
+        	if (isset(${USERS})):
+        	   foreach (${USERS} as $user):
             	    ?>
             	        <tr>
-            	        	<td class="align-middle"><?= $user->id?></td>
-            	        	<td class="align-middle"><?= $user->name?></td>
+            	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/ums/user/<?=$user->id?>">
-    		        	        	<?= $user->username?>
+            	        		<a href="/<?=USER_ROUTE.'/'.$user->{USER_ID}?>">
+    		        	        	<?= $user->{USERNAME}?>
             	        		</a>
             	        	</td>
+            	        	<td class="align-middle"><?=$user->{NAME}?></td>
             	        	<td class="align-middle">
-            	        		<a href="mailto:<?=$user->email?>">
-            	        			<?=$user->email?>
+            	        		<a href="/<?=NEW_EMAIL_ROUTE.'?to='.$user->{EMAIL}?>">
+            	        			<?=$user->{EMAIL}?>
             	        		</a>
             	        	</td>
-            	        	<td class="align-middle"><?= $user->enabled ? 'enabled' : 'disabled'?></td>
-            	        	<?php if (isUserAdmin()): ?>
-            	        		<td class="align-middle"><?= $user->roletype?></td>
+            	        	<td class="align-middle"><?=$user->{ENABLED} ? 'enabled' : 'disabled'?></td>
+            	        	<?php if (${VIEW_ROLE}): ?>
+            	        		<td class="align-middle"><?= $user->{ROLE}?></td>
             	        	<?php endif;?>
             	        	<td class="align-middle">
             	        		<div class="row">
             	        			<div class="col-lg-6 col-md-6 col-sm-7 col-xs-8 my-1">
-            	        				<a class="btn btn-warning text-cente" href="/ums/user/<?=$user->id?>/update">Update</a>
+            	        				<a class="btn btn-warning text-cente" href="/<?=USER_ROUTE.'/'.$user->{USER_ID}.'/'.UPDATE_ROUTE?>">Update</a>
             	        			</div>
             	        		</div>
             	        	</td>

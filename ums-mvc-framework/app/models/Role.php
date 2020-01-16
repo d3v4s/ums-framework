@@ -81,7 +81,7 @@ class Role {
 
         $result = [];
         /* check statement, get role list and set result */
-        if ($stmt && ($roles = $stmt->fetchAll(PDO::FETCH_ASSOC))) foreach ($roles as $role) $result[] = $role[ROLE];
+        if ($stmt && ($roles = $stmt->fetchAll(PDO::FETCH_ASSOC))) foreach ($roles as $role) $result[] = $role[ROLE_ID];
         
         /* return result */
         return $result;

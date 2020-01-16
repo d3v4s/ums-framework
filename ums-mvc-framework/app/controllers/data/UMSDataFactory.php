@@ -1,4 +1,5 @@
 <?php
+
 namespace app\controllers\data;
 
 use app\models\User;
@@ -6,6 +7,9 @@ use app\models\Role;
 use \DateTime;
 use \PDO;
 use app\models\PendingEmail;
+use app\models\PendingUser;
+use app\models\Session;
+use app\models\DeletedUser;
 
 /**
  * Class data factory, used for generate
@@ -15,7 +19,7 @@ use app\models\PendingEmail;
  */
 class UMSDataFactory extends DataFactory {
 
-    protected function __construct(PDO $conn = NULL) {
+    protected function __construct(PDO $conn=NULL) {
         parent::__construct($conn);
     }
 
@@ -28,11 +32,29 @@ class UMSDataFactory extends DataFactory {
         $userModel = new User($this->conn);
         $totUsers = $userModel->countUsers();
 
-        $pendMailModel = new PendingEmail($this->conn);
-        $totPendMails = $pendMailModel->countPendMails;
+        /* init deleted user model and count deleted users */
+        $delUserModel = new DeletedUser($this->conn);
+        $totDeleted = $delUserModel->countDeletedUsers();
 
+        /* init pending user model and count pending users */
+        $pendingUserModel = new PendingUser($this->conn);
+        $totPendUsers = $pendingUserModel->countPendingUsers();
+
+        /* init pending mails modele and count all pending mails */
+        $pendMailModel = new PendingEmail($this->conn);
+        $totPendMails = $pendMailModel->countPendingMails();
+
+        /* init session model and count sessions */
+        $sessionModel = new Session($this->conn);
+        $totSessions = $sessionModel->countSessions();
+
+        /* return data */
         return [
-            TOT_USERS => $totUsers
+            TOT_USERS => $totUsers,
+            TOT_DELETED_USERS => $totDeleted,
+            TOT_PENDING_USERS => $totPendUsers,
+            TOT_PENDING_MAILS => $totPendMails,
+            TOT_SESSIONS => $totSessions
         ];
     }
 
@@ -153,16 +175,7 @@ class UMSDataFactory extends DataFactory {
     }
 
     /* function to get data of user */
-    public function getUserData($user): array {
-//         /* new email vars */
-//         $messageNewEmail = '';
-//         $viewNewEmail = FALSE;
-//         /* if is set a new email, then show with message */
-//         if (isset($user->new_email)) {
-//             $viewNewEmail = TRUE;
-//             $messageNewEmail = isset($user->token_confirm_email) ? '<br>Wait confirmed' : '';
-//         }
-
+    public function getUserData($user, $datetimeFormat): array {
         /* enable account class */
         $classEnabledAccount = 'text-';
         /* if account is enable */
@@ -173,47 +186,27 @@ class UMSDataFactory extends DataFactory {
         } else {
             $classEnabledAccount .= 'danger';
             $messageEnable = 'DISABLED';
-//             if (isset($user->token_account_enabler)) $messageEnable .= '<br>Wait confirmed';
         }
-
-//         /* wrong passwords vars */
-//         $messageWrongPass = '';
-//         $viewDateTimeResetWrongPass = FALSE;
-//         /* if user have wrong passwords, then show the message */
-//         if (isset($user->datetime_reset_wrong_password)) {
-//             $viewDateTimeResetWrongPass = TRUE;
-//             if (new DateTime($user->datetime_reset_wrong_password) < new DateTime()) $messageWrongPass = '<br>Wrong passwords expired';
-//             $user->datetime_reset_wrong_password = date($this->appConfig['app']['datetimeFormat'], strtotime($user->datetime_reset_wrong_password));
-//         }
-//         $messageLockUser = $user->n_locks >= $this->appConfig['app']['maxLocks'] ? '<br>Max limits of locks reached' : '';
 
         /* init message */
         $messageLockUser = '';
         /* if user has a lock, then set message and format the date */
         if (($isLock = (isset($user->{EXPIRE_LOCK}) && new DateTime($user->{EXPIRE_LOCK}) > new DateTime()))) {
-            $user->{EXPIRE_LOCK} = date($this->appConfig[APP][DATETIME_FORMAT], strtotime($user->{EXPIRE_LOCK}));
+            $user->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($user->{EXPIRE_LOCK}));
             $messageLockUser = '<br>Temporarily locked';
         }
 
         /* format the date */
-        $user->{REGISTRATION_DATETIME} = date($this->appConfig[APP][DATETIME_FORMAT], strtotime($user->{REGISTRATION_DATETIME}));
+        $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
 
         /* return data */
         return [
             USER => $user,
-            CSRF_UNLOCK_USER => generateToken(CSRF_UNLOCK_USER),
-            CSRF_DELETE_USER => generateToken(CSRF_DELETE_USER),
+            IS_LOCK => $isLock,
+            TOKEN => generateToken(CSRF_DELETE_USER),
             CLASS_ENABLE_ACC => $classEnabledAccount,
             NO_ESCAPE.MESSAGE_ENABLE_ACC => $messageEnable,
-            IS_LOCK => $isLock,
             NO_ESCAPE.MESSAGE_LOCK_ACC => $messageLockUser
-//             'tokenDeleteNewEmail' => generateToken('csrfDeleteNewEmail'),
-//             'tokenResetWrongPass' => generateToken('csrfResetWrongPass'),
-//             'viewNewEmail' => $viewNewEmail,
-//             '_messageNewEmail' => $messageNewEmail,
-//             'viewDateTimeResetWrongPass' => $viewDateTimeResetWrongPass,
-//             '_messageWrongPassword' => $messageWrongPass,
-//             'maxWrongPass' => $this->appConfig['app']['maxWrongPassword'],
         ];
     }
 
@@ -229,8 +222,8 @@ class UMSDataFactory extends DataFactory {
         /* return data */
         return [
             USER => $usr,
-            TOKEN => generateToken(CSRF_UPDATE_USER),
             ROLES => $role->getNameAndIdRoles(),
+            TOKEN => generateToken(CSRF_UPDATE_USER),
             NO_ESCAPE.ENABLED => ($usr->enabled) ? CHECKED : ''
         ];
     }
@@ -241,8 +234,9 @@ class UMSDataFactory extends DataFactory {
         $role = new Role($this->conn);
         /* return data */
         return [
+            ROLES => $role->getNameAndIdRoles(),
             TOKEN => generateToken(CSRF_NEW_USER),
-            ROLES => $role->getNameAndIdRoles()
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
         ];
     }
 }

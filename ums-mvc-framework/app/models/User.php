@@ -35,22 +35,20 @@ class User {
         $password = $cryptPass ? password_hash($data[PASSWORD], PASSWORD_DEFAULT) : $data[PASSWORD];
 //         $roleId = $data[ROLE] ?? $this->appConfig[DEFAULT_USER_ROLE];
         
-        /* prepare sql query and execute it */
-        $sql = 'INSERT INTO '.USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLED.', '.REGISTRATION_DATETIME.') VALUES ';
-        $sql .= "(:name, :username, :email, :password, :role_id, :enabled, :reg_datetime)";
+        /* create sql query */
+        $sql = 'INSERT INTO '.USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLED.') VALUES ';
+        $sql .= '(:name, :username, :email, :password, :role_id, :enabled)';
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(
-            [
-                'name' => $data[NAME],
-                'username' => $data[USERNAME],
-                'email' => $data[EMAIL],
-                'password' => $password,
-                'role_id' => $data[ROLE],
-                'enabled' => (int) $data[ENABLED],
-                'reg_datetime' => $data[REGISTRATION_DATETIME] ?? NULL
-                
-            ]
-            );
+        /* execute sql query */
+        $sqlData = [
+            'name' => $data[NAME],
+            'username' => $data[USERNAME],
+            'email' => $data[EMAIL],
+            'password' => $password,
+            'role_id' => $data[ROLE_ID_FRGN],
+            'enabled' => (int) $data[ENABLED]
+        ];
+        $stmt->execute($sqlData);
         
         /* if sql query success, then set success result */
         if ($stmt && $stmt->rowCount()) {
@@ -60,6 +58,47 @@ class User {
         /* else set error info result */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
 
+        /* return result */
+        return $result;
+    }
+
+    /* function to save new user */
+    public function saveUserSetRegistrationDatetime(array $data, bool $cryptPass=TRUE): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Save user failed',
+            SUCCESS => FALSE
+        ];
+        
+        //         $data[PASSWORD] = $data[PASSWORD]; // ?? $this->appConfig[UMS][PASS_DEFAULT];
+        /* create hash of password */
+        $password = $cryptPass ? password_hash($data[PASSWORD], PASSWORD_DEFAULT) : $data[PASSWORD];
+        //         $roleId = $data[ROLE] ?? $this->appConfig[DEFAULT_USER_ROLE];
+        
+        /* create sql query */
+        $sql = 'INSERT INTO '.USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLED.', '.REGISTRATION_DATETIME.') VALUES ';
+        $sql .= '(:name, :username, :email, :password, :role_id, :enabled, :reg_datetime)';
+        $stmt = $this->conn->prepare($sql);
+        /* execute sql query */
+        $sqlData = [
+            'name' => $data[NAME],
+            'username' => $data[USERNAME],
+            'email' => $data[EMAIL],
+            'password' => $password,
+            'role_id' => $data[ROLE_ID_FRGN],
+            'enabled' => (int) $data[ENABLED],
+            'reg_datetime' => $data[REGISTRATION_DATETIME]
+        ];
+        $stmt->execute($sqlData);
+        
+        /* if sql query success, then set success result */
+        if ($stmt && $stmt->rowCount()) {
+            $result[USER_ID] = $this->conn->lastInsertId();
+            $result[MESSAGE] = 'New user saved successfully';
+            $result[SUCCESS] = TRUE;
+            /* else set error info result */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
         /* return result */
         return $result;
     }
@@ -92,13 +131,14 @@ class User {
     public function getUsersAndRole(string $orderBy = USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
         /* set sql query */ 
         $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
         /* if it is set, append search query */
         if (!empty($search)) {
-            $sql .= ' WHERE '.USER_ID.' = :searchId OR ';
+            $sql .= ' WHERE '.USER_ID.'=:searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
-            $sql .= EMAIL.'LIKE :search OR ';
-            $sql .= ROLE_ID_FRGN.' LIKE :search ';
+            $sql .= EMAIL.' LIKE :search OR ';
+            $sql .= ROLE.' LIKE :search ';
         }
         /* validate order by, order direction, start and num of row */
         $orderBy = in_array($orderBy, ORDER_BY_LIST) ? $orderBy : USER_ID;
@@ -107,7 +147,7 @@ class User {
         $nRow = is_numeric($nRow) ? $nRow : 20;
 
         /* prepare and execute sql query */
-        $sql .= "ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
         $stmt = $this->conn->prepare($sql);
         $data = empty($search)? [] : [
             'searchId' => $search,
@@ -131,7 +171,25 @@ class User {
         $stmt = $this->conn->prepare('SELECT * FROM '.USERS_TABLE.' WHERE '.USER_ID.'=:id');
         $stmt->bindParam('id', $id, PDO::PARAM_INT);
         $stmt->execute();
+        /* if success query and find user return user */
+        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+            if ($unsetPassword) unset($user->{PASSWORD});
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
 
+    /* function to get user and role by id */
+    public function getUserAndRole(int $id, bool $unsetPassword = TRUE) {
+        /* prepare sql query and execute it */
+        $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $sql .= ' WHERE '.USER_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam('id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
         /* if success query and find user return user */
         if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             if ($unsetPassword) unset($user->{PASSWORD});
@@ -176,6 +234,26 @@ class User {
         return FALSE;
     }
 
+    /* function to get user and role by username */
+    public function getUserAndRoleByUsername(string $username, bool $unsetPassword = TRUE) {
+        /* prepare sql query and execute it */
+        /* prepare sql query and execute it */
+        $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $sql .= ' WHERE '.USERNAME.'=:username';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['username' => $username]);
+        
+        /* if find user return it */
+        if ($stmt && $user = $stmt->fetch(PDO::FETCH_OBJ)) {
+            /* unset password if require */
+            if ($unsetPassword) unset($user->{PASSWORD});
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
+
     /* function to get user lock property */
     public function getUserLock(int $id) {
 //         /* set fail results */
@@ -208,14 +286,15 @@ class User {
     /* function to count the users on table */
     public function countUsers(string $search = ''): int {
         /* create sql query */
-        $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE;
+        $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
         /* if it is set, append search query */
         if (!empty($search)) {
             $sql .= ' WHERE '.USER_ID.'=:searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
-            $sql .= EMAIL.' LIKE :search';
-//             $sql .= 'roletype LIKE :search';
+            $sql .= EMAIL.' LIKE :search OR ';
+            $sql .= ROLE.' LIKE :search';
         }
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);

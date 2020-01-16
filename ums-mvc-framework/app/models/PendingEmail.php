@@ -103,6 +103,17 @@ class PendingEmail {
         return FALSE;
     }
 
+    /* function to count the pending mails on table */
+    public function countPendingMails(): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_EMAILS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL';
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
     /* ############# UPDATE FUNCTIONS ############# */
 
     /* function to remove email enabler token on pending emails table */

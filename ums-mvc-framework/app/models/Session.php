@@ -62,18 +62,22 @@ class Session {
 
         /* if find user chech if session is expire */
         if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
-            /* if is expire session */
-            if (new DateTime($user->{EXPIRE_DATETIME}) < new DateTime()) {
-                /* remove session token and return false */
-                $this->removeLoginSession($user->{SESSION_ID});
-                return FALSE;
-            }
             /* else unset password and return user */
             if ($unsetPassword) unset($user->password);
             return $user;
         }
         /* else return false */
         return FALSE;
+    }
+
+    public function countSessions(): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' WHERE '.SESSION_TOKEN.' IS NOT NULL';
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
 
     /* ############# UPDATE FUNCTIONS ############# */

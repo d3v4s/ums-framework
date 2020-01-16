@@ -513,7 +513,6 @@ class LoginController extends Controller {
         $verifier = LoginVerifier::getInstance($this->conn);
         $resEnable = $verifier->verifyEnableAccount($token);
         
-        
         /* if verifier fails, show page not found and return */
         /* set url to redirect */
         $redirectTo = '/'.SIGNUP_ROUTE;
@@ -534,13 +533,13 @@ class LoginController extends Controller {
             USERNAME => $resEnable[USER]->{USERNAME},
             EMAIL => $resEnable[USER]->{EMAIL},
             PASSWORD => $resEnable[USER]->{PASSWORD},
-            ROLE => $resEnable[USER]->{ROLE_ID_FRGN},
+            ROLE_ID_FRGN => $resEnable[USER]->{ROLE_ID_FRGN},
             ENABLED => TRUE,
             REGISTRATION_DATETIME => $resEnable[USER]->{REGISTRATION_DATETIME}
         ];
         /* init user model and save user */
         $user = new User($this->conn);
-        $res = $user->saveUser($dataUsr, FALSE);
+        $res = $user->saveUserSetRegistrationDatetime($dataUsr, FALSE);
         /* set session message */
         if (isset($res[MESSAGE])){
             $_SESSION[MESSAGE] = $res[MESSAGE];
@@ -553,7 +552,7 @@ class LoginController extends Controller {
         /* remove account enabler token and redirect on login page */
         $pendUser = new PendingUser($this->conn);
         $pendUser->removeAccountEnablerToken($token);
-        redirect('/'.LOGIN_ROUTE);
+        redirect('/'.($this->loginSession ? HOME_ROUTE : LOGIN_ROUTE));
     }
 
     /* function to validate a new email */

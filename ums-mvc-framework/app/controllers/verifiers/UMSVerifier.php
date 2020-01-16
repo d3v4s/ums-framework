@@ -28,12 +28,19 @@ class UMSVerifier extends Verifier {
         /* validate name, email, username, password and token */
         $result = $this->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
 
-        $roleModel = new Role($this->conn);
-        /* validate role type */
-        if ($result[SUCCESSC] && !in_array($role, $roleModel->getRoleIdList())) {
-            $result[MESSAGE] = 'Invalid roletype';
-            $result[ERROR] = ROLE_ID_FRGN;
+        /* if success */
+        if ($result[SUCCESS]) {
             $result[SUCCESS] = FALSE;
+            $result[MESSAGE] = 'Add new user failed';
+            /* init role model and validate role type */
+            $roleModel = new Role($this->conn);
+            if (in_array($role, $roleModel->getRoleIdList())) {
+                $result[SUCCESS] = TRUE;
+                unset($result[MESSAGE]);
+            } else {
+                $result[MESSAGE] = 'Invalid roletype';
+                $result[ERROR] = ROLE_ID_FRGN;
+            }
         }
 
         /* return result */
@@ -48,10 +55,16 @@ class UMSVerifier extends Verifier {
         $roleModel = new Role($this->conn);
         
         /* validate role type */
-        if ($result[SUCCESS] && !in_array($role, $roleModel->getRoleIdList())) {
-            $result[MESSAGE] = 'Invalid roletype';
-            $result[ERROR] = ROLE_ID_FRGN;
+        if ($result[SUCCESS]) {
             $result[SUCCESS] = FALSE;
+            $result[MESSAGE] = 'Update user failed';
+            if (in_array($role, $roleModel->getRoleIdList())) {
+                $result[SUCCESS] = TRUE;
+                unset($result[MESSAGE]);
+            } else {
+                $result[MESSAGE] = 'Invalid roletype';
+                $result[ERROR] = ROLE_ID_FRGN;
+            }
         }
 
         /* return result */
@@ -66,15 +79,15 @@ class UMSVerifier extends Verifier {
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
-        
+
         /* validate tokens nad user id */
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
 
         /* init user model and validate user */
-        $user = new User($this->conn, $this->appConfig);
+        $user = new User($this->conn);
         if ($user->getUser($id)) return $result;
-        
+
         /* unset error message */
         unset($result[MESSAGE]);
 
@@ -141,8 +154,8 @@ class UMSVerifier extends Verifier {
         $result[GENERATE_TOKEN] = TRUE;
         
         /* init user model and validate user id*/
-        $user = new User($this->conn, $this->appConfig);
-        if ($user->getUser($id)) return $result;
+        $user = new User($this->conn);
+        if (!$user->getUser($id)) return $result;
 
         /* confirm password */
         if ($pass !== $cpass) {

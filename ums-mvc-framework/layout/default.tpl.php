@@ -44,14 +44,7 @@
         <?php endforeach; ?>
 	</head>
 	<body>
-		<div id="message-box" class="rounded-bottom text-white container-fluid jutify-content-center bg-blue text-center position-absolute z-index-1 row over-top mx-auto">
-			<div class="col-1 container-fluid mx-0">
-			</div>
-			<div id="txt-message" class="col-8 container-fluid"></div>
-			<div class="col-1 text-black text-right justify-content-right container-fluid mx-0">
-				<button id="close-message-box" class="btn btn-link p-0 btn-close-msg" type="button"><i class="far fa-times-circle"></i></button>
-			</div>
-		</div>
+		<?php require_once MESSAGE_BOX_TEMPLATE?>
 		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
 			<a class="navbar-brand" href="/">DevAS</a>
 			<button id="collapse-navbar" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-ums" aria-controls="#navbar-ums" aria-expanded="false" aria-label="Toggle navigation">
@@ -64,7 +57,7 @@
 					</li>
 					<?php if ($this->loginSession): ?>
 						<?php if (!$this->isSimpleUser()): ?>
-							<li class="nav-item">
+							<li class="nav-item <?=$this->isUmsHome ? 'active' : ''?>">
 								<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>">UMS</a>
 							</li>
 						<?php endif; ?>
@@ -102,23 +95,9 @@
 				</ul>
 			</div>
 		</nav>
-		<?php if ($this->isSettings): ?>
-    		<nav class="navbar navbar-expand navbar-dark bg-dark">
-    			<div id="navbar-settings" class="collapse navbar-collapse">
-    				<label class="text-white p-2 my-auto">Settings</label>
-    				<ul class="navbar-nav mr-auto">
-    					<?php foreach ($this->appSectionsList as $key => $appSection): ?>
-    						<li class="nav-item <?=$appSection === $this->section ? 'active' : ''?>">
-        						<a class="nav-link" href="/ums/app/settings/<?=$appSection?>"><?=$key?></a>
-        					</li>
-    					<?php endforeach; ?>
-					</ul>
-    			</div>
-    		</nav>
-		<?php endif; ?>
 		<main role="main">
 			<div class="container-fluid p-3 my-2 justify-content-center text-center">
-				<?php require_once SHOW_SESSION_MESSAGE; ?>
+				<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE; ?>
 				<div class="mx-auto justify-content-center text-center p-4">
 					<?=$this->content?>
 				</div>

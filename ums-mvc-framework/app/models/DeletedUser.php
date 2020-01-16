@@ -124,6 +124,17 @@ class DeletedUser {
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
 
+//     /* function to count the pending mails on table */
+//     public function countDeletedUsers(): int {
+//         /* create sql query */
+//         $sql = 'SELECT COUNT(*) AS total FROM '.DELETED_USER_TABLE;
+//         /* execute sql query */
+//         $stmt = $this->conn->prepare($sql);
+//         $stmt->execute();
+//         /* return total users */
+//         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+//     }
+
 //     /* ############# UPDATE FUNCTIONS ############# */
 
 //     /* function to remove account enabler token on pending users table */

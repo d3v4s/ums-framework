@@ -66,8 +66,14 @@ class AccountController extends Controller {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
 
+        /* init user model */
+        $userModel = new User($this->conn);
+        $data = [
+            USER => $userModel->getUserAndRole($this->loginSession->{USER_ID}),
+            VIEW_ROLE => !$this->isSimpleUser()
+        ];
         /* generate token and show change account info page */
-        $this->content = view(getPath('account','info'), [USER => $this->loginSession]);
+        $this->content = view(getPath('account','info'), $data);
     }
     /* function to view password change page */
     public function showChangePassword() {
