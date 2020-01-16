@@ -9,13 +9,13 @@ use app\controllers\data\AppSettingsDataFactory;
  * Class controller to mange update and view of app settings
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class AppSettingsController extends Controller {
+class AppSettingsController extends UMSBaseController {
     protected $section;
     protected $appSectionsList = [];
 
     public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
-        $this->appSectionsList =  array_keys($this->appConfig);  // getList('appSections');
+        $this->appSectionsList =  array_keys($this->appConfig);
     }
 
     /* ##################################### */
@@ -36,12 +36,16 @@ class AppSettingsController extends Controller {
 
         /* get app section and generate data output */
         $this->section = $section;
-        $data = AppSettingsDataFactory::getInstance($this->appConfig)->getAppSettingsData($section);
+        $data = AppSettingsDataFactory::getInstance()->getAppSettingsData($section, $this->appConfig);
 
         /* add js source */
         array_push($this->jsSrcs,
-            [SOURCE => "/js/utils/ums/adm-sttng-$section.js"]
+            [SOURCE => '/js/utils/ums/settings.js']
         );
+
+        /* add other js sources */
+        if ($section === LAYOUT) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/layout-settings.js']);
+        elseif ($section === RSA) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/gen-save-rsa.js']);
 
         /* show settings page */
         $this->content = view(getPath('settings', $section), $data);
@@ -57,22 +61,22 @@ class AppSettingsController extends Controller {
         $data = $_POST;
 
         /* get instance of verifier and switch by section */
-        $verifier = AppSettingsVerifier::getInstance($this->appConfig);
+        $verifier = AppSettingsVerifier::getInstance();
         
         switch ($section) {
-            case 'app':
+            case APP:
                 $resUpdate = $verifier->verifyAppSettingsUpdate($data, $tokens);
                 break;
-            case 'layout':
+            case LAYOUT:
                 $resUpdate = $verifier->verifyLayoutSettingsUpdate($data, $tokens);
                 break;
-            case 'rsa':
+            case RSA:
                 $resUpdate = $verifier->verifyRsaSettingsUpdate($data, $tokens);
                 break;
-            case 'security':
+            case SECURITY:
                 $resUpdate = $verifier->verifySecuritySettingsUpdate($data, $tokens);
                 break;
-            case 'ums':
+            case UMS:
                 $resUpdate = $verifier->verifyUmsSettingsUpdate($data, $tokens);
                 break;
             default:
@@ -138,6 +142,6 @@ class AppSettingsController extends Controller {
 
     /* function to redirect if user can not update settings */
     private function redirectOrFailIfCanNotChangeSettings() {
-        if (!$this->userRole[CAN_CHANGE_SETTINGS]) $this->switchFailResponse();
+        if (!$this->canChangeSettings()) $this->switchFailResponse();
     }
 }

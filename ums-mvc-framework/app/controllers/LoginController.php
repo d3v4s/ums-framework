@@ -264,6 +264,8 @@ class LoginController extends Controller {
                     $redirectTo = '/'.SIGNUP_ROUTE.'/'.CONFIRM_ROUTE;
                 }
             } else {
+                /* add enabled property */
+                $userData[ENABLED] = TRUE;
                 /* save user */
                 $user = new User($this->conn);
                 $resUser = $user->saveUser($userData);

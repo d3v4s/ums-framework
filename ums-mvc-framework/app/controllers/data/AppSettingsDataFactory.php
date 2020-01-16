@@ -8,11 +8,9 @@ namespace app\controllers\data;
  * 
  */
 class AppSettingsDataFactory extends DataFactory {
-    private $appConfig;
 
-    protected function __construct(array $appConfig) {
+    protected function __construct() {
         parent::__construct();
-        $this->appConfig = $appConfig;
     }
 
     /* ##################################### */
@@ -20,22 +18,22 @@ class AppSettingsDataFactory extends DataFactory {
     /* ##################################### */
 
     /* function to get data by section */
-    public function getAppSettingsData(string $section): array {
-        $data = $this->appConfig[$section];
+    public function getAppSettingsData(string $section, array $appSettings): array {
+        $data = $appSettings[$section];
         switch ($section) {
-            case 'app':
+            case APP:
                 $this->handlerAppSettingsData($data);
                 break;
-            case 'layout':
+            case LAYOUT:
                 $this->handlerLayoutSettingsData($data);
                 break;
-            case 'rsa':
-                $this->handlerDataRsaSettings($data);
+            case RSA:
+                $this->handlerRsaSettingsData($data);
                 break;
-            case 'security':
-                $this->handlerDataSecutiySettings($data);
+            case SECURITY:
+                $this->handlerSecuritySettingsData($data);
                 break;
-            case 'ums':
+            case UMS:
                 $this->handlerUmsSettingsData($data);
                 break;
         }
@@ -60,23 +58,23 @@ class AppSettingsDataFactory extends DataFactory {
     }
 
     /* function to mangae the data of rsa settings */
-    private function handlerDataRsaSettings(array &$data) {
+    private function handlerRsaSettingsData(array &$data) {
         /* get path of privete key directory */
         $data[PATH_PRIV_KEY] = getPath(getcwd(), 'config', 'rsa');
         /* generate token for keys generator */
-        $data[TOKEN_RSA] = generateToken(CSRF_GEN_SAVE_RSA);
+        $data[RSA_TOKEN] = generateToken(CSRF_GEN_SAVE_RSA);
     }
 
     /* function to mangae the data of security settings */
     private function handlerSecuritySettingsData(array &$data) {
         /* set html checked attribute for check buttons */
-        $data[NO_ESCAPE.ONLY_HTTPS] = $data[ONLY_HTTPS] ? 'checked="checked"' : '';
-        $data[NO_ESCAPE.BLOCK_CHANGE_IP] = $data[BLOCK_CHANGE_IP] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.ONLY_HTTPS] = $data[ONLY_HTTPS] ? CHECKED : '';
+        $data[NO_ESCAPE.BLOCK_CHANGE_IP] = $data[BLOCK_CHANGE_IP] ? CHECKED : '';
     }
 
     /* function to mangae the data of UMS settings */
     private function handlerUmsSettingsData(array &$data) {
         /* set html checked attribute for check buttons */
-        $data[NO_ESCAPE.REQUIRE_CONFIRM_EMAIL] = $data[REQUIRE_CONFIRM_EMAIL] ? 'checked="checked"' : '';
+        $data[NO_ESCAPE.REQUIRE_CONFIRM_EMAIL] = $data[REQUIRE_CONFIRM_EMAIL] ? CHECKED : '';
     }
 }

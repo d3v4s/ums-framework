@@ -30,7 +30,7 @@
     		</select>
     	</div>
     	<div class="custom-control custom-switch text-left">
-			<input id="<?=PENDING?>" name="<?=PENDING?>" type="checkbox" class="custom-control-input send-ajax" value="true" checked="checked">
+			<input id="<?=PENDING?>" name="<?=PENDING?>" type="checkbox" class="custom-control-input send-ajax" value="true">
 			<label class="custom-control-label" for="<?=PENDING?>">Pending</label>
         </div>
         <noscript>
