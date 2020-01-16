@@ -1,10 +1,15 @@
 <?php
+
 namespace app\controllers\data;
 
 use app\models\User;
 use app\models\Role;
 use \DateTime;
 use \PDO;
+use app\models\PendingEmail;
+use app\models\PendingUser;
+use app\models\Session;
+use app\models\DeletedUser;
 
 /**
  * Class data factory, used for generate
@@ -14,7 +19,7 @@ use \PDO;
  */
 class UMSDataFactory extends DataFactory {
 
-    protected function __construct(PDO $conn = NULL) {
+    protected function __construct(PDO $conn=NULL) {
         parent::__construct($conn);
     }
 
@@ -22,15 +27,44 @@ class UMSDataFactory extends DataFactory {
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
+    public function getHomeData() {
+        /* init user model and count users */
+        $userModel = new User($this->conn);
+        $totUsers = $userModel->countUsers();
+
+        /* init deleted user model and count deleted users */
+        $delUserModel = new DeletedUser($this->conn);
+        $totDeleted = $delUserModel->countDeletedUsers();
+
+        /* init pending user model and count pending users */
+        $pendingUserModel = new PendingUser($this->conn);
+        $totPendUsers = $pendingUserModel->countPendingUsers();
+
+        /* init pending mails modele and count all pending mails */
+        $pendMailModel = new PendingEmail($this->conn);
+        $totPendMails = $pendMailModel->countPendingMails();
+
+        /* init session model and count sessions */
+        $sessionModel = new Session($this->conn);
+        $totSessions = $sessionModel->countSessions();
+
+        /* return data */
+        return [
+            TOT_USERS => $totUsers,
+            TOT_DELETED_USERS => $totDeleted,
+            TOT_PENDING_USERS => $totPendUsers,
+            TOT_PENDING_MAILS => $totPendMails,
+            TOT_SESSIONS => $totSessions
+        ];
+    }
+
     /* function to get data of users list */
     public function getUsersListData(string $orderBy, string $orderDir, int $page, int $usersForPage, string $search): array {
-        /* get app config and init user model */
-//         $appConfig = $this->appConfig['app'];
-        $user = new User($this->conn);
+        /* init user model */
+        $userModel = new User($this->conn);
 
         /* count user */
-        $totUsers = $user->countUsers($search);
-//         $usersForPageList = USERS_FOR_PAGE_LIST;
+        $totUsers = $userModel->countUsers($search);
         /* calc users for page and n. pages */
         $usersForPage = in_array($usersForPage, USERS_FOR_PAGE_LIST) ? $usersForPage : DEFAULT_USERS_FOR_PAGE;
         $maxPages = (int) ceil($totUsers/$usersForPage);
@@ -112,7 +146,7 @@ class UMSDataFactory extends DataFactory {
             SEARCH_QUERY => $searchQuery,
             PAGE => $page,
             USERS_FOR_PAGE => $usersForPage,
-            TOT_USER => $totUsers,
+            TOT_USERS => $totUsers,
             MAX_PAGES => $maxPages,
             START_PAGE => $startPage,
             STOP_PAGE => $stopPage,
@@ -132,27 +166,16 @@ class UMSDataFactory extends DataFactory {
             CLASS_PAGIN_ARROW_LEFT => $classPaginationArrowLeft,
             LINK_PAGIN_ARROW_RIGHT => $linkPaginationArrowRight,
             CLASS_PAGIN_ARROW_RIGHT => $classPaginationArrowRight,
-//             'usersForPageList' => $usersForPageList,
             BASE_LINK_PAGIN => $baseLinkPagination,
             CLOSE_LINK_PAGIN => $closeUrl,
-//             'viewAddFakeUsers' => $appConfig['addFakeUsersPage'],
-            USERS => $user->getUsersAndRole($orderBy, $orderDir, $search, $start, $usersForPage),
+            USERS => $userModel->getUsersAndRole($orderBy, $orderDir, $search, $start, $usersForPage),
             BASE_LINK_USER_FOR_PAGE => "$baseLinkPagination$page/",
             SEARCH_ACTION => "{$baseLinkPagination}1$closeUrl"
         ];
     }
 
     /* function to get data of user */
-    public function getUserData($user): array {
-//         /* new email vars */
-//         $messageNewEmail = '';
-//         $viewNewEmail = FALSE;
-//         /* if is set a new email, then show with message */
-//         if (isset($user->new_email)) {
-//             $viewNewEmail = TRUE;
-//             $messageNewEmail = isset($user->token_confirm_email) ? '<br>Wait confirmed' : '';
-//         }
-
+    public function getUserData($user, $datetimeFormat): array {
         /* enable account class */
         $classEnabledAccount = 'text-';
         /* if account is enable */
@@ -163,47 +186,27 @@ class UMSDataFactory extends DataFactory {
         } else {
             $classEnabledAccount .= 'danger';
             $messageEnable = 'DISABLED';
-//             if (isset($user->token_account_enabler)) $messageEnable .= '<br>Wait confirmed';
         }
-
-//         /* wrong passwords vars */
-//         $messageWrongPass = '';
-//         $viewDateTimeResetWrongPass = FALSE;
-//         /* if user have wrong passwords, then show the message */
-//         if (isset($user->datetime_reset_wrong_password)) {
-//             $viewDateTimeResetWrongPass = TRUE;
-//             if (new DateTime($user->datetime_reset_wrong_password) < new DateTime()) $messageWrongPass = '<br>Wrong passwords expired';
-//             $user->datetime_reset_wrong_password = date($this->appConfig['app']['datetimeFormat'], strtotime($user->datetime_reset_wrong_password));
-//         }
-//         $messageLockUser = $user->n_locks >= $this->appConfig['app']['maxLocks'] ? '<br>Max limits of locks reached' : '';
 
         /* init message */
         $messageLockUser = '';
         /* if user has a lock, then set message and format the date */
         if (($isLock = (isset($user->{EXPIRE_LOCK}) && new DateTime($user->{EXPIRE_LOCK}) > new DateTime()))) {
-            $user->{EXPIRE_LOCK} = date($this->appConfig[APP][DATETIME_FORMAT], strtotime($user->{EXPIRE_LOCK}));
+            $user->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($user->{EXPIRE_LOCK}));
             $messageLockUser = '<br>Temporarily locked';
         }
 
         /* format the date */
-        $user->{REGISTRATION_DATETIME} = date($this->appConfig[APP][DATETIME_FORMAT], strtotime($user->{REGISTRATION_DATETIME}));
+        $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
 
         /* return data */
         return [
             USER => $user,
-            CSRF_UNLOCK_USER => generateToken(CSRF_UNLOCK_USER),
-            CSRF_DELETE_USER => generateToken(CSRF_DELETE_USER),
+            IS_LOCK => $isLock,
+            TOKEN => generateToken(CSRF_DELETE_USER),
             CLASS_ENABLE_ACC => $classEnabledAccount,
             NO_ESCAPE.MESSAGE_ENABLE_ACC => $messageEnable,
-            IS_LOCK => $isLock,
             NO_ESCAPE.MESSAGE_LOCK_ACC => $messageLockUser
-//             'tokenDeleteNewEmail' => generateToken('csrfDeleteNewEmail'),
-//             'tokenResetWrongPass' => generateToken('csrfResetWrongPass'),
-//             'viewNewEmail' => $viewNewEmail,
-//             '_messageNewEmail' => $messageNewEmail,
-//             'viewDateTimeResetWrongPass' => $viewDateTimeResetWrongPass,
-//             '_messageWrongPassword' => $messageWrongPass,
-//             'maxWrongPass' => $this->appConfig['app']['maxWrongPassword'],
         ];
     }
 
@@ -219,8 +222,8 @@ class UMSDataFactory extends DataFactory {
         /* return data */
         return [
             USER => $usr,
-            TOKEN => generateToken(CSRF_UPDATE_USER),
             ROLES => $role->getNameAndIdRoles(),
+            TOKEN => generateToken(CSRF_UPDATE_USER),
             NO_ESCAPE.ENABLED => ($usr->enabled) ? CHECKED : ''
         ];
     }
@@ -231,8 +234,9 @@ class UMSDataFactory extends DataFactory {
         $role = new Role($this->conn);
         /* return data */
         return [
+            ROLES => $role->getNameAndIdRoles(),
             TOKEN => generateToken(CSRF_NEW_USER),
-            ROLES => $role->getNameAndIdRoles()
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
         ];
     }
 }

@@ -39,8 +39,9 @@ define('DELETE_SESSION_EXPIRE_TIME', '5 minutes');
 
 /* TEMPLATE CONSTANTS */
 define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php'));
-define('PAGINATION_TEMPLATE', getPath(getViewsPath(),'utils', 'pagination.tpl.php'));
-
+define('SHOW_SESSION_MESSAGE_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-session-message.tpl.php'));
+define('PAGINATION_TEMPLATE', getPath(getViewsPath(), 'utils', 'pagination.tpl.php'));
+define('MESSAGE_BOX_TEMPLATE', getPath(getViewsPath(), 'utils', 'message-box.tpl.php'));
 
 /* ROLES CONSTANTS */
 define('ADMIN_ROLE_ID', '0');
@@ -151,14 +152,14 @@ define('ORDER_DIR_LIST', [
     ASC,
     DESC
 ]);
-define('USER_COL_LIST', [
-    'ID' => USER_ID,
-    'Name' => NAME,
-    'Username' => USERNAME,
-    'Email' => EMAIL,
-    'Roletype' => ROLE,
-    'Enabled' => ENABLED
-]);
+// define('USER_COL_LIST', [
+//     'ID' => USER_ID,
+//     'Name' => NAME,
+//     'Username' => USERNAME,
+//     'Email' => EMAIL,
+//     'Roletype' => ROLE,
+//     'Enabled' => ENABLED
+// ]);
 define('CHANGE_FREQ_LIST', [
     'always',
     'hourly',
@@ -218,7 +219,11 @@ define('ORDER_BY', 'order_by');
 define('SEARCH_QUERY', 'search_query');
 define('PAGE', 'page');
 define('USERS_FOR_PAGE', 'users_for_page');
-define('TOT_USER', 'tot_user');
+define('TOT_USERS', 'tot_usrs');
+define('TOT_DELETED_USERS', 'tot_del_usrs');
+define('TOT_PENDING_USERS', 'tot_pen_usrs');
+define('TOT_PENDING_MAILS', 'tot_pen_ml');
+define('TOT_SESSIONS', 'tot_sssn');
 define('MAX_PAGES', 'max_pages');
 define('START_PAGE', 'strt_pg');
 define('STOP_PAGE', 'stp_pg');
@@ -233,7 +238,7 @@ define('CLASS_HEAD_EMAIL', 'clss_hd_ml');
 define('LINK_HEAD_ENABLED', 'lnk_hd_enbl');
 define('CLASS_HEAD_ENABLED', 'clss_hd_enbl');
 define('LINK_HEAD_ROLE', 'lnk_hd_rl');
-define('CLASS_HEAD_ROLE', 'clss_hd_id');
+define('CLASS_HEAD_ROLE', 'clss_hd_rl');
 define('BASE_LINK_USER_FOR_PAGE', 'bs_lnk_ufp');
 define('SEARCH_ACTION', 'src_act');
 define('USERS', 'usrs');
@@ -243,6 +248,7 @@ define('IS_LOCK', 'is_lock');
 define('MESSAGE_LOCK_ACC', 'msg_lck_acc');
 define('WAIT_EMAIL_CONFIRM', 'wt_cnf_mail');
 define('DELETE_SESSION', 'dlt_ssn');
+define('VIEW_ROLE', 'view_role');
 
 /* CONSTANTS FOR PAGINATION */
 define('LINK_PAGIN_ARROW_LEFT', 'lnk_pgn_arlft');

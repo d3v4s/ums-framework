@@ -33,7 +33,7 @@
     		</div>
     	<?php endif; ?>
     	<?php if (${USER}->{ROLE_ID_FRGN} !== DEFAULT_ROLE): ?>
-        	<div class="form-group text-md-left my-3">
+        	<div class="form-group text-left my-3">
         		<label for="role">Role</label>
         		<select id="role" disabled="disabled">
         			<?php foreach (${ROLES} as $role): ?>

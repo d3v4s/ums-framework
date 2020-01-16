@@ -19,7 +19,6 @@ class Controller {
     protected $conn;
     protected $appConfig;
     protected $layout;
-//     protected ${LOGOUT_TOKEN = '';
     /* CSP properties */
     protected $setCSPHeader = TRUE;
     protected $CSPDefaultSrc = "'self'";
@@ -56,10 +55,7 @@ class Controller {
     protected $isHome = FALSE;
     protected $isLogin = FALSE;
     protected $isSignup = FALSE;
-    protected $isNewUser = FALSE;
-    protected $isNewEmail = FALSE;
-    protected $isSettings = FALSE;
-    protected $isUsersList = FALSE;
+    protected $isUmsHome = FALSE;
     /* search  engine robots properties */
     protected $robots = '';
     protected $googlebot = '';
@@ -398,6 +394,46 @@ class Controller {
         return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === USER_ROLE_ID;
     }
 
+    /* function to check if user can create another user */
+    protected function canCreateUser(): bool {
+        return (bool) $this->userRole[CAN_CREATE_USER];
+    }
+
+    /* function to check if user can update another user */
+    protected function canUpdateUser(): bool {
+        return (bool) $this->userRole[CAN_UPDATE_USER];
+    }
+
+    /* function to check if user can create another user */
+    protected function canDeleteUser(): bool {
+        return (bool) $this->userRole[CAN_DELETE_USER];
+    }
+
+    /* function to check if user can change password at another user */
+    protected function canChangePassword(): bool {
+        return (bool) $this->userRole[CAN_CHANGE_PASSWORD];
+    }
+
+    /* function to check if user can genaret rsa key pair */
+    protected function canGenerateRsaKey(): bool {
+        return (bool) $this->userRole[CAN_GENERATE_RSA];
+    }
+
+    /* function to check if user can genaret sitemap */
+    protected function canGenerateSitemap(): bool {
+        return (bool) $this->userRole[CAN_GENERATE_SITEMAP];
+    }
+
+    /* function to check if user can change settings */
+    protected function canChangeSettings(): bool {
+        return (bool) $this->userRole[CAN_CHANGE_SETTINGS];
+    }
+
+    /* function to check if user can send emails */
+    protected function canSendEmails(): bool {
+        return (bool) $this->userRole[CAN_SEND_EMAIL];
+    }
+
     /* REDIRECT OR SEND FAIL FUNCTIONS */
 
     /* function to redirect or send fail if user is loggin */
@@ -425,19 +461,19 @@ class Controller {
     /* function to redirect or send fail if client is not loggin */
     protected function redirectOrFailIfCanNotCreateUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole[CAN_CREATE_USER]) $this->switchFailResponse();
+        if (!$this->canCreateUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if user can not update */
     protected function redirectOrFailIfCanNotUpdateUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole[CAN_UPDATE_USER]) $this->switchFailResponse();
+        if (!$this->canUpdateUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if user can not delete */
     protected function redirectOrFailIfCanNotDeleteUser() {
         $this->redirectOrFailIfNotLogin();
-        if (!$this->userRole[CAN_DELETE_USER]) $this->switchFailResponse();
+        if (!$this->canDeleteUser()) $this->switchFailResponse();
     }
 
     /* funtion to redirect or send fail if email confirm is not require */

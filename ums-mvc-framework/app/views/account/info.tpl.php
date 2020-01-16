@@ -21,7 +21,7 @@
         			<td class="text-primary align-middle">Email</td>
         			<td class="align-middle"><?=${USER}->{EMAIL}?></td>
     			</tr>
-    			<?php if (${USER}->{ROLE_ID_FRGN} !== DEFAULT_ROLE): ?>
+    			<?php if (${VIEW_ROLE}): ?>
         			<tr>
             			<td class="text-primary align-middle">Role</td>
             			<td class="align-middle"><?=${USER}->{ROLE}?></td>

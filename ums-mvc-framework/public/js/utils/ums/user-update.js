@@ -4,6 +4,7 @@ $(document).ready(function() {
 		/* get button, token, and serialize data */
 		const $xf = $(this).find('#_xf'),
 			$btn = $(this).find('#btn-update'),
+			actionUrl = $(this).attr('action'),
 			data = $(this).find('.send-ajax').serialize();
 
 		/* block default submit form and show loading */
@@ -15,7 +16,7 @@ $(document).ready(function() {
 			removeLoading($btn, 'Update');
 			try {
 				showMessage(response.message, !response.success);
-				if (response.success) setTimeout(redirect, 2000, '/ums/user/' + response.userId);
+				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
 				else {
 					focusError(response);
 					$xf.val(response.ntk);
@@ -31,6 +32,6 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		};
 
-		sendAjaxReq('/ums/user/update', data, $xf.val(), funcSuccess, funcFail);
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

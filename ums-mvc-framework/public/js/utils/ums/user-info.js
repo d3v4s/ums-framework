@@ -1,9 +1,10 @@
 $(document).ready(function() {
 	/* click event on delete user button to send XML HTTP request */
-	$('#delete-user-form #btn-delete-user').click(function(event) {
+	$('#delete-user-form').click(function(event) {
 		/* get form and button */
-		const $form = $('#delete-user-form'), 
-			$btn = $(this);
+		const $form = $(this),
+			actionUrl = $(this).attr('action'),
+			$btn = $(this).find('#btn-delete-user');
 
 		/* block default submit form and show loading */
 		event.preventDefault();
@@ -14,55 +15,34 @@ $(document).ready(function() {
 			buttonDone  : "Yes",
 	    	buttonFail  : "No",
 	    	message     : "Delete this account?"
-
-		}).done(function(){ /* confirm function */
+		}).done(function(){
+			/* confirm function */
 			/* get token and serialize data */
-			const $xf = $form.find('#_xf-du'),
+			const $xf = $form.find('#_xf'),
 				data = $form.find('.send-ajax').serialize();
-
+			
 			/* success function */
 			funcSuccess = function(response) {
 				removeLoading($btn, 'Delete');
 				try {
 					showMessage(response.message, !response.success);
-					if (response.success) setTimeout(redirect, 2000, '/ums/users');
-					else $xf.val(response.ntk);
+					if (response.success) setTimeout(redirect, 2000, response.redirect_to);
+					else if (response.ntk !== undefined) $xf.val(response.ntk);
 					
 				} catch (e) {
 					showMessage('Delete user failed', true);
 				}
 			};
-
+			
 			/* fail function */
 			funcFail = function() {
 				removeLoading($btn, 'Delete');
 				showMessage('Problem to contact server', true);
 			};
-
-			sendAjaxReq('/ums/user/delete/confirm', data, $xf.val(), funcSuccess, funcFail, 'XS-TKN-DU');
-//			$.ajax({
-//				method: 'post',
-//				data: data,
-//				url: '/ums/user/delete/confirm',
-//				success: function(response) {
-//					removeLoading($btn, 'Delete');
-//					try {
-//						const deleteRes = JSON.parse(response);
-//						
-//						showMessage(deleteRes.message, !deleteRes.success);
-//						if (deleteRes.success) setTimeout(redirect, 2000, '/ums/users');
-//						else $form.find('#_xf-du.send-ajax').val(deleteRes.ntk);
-//						
-//					} catch (e) {
-//						showMessage('Delete user failed', true);
-//					}
-//				},
-//				failure: function() {
-//					removeLoading($btn, 'Delete');
-//					showMessage('Problem to contact server', true);
-//				}
-//			});
-		}).fail(function(){ /* fail function */
+			
+			sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
+		}).fail(function(){
+			/* fail function */
 			removeLoading($btn, 'Delete');
 		});
 	});
@@ -70,8 +50,9 @@ $(document).ready(function() {
 	/* submit event on login form to send XML HTTP request */
 	$('#delete-new-email-form').on('submit', function(event) {
 		/* get button, token, and serialize data */
-		const $btn = $(this).find('#btn-delete-new-email'),
-			$xf = $(this).find('#_xf-dnm'),
+		const $xf = $(this).find('#_xf-dnm'),
+			actionUrl = $(this).attr('action'),
+			$btn = $(this).find('#btn-delete-new-email'),
 			data = $(this).find('.send-ajax').serialize();
 
 		/* block default submit form and disable button */
@@ -84,7 +65,7 @@ $(document).ready(function() {
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(function() {location.reload();}, 2000);
-				else $xf.val(response.ntk);
+				else if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Delete new email failed', true);
 			}
@@ -96,7 +77,7 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		};
 
-		sendAjaxReq('/ums/user/delete/new/email', data, $xf.val(), funcSuccess, funcFail, 'XS-TKN-DNM');
+		sendAjaxReq(actionUrl, data, $xf.val(), funcSuccess, funcFail, 'XS-TKN-DNM');
 //		$.ajax({
 //			method: 'post',
 //			data: data,
@@ -123,7 +104,7 @@ $(document).ready(function() {
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(function() {location.reload();}, 2000);
-				else $xf.val(response.ntk);
+				else if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Reset wrong password failed', true);
 			}
@@ -162,7 +143,7 @@ $(document).ready(function() {
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(function() {location.reload();}, 2000);
-				else $xf.val(response.ntk);
+				else if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Reset locks user failed', true);
 			}

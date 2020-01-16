@@ -111,6 +111,17 @@ class PendingUser {
         return FALSE;
     }
 
+    /* function to count the pending mails on table */
+    public function countPendingUsers(): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL';
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
 //     /* function to get pending user by id */
 //     public function isPendingUsername(string $username, string $minDatetime) {
 //         /* prepare sql query, then execute */
