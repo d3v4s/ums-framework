@@ -9,7 +9,7 @@ use app\controllers\verifiers\EmailVerifier;
  * Class controller to manage the email sender
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class EmailController extends Controller {
+class EmailController extends UMSBaseController {
     public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
@@ -38,11 +38,15 @@ class EmailController extends Controller {
             [SOURCE => '/js/crypt/rsa.js'],
             [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
-            [SOURCE => '/js/utils/ums/adm-mail.js']
+            [SOURCE => '/js/utils/ums/send-email.js']
         );
 
         /* generrate token and show new email page */
-        $this->content = view('ums/new-email', [TOKEN => generateToken(CSRF_NEW_EMAIL)]);
+        $this->content = view(getPath('ums', 'send-email'), [
+            TOKEN => generateToken(CSRF_NEW_EMAIL),
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
+            TO => $_GET[TO] ?? ''
+        ]);
     }
 
     /* function to send email */
@@ -52,19 +56,24 @@ class EmailController extends Controller {
         $this->redirectIfNotXMLHTTPRequest('/'.NEW_EMAIL_ROUTE);
 
         /* get tokens and post data */
-        $tokens = $this->getPostSessionTokens();
+        $tokens = $this->getPostSessionTokens(CSRF_NEW_EMAIL);
         $to = $_POST[TO] ?? '';
         $subject = $_POST[SUBJETC] ?? '';
         $content = $_POST[CONTENT] ?? '';
-        $from = $this->appConfig[APP][SEND_EMAIL_FROM];
+        $from = $this->appConfig[APP][SEND_EMAIL_FROM] ?? '';
 
+        /* check camps */
+        if (empty($to) || empty($subject) || empty($content)) $this->switchFailResponse('Fail!! Fill all fields');
         /* decrypt data */
         $to = $this->decryptData($to);
         $content = $this->decryptData($content);
         if (!empty($subject)) $subject = $this->decryptData($subject);
 
+        /* set redirect to */
+        $redirectTo = '/'.NEW_EMAIL_ROUTE;
+
         /* get verifier instance, and che send email request */
-        $verifier = EmailVerifier::getInstance($this->appConfig);
+        $verifier = EmailVerifier::getInstance();
         $resSendEmail = $verifier->verifySendEmail($from, $to, $tokens);
         /* if success */
         if ($resSendEmail[SUCCESS]) {
@@ -80,15 +89,18 @@ class EmailController extends Controller {
             /* generate email with select layout */
             $email->generateContentWithLayout();
             /* send email and set result */
-            $resSendEmail[SUCCESS] = $email->send();
-            $resSendEmail[MESSAGE] = $resSendEmail[SUCCESS] ? 'Email sent successfully' : 'Sending email failed' ;
+            if ($resSendEmail[SUCCESS] = $email->send()) {
+                $resSendEmail[MESSAGE] = 'Email sent successfully';
+                $redirectTo = '/'.UMS_HOME_ROUTE;
+            } else  $resSendEmail[MESSAGE] = 'Sending email failed' ;
         }
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resSendEmail[SUCCESS],
-            MESSAGE => $resSendEmail[MESSAGE] ?? NULL,
-            ERROR => $resSendEmail[ERROR] ?? NULL
+            ERROR => $resSendEmail[ERROR] ?? NULL,
+            MESSAGE => $resSendEmail[MESSAGE] ?? NULL
         ];
 
         /* function for default response */
@@ -97,10 +109,10 @@ class EmailController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect() : redirect('/'.NEW_EMAIL_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
-        $this->switchResponse($dataOut, (!$resSendEmail[SUCCESS] && $resSendEmail[GENERATE_TOKEN]), $funcDefault);
+        $this->switchResponse($dataOut, (!$resSendEmail[SUCCESS] && $resSendEmail[GENERATE_TOKEN]), $funcDefault, CSRF_NEW_EMAIL);
     }
 
     /* ##################################### */
@@ -109,6 +121,6 @@ class EmailController extends Controller {
 
     /* function to redirect if user can not send email */
     private function redirectOrFailIfCanNotSendEmail() {
-        if (!$this->userRole[CAN_SEND_EMAIL]) $this->switchFailResponse();
+        if (!$this->canSendEmails()) $this->switchFailResponse();
     }
 }

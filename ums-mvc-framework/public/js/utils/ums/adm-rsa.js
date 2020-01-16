@@ -27,7 +27,7 @@ $(document).ready(function() {
 				}
 				showMessage(response.message, !response.success);
 				
-				$xf.val(response.ntk);
+				if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Key pair generation failed', true);
 			}

@@ -319,7 +319,7 @@ class AccountController extends Controller {
             redirect($data[REDIRECT_TO]);
         };
 
-        $this->switchResponse($dataOut, (!$resPass[SUCCESS] && $resPass[GENERATE_TOKEN]), $funcDefault);
+        $this->switchResponse($dataOut, (!$resPass[SUCCESS] && $resPass[GENERATE_TOKEN]), $funcDefault, CSRF_CHANGE_PASS);
 //         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
 //         switch ($header) {
 //             case 'XMLHTTPREQUEST':

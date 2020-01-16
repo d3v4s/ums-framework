@@ -1,5 +1,5 @@
 <div class="container col-md-7 text-left">
-    <h1 class="text-center p-3">App Settings</h1>
+    <h1 class="text-center p-3">Security Settings</h1>
     <form id="settings-form" action="/<?=APP_SETTINGS_ROUTE.'/'.SECURITY.'/'.UPDATE_ROUTE?>" method="post" class="p-3">
         <div class="custom-control custom-switch">
 			<input id="<?=BLOCK_CHANGE_IP?>" name="<?=BLOCK_CHANGE_IP?>" type="checkbox" class="custom-control-input send-ajax" value="on" <?=${NO_ESCAPE.BLOCK_CHANGE_IP}?>>

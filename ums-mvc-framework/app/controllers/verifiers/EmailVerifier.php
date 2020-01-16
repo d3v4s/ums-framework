@@ -30,14 +30,13 @@ class EmailVerifier extends Verifier {
         /* validate from email */
         if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
             $res[MESSAGE] = 'From email wrong';
-            $res[ERROR] = 'from';
             return $res;
         }
 
         /* validate to email */
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
             $res[MESSAGE] = 'To email wrong';
-            $res[ERROR] = 'to';
+            $res[ERROR] = TO;
             return $res;
         }
 

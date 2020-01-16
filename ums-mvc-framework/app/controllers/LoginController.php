@@ -47,7 +47,7 @@ class LoginController extends Controller {
         );
 
         /* show login page */
-        $this->content = view('login/login', [
+        $this->content = view(getPath('login','login'), [
             TOKEN => generateToken(CSRF_LOGIN),
             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
         ]);
@@ -75,7 +75,7 @@ class LoginController extends Controller {
             [SOURCE => '/js/utils/login/signup.js']
         );
         
-        $this->content = view('login/signup', [
+        $this->content = view(getPath('login','signup'), [
             TOKEN => generateToken(CSRF_SIGNUP),
             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
         ]);
@@ -108,7 +108,7 @@ class LoginController extends Controller {
             [SOURCE => '/js/utils/login/signup-confirm.js']
         );
         
-        $this->content = view('login/signup-confirm', [TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC)]);
+        $this->content = view(getPath('login', 'signup-confirm'), [TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC)]);
     }
 
     /* function to view reset password request page */
@@ -127,7 +127,7 @@ class LoginController extends Controller {
         );
         
         /* generate token and show page */
-        $this->content = view('login/pass-reset-req', [TOKEN => generateToken(CSRF_PASS_RESET_REQ)]);
+        $this->content = view(getPath('login', 'pass-reset-req'), [TOKEN => generateToken(CSRF_PASS_RESET_REQ)]);
     }
     
     /* function to view reset password page */

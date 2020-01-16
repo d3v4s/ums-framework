@@ -36,6 +36,7 @@ define('COOKIE_EXPIRE_DAYS', 30);
 define('CSRF_TOKEN_EXPIRE_TIME', '10 minutes');
 define('DATE_TIME_ZONE_DEFAULT', 'Europe/Rome');
 define('DELETE_SESSION_EXPIRE_TIME', '5 minutes');
+define('MAX_FAKE_USERS', 200);
 
 /* TEMPLATE CONSTANTS */
 define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php'));
