@@ -3,13 +3,13 @@ var newLayout = 0;
 
 /* function to delete a input layout */
 function deleteInputLayout(nameLayout) {
-	$('#form-layout-' + nameLayout).remove();
+	$('#form-group-' + nameLayout).remove();
 }
 
 /* function to add a input layuot */
 function addInputNewLayout() {
 	/* define const last input */
-	const $divInputLast = $('#layout-settings-form').find('div.input-new-layout').last()
+	const $divInputLast = $('#settings-form').find('div.input-new-layout').last()
 
 	/* init and define vars */
 	var $div = $(document.createElement('div')),
@@ -23,7 +23,7 @@ function addInputNewLayout() {
 	window.newLayout++;
 
 	/* set attribute for div container */
-	$div.attr('id', 'form-layout-' + window.newLayout);
+	$div.attr('id', 'form-group-' + window.newLayout);
 	$div.attr('class', 'form-group justify-content-center row input-new-layout p-2');
 
 	/* set attribute for label and append it on div */
@@ -66,7 +66,7 @@ function addInputNewLayout() {
 
 /* function to add listener on button delete */
 function clickListenerOnBtnDelete() {
-	$('#layout-settings-form button.btn-delete-input-layout').click(function(event) {
+	$('#settings-form button.btn-delete-input-layout').click(function(event) {
 		event.preventDefault();
 		deleteInputLayout($(this).val());
 	});
@@ -76,46 +76,46 @@ $(document).ready(function (){
 	clickListenerOnBtnDelete();
 
 	/* click event to add new input layout */
-	$('#layout-settings-form button.btn-add-input-layout').click(function(event) {
+	$('#settings-form button.btn-add-input-layout').click(function(event) {
 		event.preventDefault();
 		addInputNewLayout();
 		clickListenerOnBtnDelete();
 	});
 
-	/* function to send XML HTTP request when submit logout form */
-	$('#layout-settings-form').on('submit', function(event) {
-		/* get button, token, and serialize data */
-		const $xf = $(this).find('#_xf'),
-			$btn = $(this).find('#btn-save'),
-			data = $(this).find('.send-ajax').serialize();
-
-		/* block default submit form and show loading */
-		event.preventDefault();
-		showLoading($btn);
-
-		/* success function */
-		funcSuccess = function(response) {
-			removeLoading($btn, 'Save');
-			try {
-				showMessage(response.message, !response.success);
-				if (!response.success) {
-					focusError(response);
-					$xf.val(response.ntk);
-				}
-				else setTimeout(function() {location.reload();}, 2000); 
-			} catch (e) {
-				showMessage('Settings update failed', true);
-			}
-
-		};
-
-		/* fail function */
-		funcFail = function() {
-			removeLoading($btn, 'Save');
-			showMessage('Problem to contact server', true);
-		};
-
-		sendAjaxReq('/ums/app/settings/layout/update', data, $xf.val(), funcSuccess, funcFail);
-	});
+//	/* function to send XML HTTP request when submit logout form */
+//	$('#layout-settings-form').on('submit', function(event) {
+//		/* get button, token, and serialize data */
+//		const $xf = $(this).find('#_xf'),
+//			$btn = $(this).find('#btn-save'),
+//			data = $(this).find('.send-ajax').serialize();
+//
+//		/* block default submit form and show loading */
+//		event.preventDefault();
+//		showLoading($btn);
+//
+//		/* success function */
+//		funcSuccess = function(response) {
+//			removeLoading($btn, 'Save');
+//			try {
+//				showMessage(response.message, !response.success);
+//				if (!response.success) {
+//					focusError(response);
+//					$xf.val(response.ntk);
+//				}
+//				else setTimeout(function() {location.reload();}, 2000); 
+//			} catch (e) {
+//				showMessage('Settings update failed', true);
+//			}
+//
+//		};
+//
+//		/* fail function */
+//		funcFail = function() {
+//			removeLoading($btn, 'Save');
+//			showMessage('Problem to contact server', true);
+//		};
+//
+//		sendAjaxReq('/ums/app/settings/layout/update', data, $xf.val(), funcSuccess, funcFail);
+//	});
 
 });

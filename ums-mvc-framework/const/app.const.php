@@ -14,7 +14,7 @@ define('DEFAULT_PASSWORD', 'ums');
 define('DEFAULT_USERS_FOR_PAGE', 10);
 define('PAGE_NOT_FOUND', 'error-404');
 define('PAGE_EXCEPTION', 'error-exception');
-define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', '30 minutes');
+define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', '30 days');
 define('MAX_WRONG_PASSWORDS', 1000);
 define('MAX_LOCKS', 500);
 define('PASS_TRY_TIME', '5 minutes');
@@ -36,6 +36,7 @@ define('COOKIE_EXPIRE_DAYS', 30);
 define('CSRF_TOKEN_EXPIRE_TIME', '10 minutes');
 define('DATE_TIME_ZONE_DEFAULT', 'Europe/Rome');
 define('DELETE_SESSION_EXPIRE_TIME', '5 minutes');
+define('MAX_FAKE_USERS', 200);
 
 /* TEMPLATE CONSTANTS */
 define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php'));
@@ -83,7 +84,7 @@ define('CHECKED', 'checked="checked"');
 define('OLD_PASS', 'old_pass');
 define('CONFIRM_PASS', 'confirm_pass');
 define('TOKEN', '_xf');
-define('TOKEN_RSA', 'tkn_rsa');
+define('RSA_TOKEN', '_xf_rsa');
 define('DELETE_TOKEN', '_xf_del');
 define('UPDATE_TOKEN', '_xf_upd');
 define('DELETE_NEW_EMAIL_TOKEN', '_xf_del_ml');
@@ -173,6 +174,15 @@ define('CHANGE_FREQ_LIST', [
 define('ACCEPT_LANG_LIST', [
     'en',
     'it'
+]);
+
+define('SYSTEM_LAYOUT_LIST', [
+    DEFAULT_LAYOUT,
+    UMS_LAYOUT,
+    SETTINGS_LAYOUT,
+    EMAIL_LAYOUT,
+    PASSWORD_RESET_EMAIL_LAYOUT,
+    ENABLER_EMAIL_LAYOUT
 ]);
 
 /* CONSTATS FOR RESULT DATA */

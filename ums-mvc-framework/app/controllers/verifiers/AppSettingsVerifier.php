@@ -296,14 +296,14 @@ class AppSettingsVerifier extends Verifier {
     }
 
     /* function manage result data of security settings */
-    private function hanlderSecuritySettingsData(array &$data): array {
+    private function hanlderSecuritySettingsData(array &$data) {
         $data[ONLY_HTTPS] = isset($data[ONLY_HTTPS]);
         $data[BLOCK_CHANGE_IP] = isset($data[BLOCK_CHANGE_IP]);
         $this->trimData($data);
     }
 
     /* function manage result data of UMS settings */
-    private function hanlderUmsSettingsData(array &$data): array {
+    private function hanlderUmsSettingsData(array &$data) {
         $data[REQUIRE_CONFIRM_EMAIL] = isset($data[REQUIRE_CONFIRM_EMAIL]);
         $this->trimData($data);
     }

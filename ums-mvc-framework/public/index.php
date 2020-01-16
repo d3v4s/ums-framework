@@ -12,8 +12,8 @@ chdir(dirname(__DIR__));
 require_once getcwd().DIRECTORY_SEPARATOR.'helpers'.DIRECTORY_SEPARATOR.'functions.php';
 require_once getPath(getcwd(), 'autoload.php');
 require_once getPath(getcwd(), 'const', 'db.const.php');
-require_once getPath(getcwd(), 'const', 'app.const.php');
 require_once getPath(getcwd(), 'const', 'config.const.php');
+require_once getPath(getcwd(), 'const', 'app.const.php');
 
 /* get database config */
 $dbConf = require getPath(getcwd(), 'config', 'db.config.php');

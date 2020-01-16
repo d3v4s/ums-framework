@@ -17,7 +17,7 @@ $(document).ready(function (){
 				showMessage(response.message, !response.success);
 				if (!response.success) focusError(response);
 				
-				$xf.val(response.ntk);
+				if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Sitemap update failed', true);
 			}

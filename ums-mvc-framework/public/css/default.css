@@ -1,4 +1,4 @@
-@charset "UTF-8";
+@charset "utf-8";
 
 #close-message-box {
 	color: white;
@@ -15,15 +15,15 @@
 }
 
 html, body {
-  height: 100%;
-  margin: 0;
+	height: 100%;
+	margin: 0;
 }
 
 main {
 	min-height: 100% !important;
 }
 
-nav.navbar li.nav-item.active > a.nav-link {
+li.nav-item.active > a.nav-link {
 	pointer-events: none;
 	cursor: default;
 	text-decoration: none;
@@ -63,8 +63,8 @@ a:hover {
 }
 
 .footer > .container {
-  padding-right: 15px;
-  padding-left: 15px;
+	padding-right: 15px;
+	padding-left: 15px;
 }
 
 .bg-blue {

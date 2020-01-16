@@ -11,7 +11,7 @@ require_once __DIR__.'/../../helpers/functions.php';
  * Class controller to manger rsa key pair generator
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class RSAKeyGeneratorController extends Controller {
+class RSAKeyGeneratorController extends UMSBaseController {
     public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }

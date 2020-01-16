@@ -9,9 +9,8 @@ use \PDO;
  */
 class User {
     protected $conn;
-    protected $appConfig;
 
-    public function __construct(PDO $conn, array $appConfig=NULL) {
+    public function __construct(PDO $conn) {
         $this->conn = $conn;
 //         $this->appConfig = $appConfig ?? getConfig();
     }

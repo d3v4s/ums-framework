@@ -1,9 +1,10 @@
 $(document).ready(function(){
 	/* submit event on settings app form to send XML HTTP request */
-	$('#app-settings-form').on('submit', function(event) {
+	$('#settings-form').on('submit', function(event) {
 		/* get button, token, and serialize data */
 		const $xf = $(this).find('#_xf'),
 			$btn = $(this).find('#btn-save'),
+			actionUrl = $(this).attr('action'),
 			data = $(this).find('.send-ajax').serialize();
 
 		/* block default submit form and disable button */
@@ -16,8 +17,8 @@ $(document).ready(function(){
 			try {
 				showMessage(response.message , !response.success);
 				if (!response.success) focusError(response);
-				
-				$xf.val(response.ntk);
+
+				if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Settings update failed', true);
 			}
@@ -29,6 +30,6 @@ $(document).ready(function(){
 			showMessage('Problem to contact server', true);
 		};
 
-		sendAjaxReq('/auth/logout', data, $xf.val(), funcSuccess, funcFail);
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

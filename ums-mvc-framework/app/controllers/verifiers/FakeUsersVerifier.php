@@ -28,7 +28,7 @@ class FakeUsersVerifier extends Verifier {
         $res[GENERATE_TOKEN] = TRUE;
 
         /* validate n. fake user */
-        if (!is_numeric($nFakeUsers) || $nFakeUsers < 0) {
+        if (!is_numeric($nFakeUsers) || $nFakeUsers < 0 || $nFakeUsers > MAX_FAKE_USERS) {
             $res[MESSAGE] = 'Invalid n. fake users to add';
             $res[ERROR] = N_USERS;
             return $res;

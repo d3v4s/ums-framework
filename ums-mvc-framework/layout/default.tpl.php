@@ -48,7 +48,7 @@
 		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
 			<a class="navbar-brand" href="/">DevAS</a>
 			<button id="collapse-navbar" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-ums" aria-controls="#navbar-ums" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
+				<i class="fas fa-bars"></i>
 			</button>
 			<div id="navbar-ums" class="collapse navbar-collapse">
 				<ul class="navbar-nav mr-auto">

@@ -9,27 +9,29 @@ $(document).ready(function(){
 	/* submit event on send email form to send XML HTTP request */
 	$('#send-email-form').on('submit', function(event) {
 		/* get button, token, and serialize data */
-		const $btn = $(this).find('#btn-send'),
-			$xf = $(this).find('#_xf');
+		const $xf = $(this).find('#_xf'),
+			$btn = $(this).find('#btn-send'),
+			actionUrl = $(this).attr('action'),
+			$dataCrypt = $(this).find('.send-ajax-crypt');
 
 		/* block default submit form and show loading */
 		event.preventDefault();
 		showLoading($btn);
 
 		try {
-			/* init rsa, and get data to be crypted */
-			var rsa = new RSAKey(),
-				to = $(this).find('#to.send-ajax-crypt').val(),
-				subject = $(this).find('#subject.send-ajax-crypt').val(),
-				content = $(this).find('#content.send-ajax-crypt').val();
-
-			/* crypt password and append on data */
-			rsa.setPublic(window.keyN, window.keyE);
-			to = rsa.encrypt(to);
-			subject = rsa.encrypt(subject);
-			content = rsa.encrypt(content);
+			/* crypte data */
+			var data = cryptSerialize($dataCrypt);
+//			var rsa = new RSAKey(),
+//				to = $(this).find.val(),
+//				subject = $(this).find('#subject.send-ajax-crypt').val(),
+//				content = $(this).find('#content.send-ajax-crypt').val();
+//
+//			/* crypt password and append on data */
+//			rsa.setPublic(window.keyN, window.keyE);
+//			to = rsa.encrypt(to);
+//			subject = rsa.encrypt(subject);
+//			content = rsa.encrypt(content);
 		} catch (e) {
-			console.log(e);
 			removeLoading($btn, 'Send');
 			showMessage('Send email failed', true);
 			return;
@@ -40,10 +42,10 @@ $(document).ready(function(){
     		removeLoading($btn, 'Send');
     		try {
     			showMessage(response.message, !response.success);
-    			if (response.success) setTimeout(redirect, 2000, '/');
+    			if (response.success) setTimeout(redirect, 2000, response.redirect_to);
     			else {
     				focusError(response);
-    				$xf.val(response.ntk);
+    				if (response.ntk !== undefined) $xf.val(response.ntk);
     			}
 			} catch (e) {
 				showMessage('Send email failed', true);
@@ -56,13 +58,13 @@ $(document).ready(function(){
 			showMessage('Problem to contact server', true);
 		};
 
-		/* data to send on request */
-		data = {
-			to: to,
-			subject: subject,
-			content: content,
-			_xf: $xf.val()
-		}
-		sendAjaxReq('/ums/email/send', data, $xf.val(), funcSuccess, funcFail);
+//		/* data to send on request */
+//		data = {
+//			to: to,
+//			subject: subject,
+//			content: content,
+//			_xf: $xf.val()
+//		}
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

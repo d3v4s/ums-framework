@@ -18,7 +18,7 @@ $(document).ready(function (){
 				if (!response.success) focusError(response);
 				else setTimeout(redirect, 2000, '/ums/generator/site/map/update');
 
-				$xf.val(response.ntk);
+				if (response.ntk !== undefined) $xf.val(response.ntk);
 			} catch (e) {
 				showMessage('Generation sitemap failed', true);
 			}
