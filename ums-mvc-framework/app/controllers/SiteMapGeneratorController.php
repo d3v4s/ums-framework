@@ -10,7 +10,7 @@ use app\controllers\data\SiteMapDataFactory;
  * Class controller to manage the site map generation and updates
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class SiteMapGeneratorController extends UMSBaseController {
+class SiteMapGeneratorController extends SettingsBaseController {
     public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }

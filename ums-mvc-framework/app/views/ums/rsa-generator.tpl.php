@@ -1,15 +1,15 @@
 <div class="container col-md-8 text-center">
     <h1>RSA Key Pair Generator</h1>
-    <form id="rsa-generator-form" method="POST" action="/ums/generator/rsa/get">
+    <form id="rsa-generator-form" method="post" action="/<?=RSA_GENERATOR_ROUTE.'/'.GET_ROUTE?>">
 		<div class="form-group text-md-left">
-    		<label for="priv-key">Private Key</label>
-    		<textarea id="priv-key" class="form-control" readonly="readonly"></textarea>
+    		<label for="<?=PRIV_KEY?>">Private Key</label>
+    		<textarea id="<?=PRIV_KEY?>" class="form-control" readonly="readonly"></textarea>
     	</div>
     	<div class="form-group text-md-left">
-    		<label for="publ-key">Public Key</label>
-    		<textarea id="publ-key" class="form-control" readonly="readonly"></textarea>
+    		<label for="<?=PUBL_KEY?>">Public Key</label>
+    		<textarea id="<?=PUBL_KEY?>" class="form-control" readonly="readonly"></textarea>
     	</div>
-    	<input id="_xf" type="hidden" name="_xf" value="<?=$token?>">
+    	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_GEN_RSA?>" value="<?=${TOKEN}?>">
     	<noscript>
     		<div class="container-fluid">
     			<h3 class="text-danger">ENABLE JAVASCRIPT TO GENERATE KEY PAIR</h3>

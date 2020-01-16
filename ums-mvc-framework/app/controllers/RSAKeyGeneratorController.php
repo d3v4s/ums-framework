@@ -4,15 +4,12 @@ namespace app\controllers;
 use \PDO;
 use app\controllers\verifiers\RSAVerifier;
 
-require_once __DIR__.'/../../autoload.php';
-require_once __DIR__.'/../../helpers/functions.php';
-
 /**
  * Class controller to manger rsa key pair generator
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class RSAKeyGeneratorController extends UMSBaseController {
-    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
+class RSAKeyGeneratorController extends SettingsBaseController {
+    public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -27,15 +24,12 @@ class RSAKeyGeneratorController extends UMSBaseController {
         /* redirect */
         $this->redirectOrFailIfCanNotGenerateRsaKey();
 
-        /* set location */
-        $this->isRSAGenerator = TRUE;
-
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/adm-rsa.js']
+            [SOURCE => '/js/utils/ums/rsa-gen.js']
         );
 
-        $this->content = view('ums/rsa-generator', [TOKEN => generateToken(CSRF_GEN_RSA)]);
+        $this->content = view(getPath('ums', 'rsa-generator'), [TOKEN => generateToken(CSRF_GEN_RSA)]);
     }
 
     /* ########## ACTION FUNCTIONS ########## */
@@ -55,10 +49,9 @@ class RSAKeyGeneratorController extends UMSBaseController {
         /* if success */
         if ($resKeyGenerate[SUCCESS]) {
             /* set rsa configuration */
-            $confRsa = $this->appConfig[RSA];
             $config = [
-                "digest_alg" => $confRsa[DIGEST_ALG],
-                "private_key_bits" => $confRsa[PRIVATE_KEY_BITS],
+                "digest_alg" => DIGEST_ALG,
+                "private_key_bits" => PRIVATE_KEY_BITS,
                 "private_key_type" => OPENSSL_KEYTYPE_RSA
             ];
             /* generate a key pair, and set success message */
@@ -95,15 +88,14 @@ class RSAKeyGeneratorController extends UMSBaseController {
         $tokens = $this->getPostSessionTokens(CSRF_GEN_SAVE_RSA);
 
         /* get instance of verifier and switch by section */
-        $verifier = RSAVerifier::getInstance($this->appConfig);
+        $verifier = RSAVerifier::getInstance();
         $resKeySave = $verifier->verifyKeyGenerateSave($tokens);
         /* if success */
         if ($resKeySave[SUCCESS]) {
             /* set rsa configuration */
-            $confRsa = $this->appConfig[RSA];
             $config = [
-                "digest_alg" => $confRsa[DIGEST_ALG],
-                "private_key_bits" => $confRsa[PRIVATE_KEY_BITS],
+                "digest_alg" => DIGEST_ALG,
+                "private_key_bits" => PRIVATE_KEY_BITS,
                 "private_key_type" => OPENSSL_KEYTYPE_RSA,
             ];
             /* generate and save rsa key pair */
@@ -132,7 +124,7 @@ class RSAKeyGeneratorController extends UMSBaseController {
 
     /* function to redirect if user can not generate rsa key pair */ 
     private function redirectOrFailIfCanNotGenerateRsaKey() {
-        if (!$this->userRole[CAN_GENERATE_RSA]) redirect();
+        if (!$this->canGenerateRsaKey()) redirect();
     }
 
     /* function to save rsa private key */
