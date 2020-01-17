@@ -7,21 +7,15 @@ namespace app\controllers\data;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class SiteMapDataFactory extends DataFactory {
-    protected $changefreqList = [];
 
     protected function __construct() {
         parent::__construct();
-        $this->changefreqList = getList(CHANGE_FREQ_LIST);
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
-    /* function to set the list of change frequency */
-    public function setChangefreqList(array $changefreqList) {
-        $this->changefreqList = $changefreqList;
-    }
 
     /* function to get data by sitemap */
     public function getDataBySitemap() {
@@ -41,21 +35,26 @@ class SiteMapDataFactory extends DataFactory {
         /* remove domain from routes and return the results */
         $domain = $this->removeDomainInRoutes($routes);
         return [
-            URL_SERVER => $domain,
             ROUTES => $routes,
-            TOKEN => generateToken(CSRF_GEN_SITEMAP),
-            CHANGE_FREQ_LIST => $this->changefreqList
+            URL_SERVER => $domain,
+            SITE_MAP_EXISTS => FALSE,
+            TOKEN => generateToken(CSRF_GEN_SITEMAP)
         ];
     }
 
     /* function get data by routes */
     public function getDataByRoutes(): array {
+        $keys = array_keys(getRoutes()['GET']);
+        $routes = [];
+        foreach ($keys as $r) $routes[] = [
+            CHANGEFREQ => '',
+            LOCATION => "/$r"
+        ];
         return [
-            ROUTES => array_keys(getRoutes()['GET']),
-            TOKEN => generateToken(CSRF_GEN_SITEMAP),
+            ROUTES => $routes,
             URL_SERVER => getServerUrl(),
             SITE_MAP_EXISTS => siteMapExists(),
-            CHANGE_FREQ_LIST => $this->changefreqList
+            TOKEN => generateToken(CSRF_GEN_SITEMAP)
         ];
     }
 

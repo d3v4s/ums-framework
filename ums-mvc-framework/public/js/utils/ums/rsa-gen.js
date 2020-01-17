@@ -3,10 +3,10 @@ $(document).ready(function() {
 	$('#rsa-generator-form').on('submit', function(event) {
 		/* get button, token, private and public key, and serialize data */
 		const $xf = $(this).find('#_xf'),
-			$btn = $(this).find('#btn-generate'),
-			$privK = $(this).find('#priv-key'),
-			$publK = $(this).find('#publ-key'),
-			data = $(this).find('.send-ajax').serialize();
+			$privK = $(this).find('#priv_key'),
+			$publK = $(this).find('#publ_key'),
+			actionUrl = $(this).attr('action'),
+			$btn = $(this).find('#btn-generate');
 
 		/* block default submit form and disable button */
 		event.preventDefault();
@@ -17,8 +17,8 @@ $(document).ready(function() {
 			removeLoading($btn, 'Generate');
 			try {
 				if (response.success) {
-					const privKey = response.keyPair.privKey,
-						publKey = response.keyPair.publKey;
+					const privKey = response.key_pair.priv_key,
+						publKey = response.key_pair.publ_key;
 					
 					$privK.attr('rows', privKey.lineCount());
 					$publK.attr('rows', publKey.lineCount());
@@ -39,6 +39,6 @@ $(document).ready(function() {
 			showMessage('Problem to contact server', true);
 		}
 
-		sendAjaxReq('/ums/generator/rsa/get', data, $xf.val(), funcSuccess, funcFail);
+		sendAjaxReq(actionUrl, {}, $xf, funcSuccess, funcFail);
 	});
 });

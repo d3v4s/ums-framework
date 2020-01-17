@@ -9,13 +9,11 @@ use app\controllers\data\AppSettingsDataFactory;
  * Class controller to mange update and view of app settings
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class AppSettingsController extends UMSBaseController {
+class AppSettingsController extends SettingsBaseController {
     protected $section;
-    protected $appSectionsList = [];
 
     public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
-        $this->appSectionsList =  array_keys($this->appConfig);
     }
 
     /* ##################################### */
@@ -45,7 +43,7 @@ class AppSettingsController extends UMSBaseController {
 
         /* add other js sources */
         if ($section === LAYOUT) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/layout-settings.js']);
-        elseif ($section === RSA) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/gen-save-rsa.js']);
+        elseif ($section === RSA) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/rsa-gen-save.js']);
 
         /* show settings page */
         $this->content = view(getPath('settings', $section), $data);

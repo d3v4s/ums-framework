@@ -10,8 +10,8 @@ use app\controllers\data\SiteMapDataFactory;
  * Class controller to manage the site map generation and updates
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class SiteMapGeneratorController extends UMSBaseController {
-    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
+class SiteMapGeneratorController extends SettingsBaseController {
+    public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 
@@ -29,19 +29,18 @@ class SiteMapGeneratorController extends UMSBaseController {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/adm-site-map.js'],
-            [SOURCE => '/js/utils/ums/adm-site-map-updt.js']
+            [SOURCE => '/js/utils/ums/site-map.js']
         );
 
         /* get data from data factory instance */
-        $data = SiteMapDataFactory::getInstance($this->appConfig)->getDataBySitemap();
+        $data = SiteMapDataFactory::getInstance()->getDataBySitemap();
         /* if not data, show error message and return */
         if (!$data) {
             $this->content = $this->showMessage('ERROR TO LOAD SITEMAP');
             return;
         }
 
-        $this->content = view('ums/site-map-update', $data);
+        $this->content = view(getPath('ums', 'site-map'), $data);
     }
 
     /* function to view site map generator page */
@@ -51,14 +50,13 @@ class SiteMapGeneratorController extends UMSBaseController {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/adm-site-map.js'],
-            [SOURCE => '/js/utils/ums/adm-site-map-gen.js']
+            [SOURCE => '/js/utils/ums/adm-site-map.js']
         );
 
         /* get data form data factory */
-        $data = SiteMapDataFactory::getInstance($this->appConfig)->getDataByRoutes();
+        $data = SiteMapDataFactory::getInstance()->getDataByRoutes();
 
-        $this->content = view('ums/site-map-generator', $data);
+        $this->content = view(getPath('ums', 'site-map'), $data);
     }
 
     /* ########## ACTION FUNCTIONS ########## */
@@ -76,20 +74,27 @@ class SiteMapGeneratorController extends UMSBaseController {
         /* get post data */
         $data = $_POST;
 
+        /* set redirect to */
+        $redirectTo = '/'.SITE_MAP_GENERATOR_ROUTE;
+
         /* get verifier instance, and check site map generation request */
-        $verifier = SiteMapVerifier::getInstance($this->appConfig);
+        $verifier = SiteMapVerifier::getInstance();
         $resSiteMapGen = $verifier->verifyGenerateSiteMap($urlServer, $data, $tokens);
         if ($resSiteMapGen[SUCCESS]) {
             /* if succcess save site map and save new result */
-            $resSiteMapGen[SUCCESS] = $this->saveSiteMap($resSiteMapGen[ROUTES]);
-            $resSiteMapGen[MESSAGE] = $resSiteMapGen[SUCCESS] ? 'Site map successfully generate' : 'Generation site map failed';
+            if ($resSiteMapGen[SUCCESS] = $this->saveSiteMap($resSiteMapGen[ROUTES])) {
+                $redirectTo = '/'.SITE_MAP_UPDATE_ROUTE;
+                $resSiteMapGen[MESSAGE] = 'Site map successfully generate';
+            } else $resSiteMapGen[MESSAGE] = 'Generation site map failed';
+            
         }
 
         /* result data */
         $dataOut = [
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resSiteMapGen[SUCCESS],
-            MESSAGE => $resSiteMapGen[MESSAGE] ?? NULL,
-            ERROR=> $resSiteMapGen[ERROR] ?? NULL
+            ERROR=> $resSiteMapGen[ERROR] ?? NULL,
+            MESSAGE => $resSiteMapGen[MESSAGE] ?? NULL
         ];
 
         /* function to deffault response */
@@ -98,23 +103,10 @@ class SiteMapGeneratorController extends UMSBaseController {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            $data[SUCCESS] ? redirect('/'.SITE_MAP_UPDATE_ROUTE) : redirect('/'.SITE_MAP_GENERATOR_ROUTE);
+            redirect($data[REDIRECT_TO]);
         };
 
         $this->switchResponse($dataOut, (!$resSiteMapGen[SUCCESS] && $resSiteMapGen[GENERATE_TOKEN]), $funcDefault, CSRF_GEN_SITEMAP);
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-                
-//                 if () $resJSON['ntk'] = generateToken('csrfSitemap');
-//                 echo json_encode($resJSON);
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 exit;
-//             default:
-                
-//                 return;
-//         }
     }
 
     /* ##################################### */
@@ -164,7 +156,7 @@ class SiteMapGeneratorController extends UMSBaseController {
 
     /* function to redirect if user can not generate site map */
     private function redirectIfCanNotGenerateSiteMap() {
-        if (!$this->userRole[CAN_GENERATE_SITEMAP]) $this->switchFailResponse();
+        if (!$this->canGenerateSitemap()) $this->switchFailResponse();
     }
 }
 

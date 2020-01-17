@@ -146,4 +146,39 @@ $(document).ready(function() {
 		event.preventDefault();
 		addInputRoute();
 	});
+
+	/* submit event on sitemap genrator form to send XML HTTP request */
+	$('#sitemap-generator-form').on('submit', function(event) {
+		/* get button, token, and serialize data */
+		const $xf = $(this).find('#_xf'),
+			actionUrl = $(this).attr('action'),
+			$btn = $(this).find('#btn-generate'),
+			data = $(this).find('.send-ajax').serialize();
+
+		/* block default submit form and disable button */
+		event.preventDefault();
+		showLoading($btn);
+
+		/* success function */
+		funcSuccess = function(response) {
+			removeLoading($btn, 'Generate');
+			try {
+				showMessage(response.message, !response.success);
+				if (!response.success) focusError(response);
+				else setTimeout(redirect, 2000, response.redirect_to);
+
+				if (response.ntk !== undefined) $xf.val(response.ntk);
+			} catch (e) {
+				showMessage('Generation sitemap failed', true);
+			}
+		};
+
+		/* fail function */
+		funcFail = function() {
+			removeLoading($btn, 'Generate');
+			showMessage('Problem to contact server', true);
+		};
+
+		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
+	});
 });
