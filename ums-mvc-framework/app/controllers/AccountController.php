@@ -37,6 +37,12 @@ class AccountController extends Controller {
             [SOURCE => '/js/utils/account/delete.js']
         );
 
+        /* calc expire time */
+        $expireDatetime = new DateTime();
+        $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
+        /* create a delete session */
+        $_SESSION[DELETE_SESSION] = [EXPIRE_DATETIME => $expireDatetime];
+
         /* generate token and show page */
         $this->content = view(getPath('account','delete'), [TOKEN => generateToken(CSRF_DELETE_ACCOUNT)]);
     }
@@ -53,7 +59,7 @@ class AccountController extends Controller {
         );
         
         /* get data from data factory */
-        $data = AccountDataFactory::getInstance($this->conn)->getUserData($this->loginSession->{USER_ID});
+        $data = AccountDataFactory::getInstance($this->conn)->getAccountSettingsData($this->loginSession->{USER_ID});
         /* if wait email confir, then add javascript sorce for new email settings */
         if ($data[WAIT_EMAIL_CONFIRM]) $this->jsSrcs[] = [SOURCE => '/js/utils/account/new-email-settings.js'];
         
@@ -66,12 +72,8 @@ class AccountController extends Controller {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
 
-        /* init user model */
-        $userModel = new User($this->conn);
-        $data = [
-            USER => $userModel->getUserAndRole($this->loginSession->{USER_ID}),
-            VIEW_ROLE => !$this->isSimpleUser()
-        ];
+        $data = AccountDataFactory::getInstance($this->conn)->getAccountInfoData($this->loginSession->{USER_ID});
+
         /* generate token and show change account info page */
         $this->content = view(getPath('account','info'), $data);
     }
@@ -157,19 +159,6 @@ class AccountController extends Controller {
         };
 
         $this->switchResponse($dataOut, (!$resDelete[SUCCESS] && $resDelete[GENERATE_TOKEN]), $funcDefault, CSRF_DELETE_ACCOUNT);
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON
-//                 if () $resJSON['ntk'] = generateToken('csrfUserSettings');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-                
-//                 break;
-//         };
     }
 
     /* function to upadate account */
@@ -245,18 +234,6 @@ class AccountController extends Controller {
         };
 
         $this->switchResponse($dataOut, (!$resUpdate[SUCCESS] && $resUpdate[GENERATE_TOKEN]), $funcDefault, CSRF_UPDATE_ACCOUNT);
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = 
-//                 if (!$resUpdate['success']) $resJSON['ntk'] = generateToken('csrfUserSettings');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-//                 break;
-//         }
     }
 
     /* function to show password change page */
@@ -320,19 +297,6 @@ class AccountController extends Controller {
         };
 
         $this->switchResponse($dataOut, (!$resPass[SUCCESS] && $resPass[GENERATE_TOKEN]), $funcDefault, CSRF_CHANGE_PASS);
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = 
-//                 if (!$resPass['success']) $resJSON['ntk'] = generateToken();
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-
-//                 break;
-//         }
     }
 
     /* function to delete new email on pending */
@@ -352,7 +316,6 @@ class AccountController extends Controller {
         if ($resDeleteEmail[SUCCESS]) {
             /* init pending mail model */
             $pendMail = new PendingEmail($this->conn);
-//             $user = new User($this->conn);
             /* remove new email with token and if success set success messagge */
             if (($resDeleteEmail[SUCCESS] = $pendMail->removeAllEmailEnablerToken($id))) $resDeleteEmail[MESSAGE] =  'Email successfully deleted';
             /* else set error message */
@@ -376,26 +339,15 @@ class AccountController extends Controller {
         };
 
         $this->switchResponse($dataOut, (!$resDeleteEmail[SUCCESS] && $resDeleteEmail[GENERATE_TOKEN]), $funcDefault, CSRF_DELETE_NEW_EMAIL);
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = 
-//                 if (!$resDeleteEmail['success']) $resJSON['ntk'] = generateToken('csrfUserSettings');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-                
-//                 break;
-//         }
     }
 
+    /* function to resend email enabler */
     public function resendEmailEnabler() {
         /* redirects */
         $this->redirectOrFailIfNotLogin();
         $this->redirectOrFailIfConfirmEmailNotRequire();
 
+        /* check resend lock */
         if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request');
         
         /* get tokens and user id */
@@ -432,36 +384,14 @@ class AccountController extends Controller {
         };
 
         $this->switchResponse($dataOut, $resResendEmail[GENERATE_TOKEN], $funcDefault, CSRF_RESEND_ENABLER_EMAIL);
-//         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-//         switch ($header) {
-//             case 'XMLHTTPREQUEST':
-//                 $resJSON = 
-//                 $resJSON['ntk'] = generateToken('csrfUserSettings');
-//                 header("Content-Type: application/json");
-//                 header("X-Content-Type-Options: nosniff");
-//                 echo json_encode($resJSON);
-//                 exit;
-//             default:
-                
-//                 break;
-//         }
     }
 
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
 
-    /* function to create a delete session */
-    private function creteDeleteSession() {
-        /* calc expire time */
-        $expireDatetime = new DateTime();
-        $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
-        /* set delete session */
-        $_SESSION[DELETE_SESSION] = [EXPIRE_DATETIME => $expireDatetime];
-    }
-
     /* function to redirect if is not valid delete session */
     private function redirectOrFailIfNotDeleteSession(){
-        if (isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][DELETE_SESSION_EXPIRE_TIME] > new DateTime()) $this->switchFailResponse();
+        if (!(isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][DELETE_SESSION_EXPIRE_TIME] > new DateTime())) $this->switchFailResponse();
     }
 } 

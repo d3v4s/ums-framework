@@ -227,6 +227,11 @@ function getLayoutPath(): string {
     return getPath(getcwd(), 'layout');
 }
 
+/* function to check if role id is for simple user */
+function isSimpleUser($roleId): bool {
+    return $roleId === DEFAULT_ROLE;
+}
+
 // function isUserLoggedin(): bool {
 //     return $_SESSION['loggedin'] ?? FALSE;
 // }

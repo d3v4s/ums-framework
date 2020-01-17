@@ -24,7 +24,6 @@ class UMSController extends UMSBaseController {
 
     /* ########## SHOW FUNCTIONS ########## */
 
-
     /* function to view the user list page */
     public function showUsersList(string $orderBy=USER_ID, string $orderDir=DESC, int $page=1, int $usersForPage=DEFAULT_USERS_FOR_PAGE) {
         /* redirect */
@@ -268,27 +267,9 @@ class UMSController extends UMSBaseController {
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect($data[REDIRECT_TO]);
-//             $data[SUCCESS] ? redirect('/'.USER_ROUTE.'/'.$data[USER_ID]) : redirect('/'.USER_ROUTE."/{$data[USER_ID]}".PASS_UPDATE_ROUTE);
         };
 
         $this->switchResponse($dataOut, (!$resPass[SUCCESS] && $resPass[GENERATE_TOKEN]), $funcDefault, CSRF_UPDATE_PASS);
-        //         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-        //         switch ($header) {
-        //             case 'XMLHTTPREQUEST':
-        //                 $resJSON
-        //                 if (!$resPass['success']) $resJSON['ntk'] = generateToken();
-        //                 header("Content-Type: application/json");
-        //                 header("X-Content-Type-Options: nosniff");
-        //                 echo json_encode($resJSON);
-        //                 exit;
-        //             default:
-        //                 if (isset($resPass['message'])) {
-        //                     $_SESSION['message'] = $resPass['message'];
-        //                     $_SESSION['success'] = $resPass['success'];
-        //                 }
-        //                 $resPass['success'] ? redirect('/ums/user/'.$id) : redirect('/ums/user/'.$id.'/update/pass');
-        //                 break;
-        //         }
     }
 
     /* function to reset counter of user lock */
