@@ -65,7 +65,7 @@ return [
         APP_SETTINGS_ROUTE.'/:section/'.UPDATE_ROUTE => 'app\controllers\AppSettingsController@updateSettings',
         RSA_GENERATOR_ROUTE.'/'.SAVE_ROUTE => 'app\controllers\RSAKeyGeneratorController@generateSaveRsaKey',
         RSA_GENERATOR_ROUTE.'/'.GET_ROUTE => 'app\controllers\RSAKeyGeneratorController@generateRsaKey',
-        SITE_MAP_GENERATOR_ROUTE => 'app\controllers\SiteMapGeneratorController@siteMapGenerate',
+        SITE_MAP_GENERATOR_ROUTE => 'app\controllers\SiteMapGeneratorController@generateSiteMap',
         SEND_EMAIL_ROUTE => 'app\controllers\EmailController@sendEmail',
         FAKE_USERS_ROUTE => 'app\controllers\FakeUsersController@addFakeUsers',
         LOGIN_ROUTE => 'app\controllers\LoginController@login',
