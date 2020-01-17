@@ -151,7 +151,7 @@ class Controller {
 
     /* function to send 404 code and show page not found */
     public function showPageNotFound() {
-        header($_SERVER["SERVER_PROTOCOL"].' 404 Not Found', true, 404);
+        header($_SERVER["SERVER_PROTOCOL"].' 404 Not Found', TRUE, 404);
         $this->content = view(PAGE_NOT_FOUND);
     }
 
@@ -384,14 +384,14 @@ class Controller {
         return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === ADMIN_ROLE_ID;
     }
 
-    /* function to check if is admin user */
+    /* function to check if is editor user */
     protected function isEditorUser(): bool {
         return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === EDITOR_ROLE_ID;
     }
 
-    /* function to check if is admin user */
+    /* function to check if is simple user */
     protected function isSimpleUser(): bool {
-        return $this->loginSession && $this->loginSession->{ROLE_ID_FRGN} === USER_ROLE_ID;
+        return isSimpleUser($this->loginSession->{ROLE_ID_FRGN});
     }
 
     /* function to check if user can create another user */

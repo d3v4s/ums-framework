@@ -76,7 +76,6 @@ class RSAKeyGeneratorController extends SettingsBaseController {
         };
 
         $this->switchResponse($dataOut, $resKeyGenerate[GENERATE_TOKEN], $funcDefault, CSRF_GEN_RSA);
-
     }
 
     /* function to generate and save a key on server */

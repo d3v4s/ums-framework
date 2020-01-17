@@ -16,8 +16,8 @@ class AccountDataFactory extends DataFactory {
         parent::__construct($conn);
     }
 
-    /* function to get user data */
-    public function getUserData($userId): array {
+    /* function to get account settings data */
+    public function getAccountSettingsData($userId): array {
         $userModel = new User($this->conn);
         $roleModel = new Role($this->conn);
         $pendMailModel = new PendingEmail($this->conn);
@@ -29,6 +29,17 @@ class AccountDataFactory extends DataFactory {
             ROLES => $roleModel->getNameAndIdRoles(),
             USER => $userModel->getUser($userId),
             WAIT_EMAIL_CONFIRM => $pendMailModel->getPendingEmailByUserId($userId)
+        ];
+    }
+
+    /* function to get account info data */
+    public function getAccountInfoData($userId): array {
+        /* init user model */
+        $userModel = new User($this->conn);
+        $user = $userModel->getUserAndRole($userId);
+        return [
+            USER => $user,
+            VIEW_ROLE => !isSimpleUser()
         ];
     }
 }

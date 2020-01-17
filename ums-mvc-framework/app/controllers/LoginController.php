@@ -96,7 +96,7 @@ class LoginController extends Controller {
         /* if is not valid user id, show error message and return */
         if (!(is_numeric($userId) && $pendUser->getPendingUser($userId))) {
             //             $this->title .= ' - ERROR';
-            $this->showMessageAndExit('ERROR', TRUE);
+            $this->showPageNotFound();
             return;
         }
         
@@ -203,7 +203,6 @@ class LoginController extends Controller {
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect($data[REDIRECT_TO]);
-//             $data[SUCCESS] ? redirect() : redirect('/'.LOGIN_ROUTE);
         };
         
         /* result data */
@@ -326,7 +325,6 @@ class LoginController extends Controller {
                 $resResendEmail[MESSAGE] = 'Email successfully sended at '.$resResendEmail[EMAIL];
                 $_SESSION[RESEND_LOCK_EXPIRE] = new DateTime();
                 $_SESSION[RESEND_LOCK_EXPIRE]->modify(RESEND_LOCK_EXPIRE_TIME);
-//                 $_SESSION[LAST_RESEND_REQ]
             } else $resResendEmail[MESSAGE] = 'Send email failed';
         }
 
@@ -356,7 +354,6 @@ class LoginController extends Controller {
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_LOGOUT);
-//         $id = $this->loginSession->{USER_ID};
 
         /* set url to redirect */
         $redirectTo = '/'.HOME_ROUTE;
