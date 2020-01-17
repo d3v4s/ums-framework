@@ -11,7 +11,7 @@ define('SHOW_MESSAGE_EXCEPTION', TRUE);
 define('DEFAULT_LANG', 'en');
 define('LINK_PAGINATION', 7);
 define('DEFAULT_PASSWORD', 'ums');
-define('DEFAULT_USERS_FOR_PAGE', 10);
+define('DEFAULT_ROWS_FOR_PAGE', 10);
 define('PAGE_NOT_FOUND', 'error-404');
 define('PAGE_EXCEPTION', 'error-exception');
 define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', '30 days');
@@ -43,6 +43,7 @@ define('SHOW_LINK_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-link.tpl.php
 define('SHOW_SESSION_MESSAGE_TEMPLATE', getPath(getViewsPath(), 'utils', 'show-session-message.tpl.php'));
 define('PAGINATION_TEMPLATE', getPath(getViewsPath(), 'utils', 'pagination.tpl.php'));
 define('MESSAGE_BOX_TEMPLATE', getPath(getViewsPath(), 'utils', 'message-box.tpl.php'));
+define('ROWS_FOR_PAGE_TEMPLATE', getPath(getViewsPath(), 'utils', 'rows-for-page.tpl.php'));
 
 /* ROLES CONSTANTS */
 define('ADMIN_ROLE_ID', '0');
@@ -102,8 +103,11 @@ define('REDIRECT_TO', 'redirect_to');
 /* ROUTES CONSTANTS */
 define('HOME_ROUTE', '');
 define('UMS_HOME_ROUTE', 'ums');
-define('USERS_LIST_ROUTE', 'ums/users');
+// define('USERS_LIST_ROUTE', 'ums/users');
 define('USER_ROUTE', 'ums/user');
+define('DELETED_USER_ROUTE', 'ums/user/deleted');
+define('PENDING_USER_ROUTE', 'ums/user/pending');
+define('UMS_TABLES_ROUTE', 'ums/table');
 define('NEW_USER_ROUTE', 'ums/user/new');
 define('NEW_EMAIL_ROUTE', 'ums/email/new');
 define('SEND_EMAIL_ROUTE', 'ums/email/send');
@@ -140,7 +144,7 @@ define('INTEGRITY', 'integrity');
 define('CROSSORIGIN', 'crossorigin');
 
 /* CONSTANTS LISTS */
-define('USERS_FOR_PAGE_LIST', [5, 10, 20, 50, 100]);
+define('ROWS_FOR_PAGE_LIST', [5, 10, 20, 50, 100]);
 define('ORDER_BY_LIST', [
     USER_ID,
     NAME,
@@ -148,6 +152,21 @@ define('ORDER_BY_LIST', [
     EMAIL,
     ROLE,
     ENABLED
+]);
+define('DELETED_USERS_ORDER_BY_LIST', [
+    USER_ID_FRGN,
+    NAME,
+    USERNAME,
+    EMAIL,
+    ROLE
+]);
+define('PENDING_USERS_ORDER_BY_LIST', [
+    PENDING_USER_ID,
+    NAME,
+    USERNAME,
+    EMAIL,
+    ROLE,
+    ENABLER_TOKEN,
 ]);
 define('ORDER_DIR_LIST', [
     ASC,
@@ -179,10 +198,21 @@ define('ACCEPT_LANG_LIST', [
 define('SYSTEM_LAYOUT_LIST', [
     DEFAULT_LAYOUT,
     UMS_LAYOUT,
+    UMS_TABLES_LAYOUT,
     SETTINGS_LAYOUT,
     EMAIL_LAYOUT,
     PASSWORD_RESET_EMAIL_LAYOUT,
     ENABLER_EMAIL_LAYOUT
+]);
+
+define('UMS_TABLES_LIST', [
+    USERS_TABLE => 'Users',
+    DELETED_USER_TABLE => 'Deleted users',
+    PENDING_USERS_TABLE => 'Pending users',
+    PENDING_EMAILS_TABLE => 'Pending emails',
+    ROLES_TABLE => 'Roles',
+    SESSIONS_TABLE => 'Sessions',
+    PASSWORD_RESET_REQ_TABLE => 'Password reset requests'
 ]);
 
 /* CONSTATS FOR RESULT DATA */
@@ -228,7 +258,7 @@ define('TRACE_STRING', 'trace_string');
 define('ORDER_BY', 'order_by');
 define('SEARCH_QUERY', 'search_query');
 define('PAGE', 'page');
-define('USERS_FOR_PAGE', 'users_for_page');
+define('ROWS_FOR_PAGE', 'rows_for_page');
 define('TOT_USERS', 'tot_usrs');
 define('TOT_DELETED_USERS', 'tot_del_usrs');
 define('TOT_PENDING_USERS', 'tot_pen_usrs');
@@ -249,7 +279,9 @@ define('LINK_HEAD_ENABLED', 'lnk_hd_enbl');
 define('CLASS_HEAD_ENABLED', 'clss_hd_enbl');
 define('LINK_HEAD_ROLE', 'lnk_hd_rl');
 define('CLASS_HEAD_ROLE', 'clss_hd_rl');
-define('BASE_LINK_USER_FOR_PAGE', 'bs_lnk_ufp');
+define('LINK_HEAD_TOKEN', 'lnk_hd_tkn');
+define('CLASS_HEAD_TOKEN', 'clss_hd_tkn');
+define('BASE_LINK_ROWS_FOR_PAGE', 'bs_lnk_rfp');
 define('SEARCH_ACTION', 'src_act');
 define('USERS', 'usrs');
 define('MESSAGE_ENABLE_ACC', 'msg_enbl');

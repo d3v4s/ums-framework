@@ -11,7 +11,7 @@ use \Exception;
 use \PDO;
 
 /**
- * Class controller to implement principal properties and functions
+ * Class base controller that implement principal properties and functions
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class Controller {
@@ -432,6 +432,11 @@ class Controller {
     /* function to check if user can send emails */
     protected function canSendEmails(): bool {
         return (bool) $this->userRole[CAN_SEND_EMAIL];
+    }
+
+    /* function to check if user can send emails */
+    protected function canViewTables(): bool {
+        return (bool) $this->userRole[CAN_VIEW_TABLES];
     }
 
     /* REDIRECT OR SEND FAIL FUNCTIONS */

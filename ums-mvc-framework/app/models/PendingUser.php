@@ -63,6 +63,41 @@ class PendingUser {
     /* ############# READ FUNCTIONS ############# */
 
     /* function to get pending user by id */
+    public function getPendingUsers(string $orderBy = PENDING_USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $data = [];
+        if (!empty($search)) {
+            $sql .= ' WHERE '.PENDING_USER_ID.' = :searchId OR ';
+            $sql .= NAME.' LIKE :search OR ';
+            $sql .= USERNAME.' LIKE :search OR ';
+            $sql .= EMAIL.' LIKE :search OR ';
+            $sql .= ROLE.' LIKE :search ';
+            $data = [
+                'searchId' => $search,
+                'search' => "%$search%"
+            ];
+        }
+        $orderBy = in_array($orderBy, PENDING_USERS_ORDER_BY_LIST) ? $orderBy : PENDING_USER_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : 20;
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($data);
+
+        /* if success, then return users list */
+        if ($stmt) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            foreach ($users as $user) unset($user->password);
+            return $users;
+        }
+        /* else return empty array */
+        return [];
+    }
+
+    /* function to get pending user by id */
     public function getPendingUser(int $id, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */
         $stmt = $this->conn->prepare('SELECT * FROM '.PENDING_USERS_TABLE.' WHERE '.PENDING_USER_ID.'=:id');
@@ -111,7 +146,31 @@ class PendingUser {
         return FALSE;
     }
 
-    /* function to count the pending mails on table */
+    /* function to count the all pending users on table */
+    public function countAllPendingUsers($search=''): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $data = [];
+        if (!empty($search)) {
+            $sql .= ' WHERE '.PENDING_USER_ID.'=:searchId OR ';
+            $sql .= NAME.' LIKE :search OR ';
+            $sql .= USERNAME.' LIKE :search OR ';
+            $sql .= EMAIL.' LIKE :search OR ';
+            $sql .= ROLE.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' =>"%$search%"
+            ];
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($data);
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    /* function to count only the valid pending users on table */
     public function countPendingUsers(): int {
         /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL';

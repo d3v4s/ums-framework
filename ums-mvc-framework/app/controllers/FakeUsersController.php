@@ -89,7 +89,7 @@ class FakeUsersController extends UMSBaseController {
                 ];
                 /* add fake user */
                 if ($model->{$funcAdder}($dataUsr)[SUCCESS]) $usersAdded++;
-                $redirectTo = '/'.USERS_LIST_ROUTE;
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             }
             /* set result */
             $resAddFakeUsers[MESSAGE] = "$usersAdded fake users added successfully";

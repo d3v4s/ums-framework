@@ -42,8 +42,8 @@ class AppSettingsController extends SettingsBaseController {
         );
 
         /* add other js sources */
-        if ($section === LAYOUT) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/layout-settings.js']);
-        elseif ($section === RSA) array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/rsa-gen-save.js']);
+        if ($section === LAYOUT) $this->jsSrcs[] = [SOURCE => '/js/utils/ums/layout-settings.js'];
+        elseif ($section === RSA) $this->jsSrcs[] = [SOURCE => '/js/utils/ums/rsa-gen-save.js'];
 
         /* show settings page */
         $this->content = view(getPath('settings', $section), $data);

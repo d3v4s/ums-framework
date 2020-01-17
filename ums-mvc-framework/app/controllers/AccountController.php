@@ -98,7 +98,6 @@ class AccountController extends Controller {
             /* set tokens */
             TOKEN => generateToken(CSRF_CHANGE_PASS),
             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
-            
         ]);
     }
 
@@ -212,7 +211,6 @@ class AccountController extends Controller {
                 /* set result */
                 $resUpdate[MESSAGE] = $resUser[MESSAGE];
                 $resUpdate[SUCCESS] = $resUser[SUCCESS];
-                
             }
         }
 
@@ -392,6 +390,6 @@ class AccountController extends Controller {
 
     /* function to redirect if is not valid delete session */
     private function redirectOrFailIfNotDeleteSession(){
-        if (!(isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][DELETE_SESSION_EXPIRE_TIME] > new DateTime())) $this->switchFailResponse();
+        if (!(isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][EXPIRE_DATETIME] > new DateTime())) $this->switchFailResponse();
     }
 } 

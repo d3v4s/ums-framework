@@ -5,7 +5,7 @@ use \PDO;
 use app\controllers\data\UMSDataFactory;
 
 /**
- * Class controller for admin users manage
+ * Class base controller for ums
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class UMSBaseController extends Controller {

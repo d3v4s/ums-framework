@@ -122,11 +122,11 @@
             <div id="sidebar" class="bg-dark rounded shadow-lg">
 				<ul class="sidebar-nav">
 					<li>
-            			<h3 class="px-2 py-3">SECTIONS</h3>
+            			<h3 class="px-2 py-3">Tables</h3>
             		</li>
-                	<?php foreach ($this->appSectionsList as $appSection): ?>
-                    	<li class="p-2 nav-item <?=$appSection === $this->section ? 'active' : ''?>">
-                    		<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE.'/'.$appSection?>"><?=ucfirst($appSection)?></a>
+                	<?php foreach (UMS_TABLES_LIST as $table => $name): ?>
+                    	<li class="p-2 nav-item <?=$table === $this->table ? 'active' : ''?>">
+                    		<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.$table?>"><?=ucfirst($name)?></a>
                     	</li>
 					<?php endforeach; ?>
 				</ul>

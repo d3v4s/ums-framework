@@ -86,7 +86,6 @@ class SiteMapGeneratorController extends SettingsBaseController {
                 $redirectTo = '/'.SITE_MAP_UPDATE_ROUTE;
                 $resSiteMapGen[MESSAGE] = 'Site map successfully generate';
             } else $resSiteMapGen[MESSAGE] = 'Generation site map failed';
-            
         }
 
         /* result data */

@@ -11,7 +11,7 @@ use \DateTime;
 use \PDO;
 
 /**
- * Class controller to mange login, signup and logout rquest
+ * Class controller to mange login, signup and logout request
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginController extends Controller {

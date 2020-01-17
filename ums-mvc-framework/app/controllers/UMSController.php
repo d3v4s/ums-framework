@@ -10,7 +10,7 @@ use app\models\PendingUser;
 use app\models\DeletedUser;
 
 /**
- * Class controller for admin users manage
+ * Class controller for users admin manage
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class UMSController extends UMSBaseController {
@@ -25,7 +25,7 @@ class UMSController extends UMSBaseController {
     /* ########## SHOW FUNCTIONS ########## */
 
     /* function to view the user list page */
-    public function showUsersList(string $orderBy=USER_ID, string $orderDir=DESC, int $page=1, int $usersForPage=DEFAULT_USERS_FOR_PAGE) {
+    public function showUsersList(string $orderBy=USER_ID, string $orderDir=DESC, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
         $this->redirectOrFailIfCanNotUpdateUser();
 
@@ -363,7 +363,7 @@ class UMSController extends UMSBaseController {
             }
 
             /* if success set redirect ro users list */
-            if ($resUser[SUCCESS]) $redirectTo = '/'.USERS_LIST_ROUTE;
+            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             /* set result */
             $resSignup[MESSAGE] = $resUser[MESSAGE];
             $resSignup[SUCCESS] = $resUser[SUCCESS];
@@ -412,7 +412,7 @@ class UMSController extends UMSBaseController {
                 /* init deleted model and save deleted user */
                 $delModel = new DeletedUser($this->conn);
                 $delModel->saveDeletedUser($resDelete[USER]);
-                $redirectTo = '/'.USERS_LIST_ROUTE;
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             }
             /* set result */
             $resDelete[MESSAGE] = $resUser[MESSAGE];
@@ -434,7 +434,6 @@ class UMSController extends UMSBaseController {
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect($data[REDIRECT_TO]);
-//             $data[SUCCESS] ? redirect('/'.USERS_LIST_ROUTE) : redirect('/'.USER_ROUTE."/{$data['id']}");
         };
         
         $this->switchResponse($dataOut, (!$resDelete[SUCCESS] && $resDelete[GENERATE_TOKEN]), $funcDefault, CSRF_DELETE_USER);

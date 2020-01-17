@@ -55,32 +55,34 @@ class DeletedUser {
     /* ############# READ FUNCTIONS ############# */
 
     /* function to get pending user by id */
-    public function getDeleteUsers(string $orderBy = USER_ID_FRGN, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+    public function getDeletedUsers(string $orderBy = USER_ID_FRGN, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
         /* prepare sql query, then execute */
-        $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
+        $sql = 'SELECT * FROM '.DELETED_USER_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $data = [];
         if (!empty($search)) {
-            $sql .= ' WHERE '.USER_ID.' = :searchId OR ';
+            $sql .= ' WHERE '.USER_ID_FRGN.' = :searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
-            $sql .= EMAIL.'LIKE :search OR ';
-            $sql .= ROLE_ID_FRGN.' LIKE :search ';
+            $sql .= EMAIL.' LIKE :search OR ';
+            $sql .= ROLE.' LIKE :search ';
+            $data = [
+                'searchId' => $search,
+                'search' => "%$search%"
+            ];
         }
-        $orderBy = in_array($orderBy, ORDER_BY_LIST) ? $orderBy : USER_ID;
+        $orderBy = in_array($orderBy, DELETED_USERS_ORDER_BY_LIST) ? $orderBy : USER_ID_FRGN;
         $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
         $start = is_numeric($start) ? $start : 0;
         $nRow = is_numeric($nRow) ? $nRow : 20;
-        $sql .= "ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
         $stmt = $this->conn->prepare($sql);
-        $data = empty($search)? [] : [
-            'searchId' => $search,
-            'search' => '%'.$search.'%'
-        ];
         $stmt->execute($data);
-        
+
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) return $user;
-        /* else return false */
-        return FALSE;
+        if ($stmt && ($users = $stmt->fetchAll(PDO::FETCH_OBJ))) return $users;
+        /* else empty array */
+        return [];
     }
 
     /* function to get pending user by id */
@@ -107,33 +109,31 @@ class DeletedUser {
         return FALSE;
     }
 
-    public function countDeletedUsers(string $search = ''): int {
-        $sql = 'SELECT COUNT(*) AS total FROM '.DELETED_USER_TABLE;
+    /* function to count deleted users */
+    public function countDeletedUsers(string $search=''): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.DELETED_USER_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        /* init sql data */
+        $data = [];
+        /* if search is not emapty, then append sqarch query and set data */
         if (!empty($search)) {
             $sql .= ' WHERE '.USER_ID_FRGN.'=:searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
-            $sql .= EMAIL.' LIKE :search';
-            //             $sql .= 'roletype LIKE :search';
+            $sql .= EMAIL.' LIKE :search OR ';
+            $sql .= ROLE.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' => "%$search%"
+            ];
         }
+        /* execute sql query */
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            'searchId' => $search,
-            'search' => "%$search%"
-        ]);
+        $stmt->execute($data);
+        /* return num of user */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
-
-//     /* function to count the pending mails on table */
-//     public function countDeletedUsers(): int {
-//         /* create sql query */
-//         $sql = 'SELECT COUNT(*) AS total FROM '.DELETED_USER_TABLE;
-//         /* execute sql query */
-//         $stmt = $this->conn->prepare($sql);
-//         $stmt->execute();
-//         /* return total users */
-//         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-//     }
 
 //     /* ############# UPDATE FUNCTIONS ############# */
 

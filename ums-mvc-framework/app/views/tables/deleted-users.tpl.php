@@ -1,4 +1,4 @@
-<h2 class="text-center">USER LIST</h2>
+<h2 class="text-center">DELETED USERS LIST</h2>
 <div class="container-fluid">
     <header class="p-3">
     	<nav class="navbar navbar-expand-md justify-content-center">
@@ -14,18 +14,10 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/ums/users/" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/<?=UMS_TABLES_ROUTE.'/'.DELETED_USER_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
-    	<div class="row justify-content-center col-7 mx-auto">
-    		<label class="my-auto mx-2">Users for page</label>
-    		<?php foreach (USERS_FOR_PAGE_LIST as $ufp): ?>
-    			<a
-    				class="btn btn-<?=${USERS_FOR_PAGE} == $ufp ? 'secondary disabled' : 'primary'?> p-1 px-2 m-2"
-    				href="<?=${BASE_LINK_USER_FOR_PAGE} . $ufp . ${SEARCH_QUERY}?>"
-				><?=$ufp?></a>
-    		<?php endforeach; ?>
-    	</div>
+    	<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
     </header>
     <div class="table-responsive col-md-10 mx-auto">
         <table class="table table-striped" id="users-table">
@@ -52,29 +44,23 @@
         				<a href="<?=${LINK_HEAD_EMAIL}?>">EMAIL</a>
         				<i class="<?=${CLASS_HEAD_EMAIL}?>"></i>
         			</th>
-					<th>
-        				<a href="<?=${LINK_HEAD_ENABLED}?>">STATE</a>
-        				<i class="<?=${CLASS_HEAD_ENABLED}?>"></i>
-        			</th>
         			<?php if (${VIEW_ROLE}): ?>
             			<th>
             				<a href="<?=${LINK_HEAD_ROLE}?>">ROLE</a>
             				<i class="<?=${CLASS_HEAD_ROLE}?>"></i>
             			</th>
         			<?php endif; ?>
-        			<th>
-        			</th>
         		</tr>
         	</thead>
         	<tbody>
         	<?php
-        	if (isset(${USERS})):
+        	if (!empty(${USERS})):
         	   foreach (${USERS} as $user):
             	    ?>
             	        <tr>
-            	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
+            	        	<td class="align-middle"><?=$user->{USER_ID_FRGN}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=USER_ROUTE.'/'.$user->{USER_ID}?>">
+            	        		<a href="/<?=DELETED_USER_ROUTE.'/'.$user->{USER_ID_FRGN}?>">
     		        	        	<?= $user->{USERNAME}?>
             	        		</a>
             	        	</td>
@@ -84,17 +70,9 @@
             	        			<?=$user->{EMAIL}?>
             	        		</a>
             	        	</td>
-            	        	<td class="align-middle"><?=$user->{ENABLED} ? 'enabled' : 'disabled'?></td>
             	        	<?php if (${VIEW_ROLE}): ?>
             	        		<td class="align-middle"><?= $user->{ROLE}?></td>
             	        	<?php endif;?>
-            	        	<td class="align-middle">
-            	        		<div class="row">
-            	        			<div class="col-lg-6 col-md-6 col-sm-7 col-xs-8 my-1">
-            	        				<a class="btn btn-warning text-cente" href="/<?=USER_ROUTE.'/'.$user->{USER_ID}.'/'.UPDATE_ROUTE?>">Update</a>
-            	        			</div>
-            	        		</div>
-            	        	</td>
             	        </tr>
             	    <?php endforeach;
                 else: ?>
@@ -104,9 +82,4 @@
         </table>
     </div>
     <?php require PAGINATION_TEMPLATE;?>
-    <?php if (FAKE_USERS): ?>
-		<div class="container text-left p-5 ml-5">
-    		<a class="btn btn-primary ml-5" href="/<?=FAKE_USERS_ROUTE?>">Add Fake Users</a>
-    	</div>
-    <?php endif; ?>
 </div>
