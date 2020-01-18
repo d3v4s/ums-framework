@@ -100,6 +100,10 @@ function sendJsonResponse(array $data) {
     exit;
 }
 
+function getSendEmailLink(bool $canSendEmail) {
+    return $canSendEmail ? '/'.NEW_EMAIL_ROUTE.'?to=' : 'mailto:';
+}
+
 function verifyNumVarRange(int $var, int $min, int $max): bool {
     if ($var < $min || $var > $max) return FALSE;
     return TRUE;

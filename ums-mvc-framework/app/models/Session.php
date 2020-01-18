@@ -1,7 +1,6 @@
 <?php
 namespace app\models;
 
-use \DateTime;
 use \PDO;
 
 class Session {
@@ -51,6 +50,37 @@ class Session {
 
     /* ############# READ FUNCTIONS ############# */
 
+    /* function to get sessions list */
+    public function getSessions(string $orderBy=SESSION_ID, string $orderDir=DESC, string $search='', int $start=0, int $nRow=10) {
+        /* set sql query */
+        $sql = 'SELECT '.SESSION_ID.', '.USER_ID_FRGN.', '.IP_ADDRESS.', '.SESSION_TOKEN.','.EXPIRE_DATETIME.', '.USER_ID.', '.USERNAME;
+        $sql .= ' FROM '.SESSIONS_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $data = [];
+        if (!empty($search)) {
+            $sql .= ' WHERE '.SESSION_ID.'=:searchId OR ';
+            $sql .= USERNAME.' LIKE :search OR ';
+            $sql .= IP_ADDRESS.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' =>"%$search%"
+            ];
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, SESSIONS_ORDER_BY_LIST) ? $orderBy : SESSION_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : 20;
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($data);
+        /* if success, then return users list */
+        if ($stmt) return $stmt->fetchAll(PDO::FETCH_OBJ);
+        /* else return empty array */
+        return [];
+    }
+
     /* function to get user by login session token */
     public function getUserByLoginSessionToken(string $token, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */
@@ -70,6 +100,29 @@ class Session {
         return FALSE;
     }
 
+    /* function to count all session on table */
+    public function countAllSessions(string $search): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $data = [];
+        if (!empty($search)) {
+            $sql .= ' WHERE '.SESSION_ID.'=:searchId OR ';
+            $sql .= USERNAME.' LIKE :search OR ';
+            $sql .= IP_ADDRESS.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' =>"%$search%"
+            ];
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($data);
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    /* function to count session active */
     public function countSessions(): int {
         /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' WHERE '.SESSION_TOKEN.' IS NOT NULL';

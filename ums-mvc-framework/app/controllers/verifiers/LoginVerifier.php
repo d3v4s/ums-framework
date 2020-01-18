@@ -235,14 +235,13 @@ class LoginVerifier extends Verifier {
         ];
         
         /* init pending user model */
-        $pendUser = new PendingUser($this->conn);
+        $pendUserModel = new PendingUser($this->conn);
         
         /* validate enabler token and check lock user */
-        if (!($user = $pendUser->getUserByAccountEnablerToken($token, FALSE))) return $result;
+        if (!($user = $pendUserModel->getUserByAccountEnablerToken($token, FALSE))) return $result;
 
-        $expireTime = new DateTime($user->{REGISTRATION_DATETIME});
-        $expireTime->modify(ENABLER_LINK_EXPIRE_TIME);
-        if ($expireTime < new DateTime()) {
+        /* check if not expired */
+        if (new DateTime($user->{EXPIRE_DATETIME}) < new DateTime()) {
             $result[MESSAGE] = 'Your enabler link has expire';
             $result[REMOVE_TOKEN] = TRUE;
             return $result;

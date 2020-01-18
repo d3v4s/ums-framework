@@ -42,7 +42,7 @@ class UMSDataFactory extends DataFactory {
 
         /* init pending mails modele and count all pending mails */
         $pendMailModel = new PendingEmail($this->conn);
-        $totPendMails = $pendMailModel->countPendingMails();
+        $totPendMails = $pendMailModel->countPendingEmails();
 
         /* init session model and count sessions */
         $sessionModel = new Session($this->conn);

@@ -20,36 +20,44 @@
     	<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
     </header>
     <div class="table-responsive col-md-10 mx-auto">
-        <table class="table table-striped" id="users-table">
+        <table class="table table-striped" id="deleted-users-table">
         	<thead>
         		<tr>
-        			<th colspan="9" class="text-center">
+        			<th colspan="7" class="text-center">
         				<span>TOTAL USERS <?=${TOT_USERS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
         		<tr>
         			<th class="w-5">
-        				<a href="<?=${LINK_HEAD_ID}?>">#</a>
-        				<i class="<?=${CLASS_HEAD_ID}?>"></i>
+        				<a href="<?=${LINK_HEAD.USER_ID}?>">#</a>
+        				<i class="<?=${CLASS_HEAD.USER_ID}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=${LINK_HEAD_USERNAME}?>">USERNAME</a>
-        				<i class="<?=${CLASS_HEAD_USERNAME}?>"></i>
+        				<a href="<?=${LINK_HEAD.USERNAME}?>">USERNAME</a>
+        				<i class="<?=${CLASS_HEAD.USERNAME}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=${LINK_HEAD_NAME}?>">NAME</a>
-        				<i class="<?=${CLASS_HEAD_NAME}?>"></i>
+        				<a href="<?=${LINK_HEAD.NAME}?>">NAME</a>
+        				<i class="<?=${CLASS_HEAD.NAME}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=${LINK_HEAD_EMAIL}?>">EMAIL</a>
-        				<i class="<?=${CLASS_HEAD_EMAIL}?>"></i>
+        				<a href="<?=${LINK_HEAD.EMAIL}?>">EMAIL</a>
+        				<i class="<?=${CLASS_HEAD.EMAIL}?>"></i>
         			</th>
         			<?php if (${VIEW_ROLE}): ?>
             			<th>
-            				<a href="<?=${LINK_HEAD_ROLE}?>">ROLE</a>
-            				<i class="<?=${CLASS_HEAD_ROLE}?>"></i>
+            				<a href="<?=${LINK_HEAD.ROLE}?>">ROLE</a>
+            				<i class="<?=${CLASS_HEAD.ROLE}?>"></i>
             			</th>
         			<?php endif; ?>
+        			<th>
+        				<a href="<?=${LINK_HEAD.REGISTRATION_DATETIME}?>">REGISTRATION DATETIME</a>
+        				<i class="<?=${CLASS_HEAD.REGISTRATION_DATETIME}?>"></i>
+        			</th>
+        			<th>
+        				<a href="<?=${LINK_HEAD.DELETE_DATETIME}?>">DELETE DATETIME</a>
+        				<i class="<?=${CLASS_HEAD.DELETE_DATETIME}?>"></i>
+        			</th>
         		</tr>
         	</thead>
         	<tbody>
@@ -58,21 +66,23 @@
         	   foreach (${USERS} as $user):
             	    ?>
             	        <tr>
-            	        	<td class="align-middle"><?=$user->{USER_ID_FRGN}?></td>
+            	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=DELETED_USER_ROUTE.'/'.$user->{USER_ID_FRGN}?>">
+            	        		<a href="/<?=DELETED_USER_ROUTE.'/'.$user->{USER_ID}?>">
     		        	        	<?= $user->{USERNAME}?>
             	        		</a>
             	        	</td>
             	        	<td class="align-middle"><?=$user->{NAME}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=NEW_EMAIL_ROUTE.'?to='.$user->{EMAIL}?>">
+            	        		<a href="<?=${SEND_EMAIL_LINK}.$user->{EMAIL}?>">
             	        			<?=$user->{EMAIL}?>
             	        		</a>
             	        	</td>
             	        	<?php if (${VIEW_ROLE}): ?>
             	        		<td class="align-middle"><?= $user->{ROLE}?></td>
             	        	<?php endif;?>
+            	        	<td class="align-middle"><?=$user->{REGISTRATION_DATETIME}?></td>
+            	        	<td class="align-middle"><?=$user->{DELETE_DATETIME}?></td>
             	        </tr>
             	    <?php endforeach;
                 else: ?>

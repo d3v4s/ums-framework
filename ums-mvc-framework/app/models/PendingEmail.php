@@ -54,6 +54,37 @@ class PendingEmail {
 
     /* ############# READ FUNCTIONS ############# */
 
+    /* function to get pending emails list */
+    public function getPendingEmails(string $orderBy=PENDING_EMAIL_ID, string $orderDir=DESC, string $search='', int $start=0, int $nRow=10) {
+        /* set sql query */
+        $sql = 'SELECT '.PENDING_EMAIL_ID.', '.USER_ID_FRGN.', '.NEW_EMAIL.', '.ENABLER_TOKEN.', '.EXPIRE_DATETIME.', '.USER_ID.', '.USERNAME;
+        $sql .= ' FROM '.PENDING_EMAILS_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $data = [];
+        if (!empty($search)) {
+            $sql .= ' WHERE '.PENDING_EMAIL_ID.'=:searchId OR ';
+            $sql .= USERNAME.' LIKE :search OR ';
+            $sql .= NEW_EMAIL.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' =>"%$search%"
+            ];
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, PENDING_EMAILS_ORDER_BY_LIST) ? $orderBy : PENDING_EMAIL_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : 20;
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($data);
+        /* if success, then return users list */
+        if ($stmt) return $stmt->fetchAll(PDO::FETCH_OBJ);
+        /* else return empty array */
+        return [];
+    }
+
     /* function to get user by login session token */
     public function getPendingEmailByUserId(string $userId) {
         /* prepare sql query, then execute */
@@ -103,8 +134,30 @@ class PendingEmail {
         return FALSE;
     }
 
+    /* function to count the all pending users on table */
+    public function countAllPendingEmails($search=''): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_EMAILS_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID.'='.USER_ID_FRGN;
+        $data = [];
+        if (!empty($search)) {
+            $sql .= ' WHERE '.PENDING_EMAIL_ID.'=:searchId OR ';
+            $sql .= USERNAME.' LIKE :search OR ';
+            $sql .= NEW_EMAIL.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' =>"%$search%"
+            ];
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($data);
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
     /* function to count the pending mails on table */
-    public function countPendingMails(): int {
+    public function countPendingEmails(): int {
         /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_EMAILS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL';
         /* execute sql query */

@@ -6,7 +6,7 @@ USE `ums`;
 
 -- new table for roles of users
 CREATE TABLE `roles` (
-	`id_role` int(5) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id_role` int(2) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`role` varchar(20) NOT NULL DEFAULT 0,
 	`create_user` bit(1) NOT NULL DEFAULT 0,
 	`update_user` bit(1) NOT NULL DEFAULT 0,
@@ -40,7 +40,7 @@ CREATE TABLE `users` (
 -- new table for deleted users
 CREATE TABLE `deleted_users` (
 	`id_deleted_user` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	`user_id` int(15) unsigned NOT NULL,
+	`id_user` int(15) unsigned NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`username` varchar(64) NOT NULL,
 	`email` varchar(64) NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE `deleted_users` (
 	`delete_datetime` datetime NOT NULL DEFAULT current_timestamp(),
 
 	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`) ON DELETE NO ACTION,
-	UNIQUE `user_id` (`user_id`),
+	UNIQUE `id_user` (`user_id`),
 	INDEX `username` (`username`),
 	INDEX `email` (`email`)
 );
@@ -88,6 +88,7 @@ CREATE TABLE `pending_users` (
 	`role_id` int(5) unsigned NOT NULL DEFAULT '2',
 	`registration_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`enabler_token` varchar(255) NULL,
+	`expire_datetime` datetime NOT NULL,
 
 	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`) ON DELETE NO ACTION,
 	UNIQUE `enabler_token` (`enabler_token`)

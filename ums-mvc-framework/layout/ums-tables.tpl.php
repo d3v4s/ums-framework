@@ -122,7 +122,7 @@
             <div id="sidebar" class="bg-dark rounded shadow-lg">
 				<ul class="sidebar-nav">
 					<li>
-            			<h3 class="px-2 py-3">Tables</h3>
+            			<h3 class="px-2 py-3">TABLES</h3>
             		</li>
                 	<?php foreach (UMS_TABLES_LIST as $table => $name): ?>
                     	<li class="p-2 nav-item <?=$table === $this->table ? 'active' : ''?>">

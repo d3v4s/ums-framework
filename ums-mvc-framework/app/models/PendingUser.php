@@ -36,8 +36,8 @@ class PendingUser {
 //         $roletype =  ?? $this->appConfig[UMS][DEFAULT_USER_ROLE];
         $token = $this->getNewAccountEnablerToken();
         /* prepare sql query and execute it */
-        $sql = 'INSERT INTO '.PENDING_USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLER_TOKEN.') VALUES ';
-        $sql .= "(:name, :username, :email, :password, :role_id, :account_enabler_token)";
+        $sql = 'INSERT INTO '.PENDING_USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLER_TOKEN.', '.EXPIRE_DATETIME.') VALUES ';
+        $sql .= "(:name, :username, :email, :password, :role_id, :account_enabler_token, :datetime)";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
             'name' => $data[NAME],
@@ -45,7 +45,8 @@ class PendingUser {
             'email' => $data[EMAIL],
             'password' => $password,
             'role_id' => $data[ROLE_ID_FRGN],
-            'account_enabler_token' => $token
+            'account_enabler_token' => $token,
+            'datetime' => $data[EXPIRE_DATETIME]
         ]);
         
         /* if sql query success, then set success result */
@@ -62,14 +63,14 @@ class PendingUser {
 
     /* ############# READ FUNCTIONS ############# */
 
-    /* function to get pending user by id */
+    /* function to get pending user list*/
     public function getPendingUsers(string $orderBy = PENDING_USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
         $data = [];
         if (!empty($search)) {
-            $sql .= ' WHERE '.PENDING_USER_ID.' = :searchId OR ';
+            $sql .= ' WHERE '.PENDING_USER_ID.'=:searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
             $sql .= EMAIL.' LIKE :search OR ';

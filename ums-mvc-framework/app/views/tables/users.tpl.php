@@ -23,35 +23,35 @@
         <table class="table table-striped" id="users-table">
         	<thead>
         		<tr>
-        			<th colspan="9" class="text-center">
+        			<th colspan="7" class="text-center">
         				<span>TOTAL USERS <?=${TOT_USERS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
         		<tr>
         			<th class="w-5">
-        				<a href="<?=${LINK_HEAD_ID}?>">#</a>
-        				<i class="<?=${CLASS_HEAD_ID}?>"></i>
+        				<a href="<?=${LINK_HEAD.USER_ID}?>">#</a>
+        				<i class="<?=${CLASS_HEAD.USER_ID}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=${LINK_HEAD_USERNAME}?>">USERNAME</a>
-        				<i class="<?=${CLASS_HEAD_USERNAME}?>"></i>
+        				<a href="<?=${LINK_HEAD.USERNAME}?>">USERNAME</a>
+        				<i class="<?=${CLASS_HEAD.USERNAME}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=${LINK_HEAD_NAME}?>">NAME</a>
-        				<i class="<?=${CLASS_HEAD_NAME}?>"></i>
+        				<a href="<?=${LINK_HEAD.NAME}?>">NAME</a>
+        				<i class="<?=${CLASS_HEAD.NAME}?>"></i>
         			</th>
         			<th>
-        				<a href="<?=${LINK_HEAD_EMAIL}?>">EMAIL</a>
-        				<i class="<?=${CLASS_HEAD_EMAIL}?>"></i>
+        				<a href="<?=${LINK_HEAD.EMAIL}?>">EMAIL</a>
+        				<i class="<?=${CLASS_HEAD.EMAIL}?>"></i>
         			</th>
 					<th>
-        				<a href="<?=${LINK_HEAD_ENABLED}?>">STATE</a>
-        				<i class="<?=${CLASS_HEAD_ENABLED}?>"></i>
+        				<a href="<?=${LINK_HEAD.ENABLED}?>">STATE</a>
+        				<i class="<?=${CLASS_HEAD.ENABLED}?>"></i>
         			</th>
         			<?php if (${VIEW_ROLE}): ?>
             			<th>
-            				<a href="<?=${LINK_HEAD_ROLE}?>">ROLE</a>
-            				<i class="<?=${CLASS_HEAD_ROLE}?>"></i>
+            				<a href="<?=${LINK_HEAD.ROLE}?>">ROLE</a>
+            				<i class="<?=${CLASS_HEAD.ROLE}?>"></i>
             			</th>
         			<?php endif; ?>
         			<th>
@@ -72,11 +72,16 @@
             	        	</td>
             	        	<td class="align-middle"><?=$user->{NAME}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=NEW_EMAIL_ROUTE.'?to='.$user->{EMAIL}?>">
+            	        		<a href="<?=${SEND_EMAIL_LINK}.$user->{EMAIL}?>">
             	        			<?=$user->{EMAIL}?>
             	        		</a>
             	        	</td>
-            	        	<td class="align-middle"><?=$user->{ENABLED} ? 'enabled' : 'disabled'?></td>
+            	        	<td class="align-middle">
+            	        		<?php if ($user->{ENABLED}): ?>
+                	        		<i class="fas fa-check-circle"></i>
+            	        		<?php else: ?>
+            	        			<i class="far fa-circle"></i>
+            	        		<?php endif; ?>
             	        	<?php if (${VIEW_ROLE}): ?>
             	        		<td class="align-middle"><?= $user->{ROLE}?></td>
             	        	<?php endif;?>

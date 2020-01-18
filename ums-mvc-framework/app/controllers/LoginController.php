@@ -246,7 +246,8 @@ class LoginController extends Controller {
                 USERNAME => $username,
                 EMAIL => $email,
                 PASSWORD => $pass,
-                ROLE_ID_FRGN => DEFAULT_ROLE
+                ROLE_ID_FRGN => DEFAULT_ROLE,
+                EXPIRE_DATETIME => getExpireDatetime(ENABLER_LINK_EXPIRE_TIME)
             ];
             
             /* if email confirm is require */

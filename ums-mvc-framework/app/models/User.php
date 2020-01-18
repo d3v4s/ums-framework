@@ -127,7 +127,7 @@ class User {
     /* ############# READ FUNCTIONS ############# */
 
     /* function to get user with roles */
-    public function getUsers(string $orderBy = USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+    public function getUsers(string $orderBy=USER_ID, string $orderDir=DESC, string $search='', int $start=0, int $nRow=10) {
         /* set sql query */ 
         $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
@@ -164,7 +164,6 @@ class User {
         /* else return empty array */
         return [];
     }
-    
 
     /* function to get user by id */
     public function getUser(int $id, bool $unsetPassword = TRUE) {

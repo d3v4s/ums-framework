@@ -29,7 +29,7 @@ class DeletedUser {
         ];
         
         /* prepare sql query and execute it */
-        $sql = 'INSERT INTO '.DELETED_USER_TABLE.' ('.USER_ID_FRGN.', '.NAME.', '.USERNAME.', '.EMAIL.', '.ROLE_ID_FRGN.', '.REGISTRATION_DATETIME.') VALUES ';
+        $sql = 'INSERT INTO '.DELETED_USER_TABLE.' ('.USER_ID.', '.NAME.', '.USERNAME.', '.EMAIL.', '.ROLE_ID_FRGN.', '.REGISTRATION_DATETIME.') VALUES ';
         $sql .= "(:id, :name, :username, :email, :role_id, :datetime)";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([
@@ -55,13 +55,13 @@ class DeletedUser {
     /* ############# READ FUNCTIONS ############# */
 
     /* function to get pending user by id */
-    public function getDeletedUsers(string $orderBy = USER_ID_FRGN, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+    public function getDeletedUsers(string $orderBy = USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.DELETED_USER_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
         $data = [];
         if (!empty($search)) {
-            $sql .= ' WHERE '.USER_ID_FRGN.' = :searchId OR ';
+            $sql .= ' WHERE '.USER_ID.' = :searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
             $sql .= EMAIL.' LIKE :search OR ';
@@ -71,7 +71,7 @@ class DeletedUser {
                 'search' => "%$search%"
             ];
         }
-        $orderBy = in_array($orderBy, DELETED_USERS_ORDER_BY_LIST) ? $orderBy : USER_ID_FRGN;
+        $orderBy = in_array($orderBy, DELETED_USERS_ORDER_BY_LIST) ? $orderBy : USER_ID;
         $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
         $start = is_numeric($start) ? $start : 0;
         $nRow = is_numeric($nRow) ? $nRow : 20;
@@ -100,7 +100,7 @@ class DeletedUser {
     /* function to get pending user by id */
     public function getDeleteUserByUserId(int $id) {
         /* prepare sql query, then execute */
-        $stmt = $this->conn->prepare('SELECT * FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID_FRGN.'=:id');
+        $stmt = $this->conn->prepare('SELECT * FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID.'=:id');
         $stmt->execute(['id' => $id]);
         
         /* if find user return it */
@@ -118,7 +118,7 @@ class DeletedUser {
         $data = [];
         /* if search is not emapty, then append sqarch query and set data */
         if (!empty($search)) {
-            $sql .= ' WHERE '.USER_ID_FRGN.'=:searchId OR ';
+            $sql .= ' WHERE '.USER_ID.'=:searchId OR ';
             $sql .= NAME.' LIKE :search OR ';
             $sql .= USERNAME.' LIKE :search OR ';
             $sql .= EMAIL.' LIKE :search OR ';
