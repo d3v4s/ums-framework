@@ -22,7 +22,6 @@ class AccountDataFactory extends DataFactory {
         $roleModel = new Role($this->conn);
         $pendMailModel = new PendingEmail($this->conn);
         return [
-//             DELETE_TOKEN => generateToken(CSRF_DELETE_ACCOUNT),
             UPDATE_TOKEN => generateToken(CSRF_UPDATE_ACCOUNT),
             DELETE_NEW_EMAIL_TOKEN => generateToken(CSRF_DELETE_NEW_EMAIL),
             RESEND_ENABLER_EMAIL_TOKEN => generateToken(CSRF_RESEND_ENABLER_EMAIL),

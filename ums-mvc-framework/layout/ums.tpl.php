@@ -61,7 +61,7 @@
 			<div id="navbar-ums" class="collapse navbar-collapse">
 				<ul class="navbar-nav mr-auto">
 					<li class="nav-item <?=$this->isHome ? 'active' : ''?>">
-						<a class="nav-link" href="/">Home</a>
+						<a class="nav-link" href="/<?=HOME_ROUTE?>">Home</a>
 					</li>
 					<?php if ($this->loginSession): ?>
 						<?php if (!$this->isSimpleUser()): ?>
@@ -71,7 +71,7 @@
 						<?php endif; ?>
 						<?php if ($this->canUpdateUser()): ?>
 							<li class="nav-item <?=$this->isUsersList ? 'active' : ''?>">
-								<a class="nav-link" href="/<?=USERS_LIST_ROUTE?>">Users List</a>
+								<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE?>">Tables</a>
 							</li>
 						<?php endif; ?>
 						<?php if ($this->canCreateUser()): ?>

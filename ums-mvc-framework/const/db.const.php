@@ -33,6 +33,7 @@ define('CAN_GENERATE_RSA', 'gen_rsa');
 define('CAN_GENERATE_SITEMAP', 'gen_sitemap');
 define('CAN_CHANGE_SETTINGS', 'change_settings');
 define('CAN_SEND_EMAIL', 'send_email');
+define('CAN_VIEW_TABLES', 'view_tables');
 
 /* CONSTANTS FOR SESSIONS TABLE */
 define('SESSIONS_TABLE', 'sessions');

@@ -127,10 +127,11 @@ class User {
     /* ############# READ FUNCTIONS ############# */
 
     /* function to get user with roles */
-    public function getUsersAndRole(string $orderBy = USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+    public function getUsers(string $orderBy=USER_ID, string $orderDir=DESC, string $search='', int $start=0, int $nRow=10) {
         /* set sql query */ 
         $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $data = [];
         /* if it is set, append search query */
         if (!empty($search)) {
             $sql .= ' WHERE '.USER_ID.'=:searchId OR ';
@@ -138,6 +139,10 @@ class User {
             $sql .= USERNAME.' LIKE :search OR ';
             $sql .= EMAIL.' LIKE :search OR ';
             $sql .= ROLE.' LIKE :search ';
+            $data = [
+                'searchId' => $search,
+                'search' => "%$search%"
+            ];
         }
         /* validate order by, order direction, start and num of row */
         $orderBy = in_array($orderBy, ORDER_BY_LIST) ? $orderBy : USER_ID;
@@ -148,10 +153,6 @@ class User {
         /* prepare and execute sql query */
         $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
         $stmt = $this->conn->prepare($sql);
-        $data = empty($search)? [] : [
-            'searchId' => $search,
-            'search' => '%'.$search.'%'
-        ];
         $stmt->execute($data);
 
         /* if success, then return users list */
@@ -160,9 +161,9 @@ class User {
             foreach ($users as $user) unset($user->password);
             return $users;
         }
-        return FALSE;
+        /* else return empty array */
+        return [];
     }
-    
 
     /* function to get user by id */
     public function getUser(int $id, bool $unsetPassword = TRUE) {
@@ -287,6 +288,7 @@ class User {
         /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $data = [];
         /* if it is set, append search query */
         if (!empty($search)) {
             $sql .= ' WHERE '.USER_ID.'=:searchId OR ';
@@ -294,13 +296,14 @@ class User {
             $sql .= USERNAME.' LIKE :search OR ';
             $sql .= EMAIL.' LIKE :search OR ';
             $sql .= ROLE.' LIKE :search';
+            $data = [
+                'searchId' => $search,
+                'search' => "%$search%"
+            ];
         }
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            'searchId' => $search,
-            'search' => "%$search%"
-        ]);
+        $stmt->execute($data);
         /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }

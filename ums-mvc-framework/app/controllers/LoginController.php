@@ -11,7 +11,7 @@ use \DateTime;
 use \PDO;
 
 /**
- * Class controller to mange login, signup and logout rquest
+ * Class controller to mange login, signup and logout request
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginController extends Controller {
@@ -246,7 +246,8 @@ class LoginController extends Controller {
                 USERNAME => $username,
                 EMAIL => $email,
                 PASSWORD => $pass,
-                ROLE_ID_FRGN => DEFAULT_ROLE
+                ROLE_ID_FRGN => DEFAULT_ROLE,
+                EXPIRE_DATETIME => getExpireDatetime(ENABLER_LINK_EXPIRE_TIME)
             ];
             
             /* if email confirm is require */

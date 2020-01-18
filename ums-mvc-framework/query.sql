@@ -6,7 +6,7 @@ USE `ums`;
 
 -- new table for roles of users
 CREATE TABLE `roles` (
-	`id_role` int(5) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id_role` int(2) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`role` varchar(20) NOT NULL DEFAULT 0,
 	`create_user` bit(1) NOT NULL DEFAULT 0,
 	`update_user` bit(1) NOT NULL DEFAULT 0,
@@ -16,6 +16,7 @@ CREATE TABLE `roles` (
 	`gen_sitemap` bit(1) NOT NULL DEFAULT 0,
 	`change_settings` bit(1) NOT NULL DEFAULT 0,
 	`send_email` bit(1) NOT NULL DEFAULT 0,
+	`view_tables` bit(1) NOT NULL DEFAULT 0,
 
 	UNIQUE `role` (`role`)
 );
@@ -39,7 +40,7 @@ CREATE TABLE `users` (
 -- new table for deleted users
 CREATE TABLE `deleted_users` (
 	`id_deleted_user` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	`user_id` int(15) unsigned NOT NULL,
+	`id_user` int(15) unsigned NOT NULL,
 	`name` varchar(255) NOT NULL,
 	`username` varchar(64) NOT NULL,
 	`email` varchar(64) NOT NULL,
@@ -48,7 +49,7 @@ CREATE TABLE `deleted_users` (
 	`delete_datetime` datetime NOT NULL DEFAULT current_timestamp(),
 
 	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`) ON DELETE NO ACTION,
-	UNIQUE `user_id` (`user_id`),
+	UNIQUE `id_user` (`user_id`),
 	INDEX `username` (`username`),
 	INDEX `email` (`email`)
 );
@@ -87,6 +88,7 @@ CREATE TABLE `pending_users` (
 	`role_id` int(5) unsigned NOT NULL DEFAULT '2',
 	`registration_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`enabler_token` varchar(255) NULL,
+	`expire_datetime` datetime NOT NULL,
 
 	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`) ON DELETE NO ACTION,
 	UNIQUE `enabler_token` (`enabler_token`)
@@ -126,16 +128,16 @@ DELIMITER ;
 -- INSERT ROLES --
 
 -- insert admin role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`)
-	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
 -- insert editor role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`)
-	VALUES (1, 'editor', 0, 1, 0, 0, 0, 0, 0, 0);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (1, 'editor', 0, 1, 0, 0, 0, 0, 0, 0, 1);
 
 -- insert user role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`)
-	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- INSERT USER --
 

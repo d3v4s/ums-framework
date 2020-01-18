@@ -21,6 +21,7 @@ define('SETTINGS_LAYOUT', 'settings');
 define('EMAIL_LAYOUT', 'email');
 define('PASSWORD_RESET_EMAIL_LAYOUT', 'password_reset_email');
 define('ENABLER_EMAIL_LAYOUT', 'enabler_email');
+define('UMS_TABLES_LAYOUT', 'ums_tables_layout');
 
 /* RSA SECTION */
 define('RSA_PRIV_KEY_FILE', 'rsa_priv_key_file');

@@ -10,7 +10,7 @@ use app\models\PendingUser;
 use app\models\DeletedUser;
 
 /**
- * Class controller for admin users manage
+ * Class controller for users admin manage
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class UMSController extends UMSBaseController {
@@ -24,22 +24,22 @@ class UMSController extends UMSBaseController {
 
     /* ########## SHOW FUNCTIONS ########## */
 
-    /* function to view the user list page */
-    public function showUsersList(string $orderBy=USER_ID, string $orderDir=DESC, int $page=1, int $usersForPage=DEFAULT_USERS_FOR_PAGE) {
-        /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
+//     /* function to view the user list page */
+//     public function showUsersList(string $orderBy=USER_ID, string $orderDir=DESC, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
+//         /* redirect */
+//         $this->redirectOrFailIfCanNotUpdateUser();
 
-        /* set current location */
-        $this->isUsersList = TRUE;
+//         /* set current location */
+//         $this->isUsersList = TRUE;
 
-        /* get search query */
-        $search = $_GET[SEARCH] ?? '';
+//         /* get search query */
+//         $search = $_GET[SEARCH] ?? '';
 
-        /* get data from data factory and show page */
-        $data = UMSDataFactory::getInstance($this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search);
-        $data[VIEW_ROLE] = $this->canViewRole();
-        $this->content = view(getPath('ums','users-list'), $data);
-    }
+//         /* get data from data factory and show page */
+//         $data = UMSDataFactory::getInstance($this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search);
+//         $data[VIEW_ROLE] = $this->canViewRole();
+//         $this->content = view(getPath('ums','users-list'), $data);
+//     }
 
     /* function to view a user page */
     public function showUser($username) {
@@ -345,7 +345,9 @@ class UMSController extends UMSBaseController {
                 USERNAME => $username,
                 EMAIL => $email,
                 PASSWORD => $pass,
-                ROLE_ID_FRGN => $roletype
+                ROLE_ID_FRGN => $roletype,
+                ENABLED => TRUE,
+                EXPIRE_DATETIME => getExpireDatetime(ENABLER_LINK_EXPIRE_TIME)
             ];
             /* if pending */
             if ($pending) {
@@ -355,15 +357,13 @@ class UMSController extends UMSBaseController {
                 /* send enabler email */
                 $this->sendEnablerEmail($email, $resUser[TOKEN]);
             } else {
-                /* set user enabled */
-                $usrData[ENABLED] = TRUE;
                 /* init user model and save user */
                 $user = new User($this->conn);
                 $resUser = $user->saveUser($usrData);
             }
 
             /* if success set redirect ro users list */
-            if ($resUser[SUCCESS]) $redirectTo = '/'.USERS_LIST_ROUTE;
+            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             /* set result */
             $resSignup[MESSAGE] = $resUser[MESSAGE];
             $resSignup[SUCCESS] = $resUser[SUCCESS];
@@ -412,7 +412,7 @@ class UMSController extends UMSBaseController {
                 /* init deleted model and save deleted user */
                 $delModel = new DeletedUser($this->conn);
                 $delModel->saveDeletedUser($resDelete[USER]);
-                $redirectTo = '/'.USERS_LIST_ROUTE;
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             }
             /* set result */
             $resDelete[MESSAGE] = $resUser[MESSAGE];
@@ -434,7 +434,6 @@ class UMSController extends UMSBaseController {
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
             redirect($data[REDIRECT_TO]);
-//             $data[SUCCESS] ? redirect('/'.USERS_LIST_ROUTE) : redirect('/'.USER_ROUTE."/{$data['id']}");
         };
         
         $this->switchResponse($dataOut, (!$resDelete[SUCCESS] && $resDelete[GENERATE_TOKEN]), $funcDefault, CSRF_DELETE_USER);

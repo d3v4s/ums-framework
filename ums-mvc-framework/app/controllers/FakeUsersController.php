@@ -85,11 +85,12 @@ class FakeUsersController extends UMSBaseController {
                     NAME => $name,
                     PASSWORD => $pass,
                     ROLE_ID_FRGN => $roleId,
-                    ENABLED => $enabled ? 1 : 0
+                    ENABLED => $enabled ? 1 : 0,
+                    EXPIRE_DATETIME => getExpireDatetime(ENABLER_LINK_EXPIRE_TIME)
                 ];
                 /* add fake user */
                 if ($model->{$funcAdder}($dataUsr)[SUCCESS]) $usersAdded++;
-                $redirectTo = '/'.USERS_LIST_ROUTE;
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             }
             /* set result */
             $resAddFakeUsers[MESSAGE] = "$usersAdded fake users added successfully";
