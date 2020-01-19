@@ -28,6 +28,7 @@ define('ROLE', 'role');
 define('CAN_CREATE_USER', 'create_user');
 define('CAN_UPDATE_USER', 'update_user');
 define('CAN_DELETE_USER', 'delete_user');
+define('CAN_UNLOCK_USER', 'unlock_user');
 define('CAN_CHANGE_PASSWORD', 'change_pass');
 define('CAN_GENERATE_RSA', 'gen_rsa');
 define('CAN_GENERATE_SITEMAP', 'gen_sitemap');

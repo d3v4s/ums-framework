@@ -410,6 +410,11 @@ class Controller {
     }
 
     /* function to check if user can change password at another user */
+    protected function canUnlockUser(): bool {
+        return (bool) $this->userRole[CAN_UNLOCK_USER];
+    }
+
+    /* function to check if user can change password at another user */
     protected function canChangePassword(): bool {
         return (bool) $this->userRole[CAN_CHANGE_PASSWORD];
     }

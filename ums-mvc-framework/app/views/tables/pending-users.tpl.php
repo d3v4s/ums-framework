@@ -23,7 +23,7 @@
         <table class="table table-striped" id="pending-users-table">
         	<thead>
         		<tr>
-        			<th colspan="8" class="text-center">
+        			<th colspan="9" class="text-center">
         				<span>TOTAL USERS <?=${TOT_USERS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
@@ -31,6 +31,10 @@
         			<th class="w-5">
         				<a href="<?=${LINK_HEAD.PENDING_USER_ID}?>">#</a>
         				<i class="<?=${CLASS_HEAD.PENDING_USER_ID}?>"></i>
+        			</th>
+        			<th>
+        				<a href="<?=${LINK_HEAD.USER_ID_FRGN}?>">USER ID</a>
+        				<i class="<?=${CLASS_HEAD.USER_ID_FRGN}?>"></i>
         			</th>
         			<th>
         				<a href="<?=${LINK_HEAD.USERNAME}?>">USERNAME</a>
@@ -72,10 +76,15 @@
             	        <tr>
             	        	<td class="align-middle"><?=$user->{PENDING_USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=PENDING_USER_ROUTE.'/'.$user->{PENDING_USER_ID}?>">
-    		        	        	<?= $user->{USERNAME}?>
-            	        		</a>
-            	        	</td>
+            	        		<?php if (isset($user->{USER_ID_FRGN})): ?>
+            	        			<a href="/<?=USER_ROUTE.'/'.$user->{USER_ID_FRGN}?>">
+                	        			<?=$user->{USER_ID_FRGN} ?? 'NULL'?>
+            	        			</a>                	        			
+            	        		<?php else: ?>
+            	        			<span class="text-danger">NULL</span>
+            	        		<?php endif; ?>
+    	        			</td>
+            	        	<td class="align-middle"><?=$user->{USERNAME}?></td>
             	        	<td class="align-middle"><?=$user->{NAME}?></td>
             	        	<td class="align-middle">
             	        		<a href="<?=${SEND_EMAIL_LINK}.$user->{EMAIL}?>">

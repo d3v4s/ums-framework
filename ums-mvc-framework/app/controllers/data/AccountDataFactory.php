@@ -38,7 +38,7 @@ class AccountDataFactory extends DataFactory {
         $user = $userModel->getUserAndRole($userId);
         return [
             USER => $user,
-            VIEW_ROLE => !isSimpleUser()
+            VIEW_ROLE => !isSimpleUser($user->{ROLE_ID_FRGN})
         ];
     }
 }

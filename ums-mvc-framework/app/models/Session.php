@@ -81,6 +81,25 @@ class Session {
         return [];
     }
 
+    /* function to get session and user by session id */
+    public function getSessionAndUser(int $sessionId) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.SESSIONS_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.SESSION_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $sessionId]);
+        
+        /* if find user chech if session is expire */
+        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+            /* else unset password and return user */
+            unset($user->password);
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
+
     /* function to get user by login session token */
     public function getUserByLoginSessionToken(string $token, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */
@@ -101,7 +120,7 @@ class Session {
     }
 
     /* function to count all session on table */
-    public function countAllSessions(string $search): int {
+    public function countAllSessions(string $search=''): int {
         /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' LEFT JOIN ';
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
@@ -123,9 +142,9 @@ class Session {
     }
 
     /* function to count session active */
-    public function countSessions(): int {
+    public function countActiveSessions(): int {
         /* create sql query */
-        $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' WHERE '.SESSION_TOKEN.' IS NOT NULL';
+        $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' WHERE '.SESSION_TOKEN.' IS NOT NULL AND '.EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();

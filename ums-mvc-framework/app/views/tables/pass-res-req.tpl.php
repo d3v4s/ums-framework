@@ -57,9 +57,7 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-            	        		<a href="/<?=PASS_RESET_REQ_INFO_ROUTE.'/'.$req->{PASSWORD_RESET_REQ_ID}?>">
-	            	        		<?=$req->{PASSWORD_RESET_REQ_ID}?>
-            	        		</a>
+            	        		<?=$req->{PASSWORD_RESET_REQ_ID}?>
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($req->{USERNAME})): ?>

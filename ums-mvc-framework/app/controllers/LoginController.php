@@ -515,13 +515,12 @@ class LoginController extends Controller {
         
         /* if verifier fails, show page not found and return */
         /* set url to redirect */
-        $redirectTo = '/'.SIGNUP_ROUTE;
         if (!$resEnable[SUCCESS]) {
             /* if link is expire redirect to signup and remove token*/
             if ($resEnable[REMOVE_TOKEN]) {
                 $pendUser = new PendingUser($this->conn);
                 $pendUser->removeAccountEnablerToken($token);
-                $this->switchFailResponse($resEnable[MESSAGE], $redirectTo);
+                $this->switchFailResponse($resEnable[MESSAGE], '/'.SIGNUP_ROUTE);
             /* else show page not found */
             } else $this->showPageNotFound();
             return;
@@ -547,11 +546,11 @@ class LoginController extends Controller {
         }
 
         /* if enable user fails, redirect on signup page */
-        if (!$res[SUCCESS]) redirect($redirectTo);
+        if (!$res[SUCCESS]) redirect('/'.SIGNUP_ROUTE);
         
-        /* remove account enabler token and redirect on login page */
+        /* set user id, remove token and redirect on login page or home */
         $pendUser = new PendingUser($this->conn);
-        $pendUser->removeAccountEnablerToken($token);
+        $pendUser->setUserIdAndRemoveToken($token, $res[USER_ID]);
         redirect('/'.($this->loginSession ? HOME_ROUTE : LOGIN_ROUTE));
     }
 

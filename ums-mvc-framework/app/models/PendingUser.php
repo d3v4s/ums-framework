@@ -174,43 +174,13 @@ class PendingUser {
     /* function to count only the valid pending users on table */
     public function countPendingUsers(): int {
         /* create sql query */
-        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL';
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL AND '.EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
-
-//     /* function to get pending user by id */
-//     public function isPendingUsername(string $username, string $minDatetime) {
-//         /* prepare sql query, then execute */
-//         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
-//         $sql .= USERNAME.'=:username AND '.ENABLER_TOKEN.' IS NOT NULL AND '.REGISTRATION_DATETIME.'>:datetime';
-//         $stmt = $this->conn->prepare($sql);
-//         $stmt->execute([
-//             'username' => $username,
-//             'datetime' => $minDatetime 
-//         ]);
-        
-//         /* return true if find user, false otherwise */
-//         return $stmt && $stmt->fetch(PDO::FETCH_OBJ);
-//     }
-
-//     /* function to get pending user by id */
-//     public function isPendingEmail(string $email, string $minDatetime) {
-//         /* prepare sql query, then execute */
-//         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
-//         $sql .= EMAIL.'=:email AND '.ENABLER_TOKEN.' IS NOT NULL AND '.REGISTRATION_DATETIME.'>:datetime';
-//         $stmt = $this->conn->prepare($sql);
-//         $stmt->execute([
-//             'email' => $email,
-//             'datetime' => $minDatetime
-//         ]);
-        
-//         /* return true if find user, false otherwise */
-//         return $stmt && $stmt->fetch(PDO::FETCH_OBJ);
-//     }
 
     /* ############# UPDATE FUNCTIONS ############# */
 
@@ -219,6 +189,23 @@ class PendingUser {
         /* prepare sql query and execute it */
         $stmt = $this->conn->prepare('UPDATE '.PENDING_USERS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.ENABLER_TOKEN.'=:token');
         $stmt->execute(['token' => $token]);
+        
+        /* if sql success return true */
+        if($stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to remove account enabler token on pending users table */
+    public function setUserIdAndRemoveToken(string $token, int $userId): bool {
+        /* prepare sql query and execute it */
+        $sql = 'UPDATE '.PENDING_USERS_TABLE;
+        $sql .= ' SET '.ENABLER_TOKEN.'=NULL, '.USER_ID_FRGN.'=:id WHERE '.ENABLER_TOKEN.'=:token';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'id' => $userId,
+            'token' => $token
+        ]);
         
         /* if sql success return true */
         if($stmt->rowCount()) return TRUE;
