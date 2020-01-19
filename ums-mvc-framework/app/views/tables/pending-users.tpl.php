@@ -23,7 +23,7 @@
         <table class="table table-striped" id="pending-users-table">
         	<thead>
         		<tr>
-        			<th colspan="8" class="text-center">
+        			<th colspan="9" class="text-center">
         				<span>TOTAL USERS <?=${TOT_USERS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>

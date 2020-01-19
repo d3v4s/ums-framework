@@ -116,6 +116,49 @@ class UMSDataFactory extends DataFactory {
         ];
     }
 
+    /* function to get data of user */
+    public function getLocksUserData(int $userId, string $datetimeFormat, bool $canUnlockUser): array {
+        /* init user model and get user */
+        $userModel = new User($this->conn);
+        /* if is numeric get user by id */
+        if (is_numeric($userId)) {
+            $user = $userModel->getUserAndLock($userId);
+            /* enable account class */
+            $classEnabledAccount = 'text-';
+            /* if account is enable */
+            if ($user->{ENABLED}) {
+                $classEnabledAccount .= 'success';
+                $messageEnable = 'ENABLED';
+                /* if account is disabled */
+            } else {
+                $classEnabledAccount .= 'danger';
+                $messageEnable = 'DISABLED';
+            }
+
+            /* init message */
+            $messageLockUser = '';
+            /* if user has a lock, then set message and format the date */
+            if (($isLock = (isset($user->{EXPIRE_LOCK}) && new DateTime($user->{EXPIRE_LOCK}) > new DateTime()))) {
+                $user->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($user->{EXPIRE_LOCK}));
+                $messageLockUser = '<br>Temporarily locked';
+            }
+            
+            /* format the date */
+            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
+        /* else set user false */
+        } else $user = FALSE;
+        
+        /* return data */
+        return [
+            USER => $user,
+            IS_LOCK => $isLock,
+            TOKEN => generateToken(CSRF_UNLOCK_USER),
+            CLASS_ENABLE_ACC => $classEnabledAccount,
+            NO_ESCAPE.MESSAGE_ENABLE_ACC => $messageEnable,
+            NO_ESCAPE.MESSAGE_LOCK_ACC => $messageLockUser,
+        ];
+    }
+
     /* function to get data of deleted user */
     public function getDeletedUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail): array {
         /* init user model and get user */

@@ -9,14 +9,14 @@ define('SHOW_MESSAGE_EXCEPTION', TRUE);
 
 /* GENERIC CONTANTS */
 define('DEFAULT_LANG', 'en');
-define('LINK_PAGINATION', 7);
+define('LINK_PAGINATION', 6);
 define('DEFAULT_PASSWORD', 'ums');
 define('DEFAULT_ROWS_FOR_PAGE', 10);
 define('PAGE_NOT_FOUND', 'error-404');
 define('PAGE_EXCEPTION', 'error-exception');
 define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', '30 days');
-define('MAX_WRONG_PASSWORDS', 1000);
-define('MAX_LOCKS', 500);
+define('MAX_WRONG_PASSWORDS', 100);
+define('MAX_LOCKS', 10);
 define('PASS_TRY_TIME', '5 minutes');
 define('USER_LOCK_TIME', '15 minutes');
 define('MIN_LENGTH_NAME', 4);
@@ -117,10 +117,10 @@ define('SITE_MAP_GENERATOR_ROUTE', 'ums/generator/site/map');
 define('SITE_MAP_UPDATE_ROUTE', 'ums/generator/site/map/update');
 define('ACCOUNT_ENABLER_ROUTE', 'account/enable');
 define('EMAIL_ENABLER_ROUTE', 'validate/new/email');
+define('LOCKS_ROUTE', 'locks');
 define('LOGIN_ROUTE', 'auth/login');
 define('SIGNUP_ROUTE', 'auth/signup');
 define('LOGOUT_ROUTE', 'auth/logout');
-// define('CONFIRM_SIGNUP_ROUTE', SIGNUP_ROUTE.'/confirm');
 define('RESEND_EMAIL_ROUTE', 'email/resend');
 define('DELETE_EMAIL_ROUTE', 'email/delete');
 define('PASS_RESET_REQ_ROUTE', 'auth/reset/password');
@@ -144,7 +144,7 @@ define('CROSSORIGIN', 'crossorigin');
 
 /* CONSTANTS LISTS */
 define('ROWS_FOR_PAGE_LIST', [5, 10, 20, 50, 100]);
-define('ORDER_BY_LIST', [
+define('USERS_ORDER_BY_LIST', [
     USER_ID,
     NAME,
     USERNAME,
@@ -163,8 +163,9 @@ define('DELETED_USERS_ORDER_BY_LIST', [
 ]);
 define('PENDING_USERS_ORDER_BY_LIST', [
     PENDING_USER_ID,
-    NAME,
+    USER_ID_FRGN,
     USERNAME,
+    NAME,
     EMAIL,
     ROLE,
     ENABLER_TOKEN,
@@ -184,12 +185,13 @@ define('ROLES_ORDER_BY_LIST', [
     CAN_CREATE_USER,
     CAN_UPDATE_USER,
     CAN_DELETE_USER,
+    CAN_UNLOCK_USER,
     CAN_CHANGE_PASSWORD,
     CAN_GENERATE_RSA,
     CAN_GENERATE_SITEMAP,
     CAN_CHANGE_SETTINGS,
     CAN_SEND_EMAIL,
-    CAN_VIEW_TABLES
+    CAN_VIEW_TABLES,
 ]);
 define('SESSIONS_ORDER_BY_LIST', [
     SESSION_ID,

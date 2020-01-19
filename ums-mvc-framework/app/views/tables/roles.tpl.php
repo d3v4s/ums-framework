@@ -7,7 +7,7 @@
         <table class="table table-striped" id="roles-table">
         	<thead>
         		<tr>
-        			<th colspan="11" class="text-center">
+        			<th colspan="12" class="text-center">
         				<span>TOTAL ROLES <?=${TOT_ROLES}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
@@ -31,6 +31,10 @@
         			<th>
         				<a href="<?=${LINK_HEAD.CAN_DELETE_USER}?>">DELETE USER</a>
         				<i class="<?=${CLASS_HEAD.CAN_DELETE_USER}?>"></i>
+        			</th>
+        			<th>
+        				<a href="<?=${LINK_HEAD.CAN_UNLOCK_USER}?>">UNLOCK USER</a>
+        				<i class="<?=${CLASS_HEAD.CAN_UNLOCK_USER}?>"></i>
         			</th>
         			<th>
         				<a href="<?=${LINK_HEAD.CAN_CHANGE_PASSWORD}?>">CHANGE PASSWORD</a>
@@ -82,6 +86,13 @@
             	        	</td>
             	        	<td class="align-middle">
             	        		<?php if ($role->{CAN_DELETE_USER}): ?>
+                	        		<i class="fas fa-check-circle"></i>
+            	        		<?php else: ?>
+            	        			<i class="far fa-circle"></i>
+            	        		<?php endif; ?>
+            	        	</td>
+            	        	<td class="align-middle">
+            	        		<?php if ($role->{CAN_UNLOCK_USER}): ?>
                 	        		<i class="fas fa-check-circle"></i>
             	        		<?php else: ?>
             	        			<i class="far fa-circle"></i>

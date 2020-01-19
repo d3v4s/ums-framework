@@ -11,6 +11,7 @@ CREATE TABLE `roles` (
 	`create_user` bit(1) NOT NULL DEFAULT 0,
 	`update_user` bit(1) NOT NULL DEFAULT 0,
 	`delete_user` bit(1) NOT NULL DEFAULT 0,
+	`unlock_user` bit(1) NOT NULL DEFAULT 0,
 	`change_pass` bit(1) NOT NULL DEFAULT 0,
 	`gen_rsa` bit(1) NOT NULL DEFAULT 0,
 	`gen_sitemap` bit(1) NOT NULL DEFAULT 0,
@@ -130,16 +131,16 @@ DELIMITER ;
 -- INSERT ROLES --
 
 -- insert admin role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
 -- insert editor role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (1, 'editor', 0, 1, 0, 0, 0, 0, 0, 0, 1);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (1, 'editor', 0, 1, 0, 1, 0, 0, 0, 0, 0, 1);
 
 -- insert user role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `change_pass`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- INSERT USER --
 

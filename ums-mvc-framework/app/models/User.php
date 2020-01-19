@@ -138,7 +138,7 @@ class User {
             ];
         }
         /* validate order by, order direction, start and num of row */
-        $orderBy = in_array($orderBy, ORDER_BY_LIST) ? $orderBy : USER_ID;
+        $orderBy = in_array($orderBy, USERS_ORDER_BY_LIST) ? $orderBy : USER_ID;
         $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
         $start = is_numeric($start) ? $start : 0;
         $nRow = is_numeric($nRow) ? $nRow : 20;
@@ -228,7 +228,7 @@ class User {
     }
 
     /* function to get user and role by username */
-    public function getUserAndRoleByUsername(string $username, bool $unsetPassword = TRUE) {
+    public function getUserAndRoleByUsername(string $username, bool $unsetPassword=TRUE) {
         /* prepare sql query and execute it */
         /* prepare sql query and execute it */
         $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
@@ -259,6 +259,29 @@ class User {
         
         /* check statement, get lock and return it */
         if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) return $userLock;
+        
+        /* return fail result */
+        return FALSE;
+    }
+
+    /* function to get user and locks property */
+    public function getUserAndLock(int $id) {
+        /* prepare sql query */
+        $sql = 'SELECT * FROM '.USERS_TABLE.' JOIN ';
+        $sql .= USER_LOCK_TABLE.' ON '.USER_ID.'='.USER_ID_FRGN;
+        $sql .= ' WHERE '.USER_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        /* execute sql query */
+        $stmt->execute([
+            'id' => $id
+        ]);
+        
+        /* check statement, get lock and return it */
+        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) {
+            /* unset password and return user */
+            unset($userLock->{PASSWORD});
+            return $userLock;
+        }
         
         /* return fail result */
         return FALSE;
