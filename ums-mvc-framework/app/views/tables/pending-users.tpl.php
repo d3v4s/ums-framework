@@ -33,6 +33,10 @@
         				<i class="<?=${CLASS_HEAD.PENDING_USER_ID}?>"></i>
         			</th>
         			<th>
+        				<a href="<?=${LINK_HEAD.USER_ID_FRGN}?>">USER ID</a>
+        				<i class="<?=${CLASS_HEAD.USER_ID_FRGN}?>"></i>
+        			</th>
+        			<th>
         				<a href="<?=${LINK_HEAD.USERNAME}?>">USERNAME</a>
         				<i class="<?=${CLASS_HEAD.USERNAME}?>"></i>
         			</th>
@@ -72,10 +76,15 @@
             	        <tr>
             	        	<td class="align-middle"><?=$user->{PENDING_USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=PENDING_USER_ROUTE.'/'.$user->{PENDING_USER_ID}?>">
-    		        	        	<?= $user->{USERNAME}?>
-            	        		</a>
-            	        	</td>
+            	        		<?php if (isset($user->{USER_ID_FRGN})): ?>
+            	        			<a href="/<?=USER_ROUTE.'/'.$user->{USER_ID_FRGN}?>">
+                	        			<?=$user->{USER_ID_FRGN} ?? 'NULL'?>
+            	        			</a>                	        			
+            	        		<?php else: ?>
+            	        			<span class="text-danger">NULL</span>
+            	        		<?php endif; ?>
+    	        			</td>
+            	        	<td class="align-middle"><?=$user->{USERNAME}?></td>
             	        	<td class="align-middle"><?=$user->{NAME}?></td>
             	        	<td class="align-middle">
             	        		<a href="<?=${SEND_EMAIL_LINK}.$user->{EMAIL}?>">

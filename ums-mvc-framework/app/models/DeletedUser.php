@@ -98,6 +98,22 @@ class DeletedUser {
     }
 
     /* function to get pending user by id */
+    public function getDeleteUserAndRole(int $id) {
+        /* prepare sql query and execute it */
+        $sql = 'SELECT * FROM '.DELETED_USER_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
+        $sql .= ' WHERE '.USER_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam('id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        /* if success query and find user return user */
+        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) return $user;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to get pending user by id */
     public function getDeleteUserByUserId(int $id) {
         /* prepare sql query, then execute */
         $stmt = $this->conn->prepare('SELECT * FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID.'=:id');

@@ -73,7 +73,7 @@ CREATE TABLE `pending_emails` (
 	`enabler_token` varchar(255) NULL,
 	`expire_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`),
 	UNIQUE `new_email` (`new_email`),
 	UNIQUE `enabler_token` (`enabler_token`)
 );
@@ -81,6 +81,7 @@ CREATE TABLE `pending_emails` (
 -- create table for pending user
 CREATE TABLE `pending_users` (
 	`id_pending_user` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`user_id` int(15) unsigned NULL,
 	`name` varchar(255) NOT NULL,
 	`username` varchar(64) NOT NULL,
 	`email` varchar(64) NOT NULL,
@@ -90,7 +91,8 @@ CREATE TABLE `pending_users` (
 	`enabler_token` varchar(255) NULL,
 	`expire_datetime` datetime NOT NULL,
 
-	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`) ON DELETE NO ACTION,
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`),
+	FOREIGN KEY (`role_id`) REFERENCES `roles` (`id_role`),
 	UNIQUE `enabler_token` (`enabler_token`)
 );
 
@@ -102,7 +104,7 @@ CREATE TABLE `sessions` (
 	`ip_address` varchar(45) NOT NULL,
 	`expire_datetime` datetime NOT NULL,
 
-	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`),
 	UNIQUE `session_token` (`session_token`),
 	INDEX `ip_address` (`ip_address`)
 );
@@ -115,7 +117,7 @@ CREATE TABLE `user_locks` (
 	`expire_wrong_password` datetime NULL,
 	`count_locks` int(5) NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
+	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`),
 	UNIQUE `user_id` (`user_id`)
 );
 

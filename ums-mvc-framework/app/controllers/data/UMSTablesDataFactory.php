@@ -33,7 +33,7 @@ class UMSTablesDataFactory extends DataFactory {
         $userModel = new User($this->conn);
 
         /* count user */
-        $totUsers = $userModel->countUsers($search);
+        $totUsers = $userModel->countAllUsers($search);
         /* calc users for page and n. pages */
         $usersForPage = in_array($usersForPage, ROWS_FOR_PAGE_LIST) ? $usersForPage : DEFAULT_ROWS_FOR_PAGE;
         $maxPages = (int) ceil($totUsers/$usersForPage);
@@ -312,6 +312,12 @@ class UMSTablesDataFactory extends DataFactory {
         $linkHeadId .= $orderBy === PENDING_USER_ID ? $orderDirRev : DESC;
         $linkHeadId .= $closeUrl;
         $classHeadId = $orderBy === PENDING_USER_ID ? "fas fa-sort-$orderDirClass" : '';
+
+        /* link and class for head user id */
+        $linkHeadUserId = '/'.UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE.'/'.USER_ID_FRGN.'/';
+        $linkHeadUserId .= $orderBy === USER_ID_FRGN ? $orderDirRev : DESC;
+        $linkHeadUserId .= $closeUrl;
+        $classHeadUserId = $orderBy === USER_ID_FRGN ? "fas fa-sort-$orderDirClass" : '';
         
         /* link and class for head name */
         $linkHeadName = '/'.UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE.'/'.NAME.'/';
@@ -380,6 +386,8 @@ class UMSTablesDataFactory extends DataFactory {
             STOP_PAGE => $stopPage,
             LINK_HEAD.PENDING_USER_ID => $linkHeadId,
             CLASS_HEAD.PENDING_USER_ID => $classHeadId,
+            LINK_HEAD.USER_ID_FRGN => $linkHeadUserId,
+            CLASS_HEAD.USER_ID_FRGN => $classHeadUserId,
             LINK_HEAD.NAME => $linkHeadName,
             CLASS_HEAD.NAME => $classHeadName,
             LINK_HEAD.USERNAME => $linkHeadUsername,

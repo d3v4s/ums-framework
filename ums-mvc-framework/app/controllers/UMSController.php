@@ -24,50 +24,65 @@ class UMSController extends UMSBaseController {
 
     /* ########## SHOW FUNCTIONS ########## */
 
-//     /* function to view the user list page */
-//     public function showUsersList(string $orderBy=USER_ID, string $orderDir=DESC, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
-//         /* redirect */
-//         $this->redirectOrFailIfCanNotUpdateUser();
-
-//         /* set current location */
-//         $this->isUsersList = TRUE;
-
-//         /* get search query */
-//         $search = $_GET[SEARCH] ?? '';
-
-//         /* get data from data factory and show page */
-//         $data = UMSDataFactory::getInstance($this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search);
-//         $data[VIEW_ROLE] = $this->canViewRole();
-//         $this->content = view(getPath('ums','users-list'), $data);
-//     }
-
     /* function to view a user page */
     public function showUser($username) {
         /* redirect */
         $this->redirectOrFailIfCanNotUpdateUser();
 
-        /* init user model and get user */
-        $userModel = new User($this->conn);
-        /* if is numeric get user by id */
-        if (is_numeric($username)) $user = $userModel->getUserAndRole($username);
-        /* else get user by username */
-        else $user = $userModel->getUserAndRoleByUsername($username);
+        
+        /* get data by data factory */
+        $data = UMSDataFactory::getInstance($this->conn)->getUserData($username, $this->appConfig[APP][DATETIME_FORMAT], $this->canUpdateUser(), $this->canDeleteUser(), $this->canChangePassword(), $this->canViewRole(), $this->canSendEmails());
 
         /* if user not found, show error message */
-        if (!$user) $this->showMessageAndExit('User not found', TRUE);
+        if (!$data[USER]) $this->showMessageAndExit('User not found', TRUE);
 
         /* add javascript sources */ 
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/ums/user-info.js']
         );
 
-        /* get data by data factory and show page */
-        $data = UMSDataFactory::getInstance()->getUserData($user, $this->appConfig[APP][DATETIME_FORMAT]);
-        $data[VIEW_ROLE] = $this->canViewRole();
-        $data[CAN_UPDATE_USER] = $this->canUpdateUser();
-        $data[CAN_DELETE_USER] = $this->canDeleteUser();
-        $data[CAN_CHANGE_PASSWORD] = $this->canChangePassword();
+        /* show page */
         $this->content = view(getPath('ums','user-info'), $data);
+    }
+
+    /* function to view a user page */
+    public function showDeletedUser($username) {
+        /* redirect */
+        $this->redirectOrFailIfCanNotUpdateUser();
+        
+        /* get data by data factory  */
+        $data = UMSDataFactory::getInstance($this->conn)->getDeletedUserData($username, $this->appConfig[APP][DATETIME_FORMAT], $this->canViewRole(), $this->canSendEmails());
+        
+        /* if user not found, show error message */
+        if (!$data[USER]) $this->showMessageAndExit('Deleted user not found', TRUE);
+        
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/utils/ums/deleted-user-info.js']
+        );
+        
+        /* show page */
+        $this->content = view(getPath('ums','deleted-user-info'), $data);
+    }
+
+    /* function to view a user page */
+    public function showSession($sessionId) {
+        /* redirect */
+        $this->redirectOrFailIfCanNotUpdateUser();
+        
+        /* get data by data factory  */
+        $data = UMSDataFactory::getInstance($this->conn)->getSessionData($sessionId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails());
+        
+        /* if user not found, show error message */
+        if (!$data[SESSION]) $this->showMessageAndExit('Session not found', TRUE);
+        
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/utils/ums/session-info.js']
+        );
+        
+        /* show page */
+        $this->content = view(getPath('ums','session-info'), $data);
     }
 
     /* function to view update user info page */
@@ -447,7 +462,6 @@ class UMSController extends UMSBaseController {
     private function redirectOrFailIfCanNotChangePassword() {
         if (!$this->canChangePassword()) $this->switchFailResponse();
     }
-
 
 
 

@@ -110,15 +110,8 @@ class User {
             'id' => $id
         ]);
         
-        /* if sql query success, then set success result */
-        if ($stmt->rowCount()) {
-//             $result[USER_ID] = $this->conn->lastInsertId();
-            return $this->getUserLock($id);
-//             $result[MESSAGE] = 'New user saved successfully';
-//             $result[SUCCESS] = TRUE;
-            /* else set error info result */
-        }
-//         else $result[ERROR_INFO] = $stmt->errorInfo();
+        /* if sql query success, then return user lock */
+        if ($stmt->rowCount()) return $this->getUserLock($id);
         
         /* return result */
         return FALSE;
@@ -256,35 +249,24 @@ class User {
 
     /* function to get user lock property */
     public function getUserLock(int $id) {
-//         /* set fail results */
-//         $result = [
-//             MESSAGE => 'Invalid id',
-//             SUCCESS => FALSE
-//         ];
-        
         /* prepare sql query */
-        $sql = 'SELECT * FROM '.USER_LOCK_TABLE.' WHERE '.USER_ID_FRGN.' = :id';
+        $sql = 'SELECT * FROM '.USER_LOCK_TABLE.' WHERE '.USER_ID_FRGN.'=:id';
         $stmt = $this->conn->prepare($sql);
         /* execute sql query */
         $stmt->execute([
             'id' => $id
         ]);
         
-        /* check statement, get lock property and return success result */
-        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) {
-//             unset($result[MESSAGE]);
-//             $result[SUCCESS] = TRUE;
-//             $result[USER] = $userLock;
-//             $result;
-            return $userLock;
-        }
+        /* check statement, get lock and return it */
+        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) return $userLock;
         
         /* return fail result */
         return FALSE;
     }
 
+    
     /* function to count the users on table */
-    public function countUsers(string $search = ''): int {
+    public function countAllUsers(string $search=''): int {
         /* create sql query */
         $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
@@ -304,6 +286,17 @@ class User {
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    /* function to count the enabled users on table */
+    public function countEnabledUsers(): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE;
+        $sql .= ' WHERE '.ENABLED.' = 1 AND ('.EXPIRE_LOCK.' IS NULL OR '.EXPIRE_LOCK.' < CURRENT_TIMESTAMP())';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
         /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
