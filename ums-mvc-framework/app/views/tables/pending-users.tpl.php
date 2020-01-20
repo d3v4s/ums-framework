@@ -74,11 +74,15 @@
         	   foreach (${USERS} as $user):
             	    ?>
             	        <tr>
-            	        	<td class="align-middle"><?=$user->{PENDING_USER_ID}?></td>
+            	        	<td class="align-middle">
+            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$user->{PENDING_USER_ID}?>">
+	            	        		<?=$user->{PENDING_USER_ID}?>
+            	        		</a>
+            	        	</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($user->{USER_ID_FRGN})): ?>
-            	        			<a href="/<?=USER_ROUTE.'/'.$user->{USER_ID_FRGN}?>">
-                	        			<?=$user->{USER_ID_FRGN} ?? 'NULL'?>
+            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$user->{USER_ID_FRGN}?>">
+                	        			<?=$user->{USER_ID_FRGN}?>
             	        			</a>                	        			
             	        		<?php else: ?>
             	        			<span class="text-danger">NULL</span>

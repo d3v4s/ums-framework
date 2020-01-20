@@ -17,14 +17,6 @@ $(document).ready(function() {
 			/* crypt password and append on data */
 			data += '&' + cryptSerialize($cryptData);
 
-//			rsa = new RSAKey(),
-//				pass = $(this).find('#pass.send-ajax-crypt').val(),
-//				cpass = $(this).find('#cpass.send-ajax-crypt').val(),
-
-//			rsa.setPublic(window.keyN, window.keyE);
-//			pass = rsa.encrypt(pass);
-//			cpass = rsa.encrypt(cpass);
-//			data += '&pass=' + pass + '&cpass=' + cpass;
 		} catch (e) {
 			removeLoading($btn, 'Change');
 			showMessage('Settings update failed', true);

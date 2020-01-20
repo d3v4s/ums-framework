@@ -120,10 +120,12 @@ function redirect(url) {
 }
 
 function showLoading($btn) {
+	textBtn = $btn.children('#text-btn').text()
 	$btn.attr("disabled", "disabled");
 	$btn.children('#ico-btn').addClass('d-none');
 	$btn.children('#spinner').removeClass('d-none');
 	$btn.children('#text-btn').text(' Loading...');
+	return textBtn;
 }
 
 function removeLoading($btn, text) {

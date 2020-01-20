@@ -15,10 +15,10 @@ define('DEFAULT_ROWS_FOR_PAGE', 10);
 define('PAGE_NOT_FOUND', 'error-404');
 define('PAGE_EXCEPTION', 'error-exception');
 define('MAX_TIME_UNCONNECTED_LOGIN_SESSION', '30 days');
-define('MAX_WRONG_PASSWORDS', 100);
-define('MAX_LOCKS', 10);
+define('MAX_WRONG_PASSWORDS', 5);
+define('MAX_LOCKS', 3);
 define('PASS_TRY_TIME', '5 minutes');
-define('USER_LOCK_TIME', '15 minutes');
+define('USER_LOCK_TIME', '2 minutes');
 define('MIN_LENGTH_NAME', 4);
 define('MAX_LENGTH_NAME', 100);
 define('MIN_LENGTH_USERNAME', 3);
@@ -63,7 +63,7 @@ define('REGEX_USERNAME', '/^[a-zA-Z\d._\-?&%$]+$/');
 define('USE_REGEX_EMAIL', TRUE);
 define('REGEX_EMAIL', '/^[a-zA-Z\d\-_%.]+@[a-zA-Z\d\-.]+\.[a-zA-Z]+$/');
 define('USE_REGEX_PASSWORD', TRUE);
-define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{'.MIN_LENGTH_PASS.',}$/');
+define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@!%*?&._\-]))[A-Za-z0-9$@!%*?&._\-]{'.MIN_LENGTH_PASS.',}$/');
 // define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W]))[A-Za-z\d\W]{'.MIN_LENGTH_PASS.',}$/');
 // define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{8,}$/');
 
@@ -85,11 +85,14 @@ define('CHECKED', 'checked="checked"');
 define('OLD_PASS', 'old_pass');
 define('CONFIRM_PASS', 'confirm_pass');
 define('TOKEN', '_xf');
+define('RESTORE_TOKEN', '_xf_rstr');
 define('RSA_TOKEN', '_xf_rsa');
 define('DELETE_TOKEN', '_xf_del');
 define('UPDATE_TOKEN', '_xf_upd');
 define('DELETE_NEW_EMAIL_TOKEN', '_xf_del_ml');
+define('REMOVE_SESSION_TOKEN', '_xf_rmv_ssn');
 define('RESEND_ENABLER_EMAIL_TOKEN', '_xf_res_ml');
+define('LOCKS_USER_RESET_TOKEN', '_xf_lck_rst');
 define('LOGOUT_TOKEN', '_xf_out');
 define('GET_KEY_TOKEN', '_kxt');
 define('NEW_TOKEN', 'ntk');
@@ -117,7 +120,6 @@ define('SITE_MAP_GENERATOR_ROUTE', 'ums/generator/site/map');
 define('SITE_MAP_UPDATE_ROUTE', 'ums/generator/site/map/update');
 define('ACCOUNT_ENABLER_ROUTE', 'account/enable');
 define('EMAIL_ENABLER_ROUTE', 'validate/new/email');
-define('LOCKS_ROUTE', 'locks');
 define('LOGIN_ROUTE', 'auth/login');
 define('SIGNUP_ROUTE', 'auth/signup');
 define('LOGOUT_ROUTE', 'auth/logout');
@@ -132,10 +134,12 @@ define('GET_JSON_KEY_ROUTE', 'app/config/get/key/json');
 define('CONFIRM_ROUTE', 'confirm');
 define('UPDATE_ROUTE', 'update');
 define('DELETE_ROUTE', 'delete');
+define('REMOVE_ROUTE', 'remove');
 define('SAVE_ROUTE', 'save');
 define('GET_ROUTE', 'get');
+define('RESTORE_ROUTE', 'restore');
 define('PASS_UPDATE_ROUTE', UPDATE_ROUTE.'/password');
-define('RESET_LOCK_COUNTERS_ROUTE', UPDATE_ROUTE.'/reset/locks');
+define('LOCK_COUNTERS_RESET_ROUTE', UPDATE_ROUTE.'/reset/locks');
 
 /* CONSTANTS FOR SOURCES */
 define('SOURCE', 'src');
@@ -186,7 +190,9 @@ define('ROLES_ORDER_BY_LIST', [
     CAN_UPDATE_USER,
     CAN_DELETE_USER,
     CAN_UNLOCK_USER,
+    CAN_RESTORE_USER,
     CAN_CHANGE_PASSWORD,
+    CAN_REMOVE_SESSION,
     CAN_GENERATE_RSA,
     CAN_GENERATE_SITEMAP,
     CAN_CHANGE_SETTINGS,
@@ -233,7 +239,8 @@ define('SYSTEM_LAYOUT_LIST', [
     SETTINGS_LAYOUT,
     EMAIL_LAYOUT,
     PASSWORD_RESET_EMAIL_LAYOUT,
-    ENABLER_EMAIL_LAYOUT
+    ENABLER_EMAIL_LAYOUT,
+    RANDOM_PASSWORD_EMAIL_LAYOUT,
 ]);
 
 define('UMS_TABLES_LIST', [
@@ -261,8 +268,8 @@ define('EXCEPTION', 'exception');
 define('ERROR_INFO', 'error_info');
 define('URL_SERVER', 'url_server');
 define('CHANGED_EMAIL', 'chng_email');
-define('GENERATE_TOKEN', 'gen_token');
 define('REMOVE_TOKEN', 'remove_token');
+define('GENERATE_TOKEN', 'gen_token');
 define('PATH_PRIV_KEY', 'path_priv_key');
 define('WRONG_PASSWORD', 'wrong_password');
 define('RESEND_LOCK_EXPIRE', 'rsnd_lck_expr_tm');
@@ -317,7 +324,9 @@ define('REQUESTS', 'rqsts');
 define('MESSAGE_ENABLE_ACC', 'msg_enbl');
 define('CLASS_ENABLE_ACC', 'clss_enbl');
 define('IS_LOCK', 'is_lock');
+define('IS_EXPIRED', 'is_expired');
 define('MESSAGE_LOCK_ACC', 'msg_lck_acc');
+define('MESSAGE_EXPIRE', 'msg_expr');
 define('WAIT_EMAIL_CONFIRM', 'wt_cnf_mail');
 define('DELETE_SESSION', 'dlt_ssn');
 define('VIEW_ROLE', 'view_role');
@@ -348,10 +357,12 @@ define('CSRF_ADD_FAKE_USER', 'XS-TKN-FU');
 define('CSRF_LOGIN', 'XS-TKN-LGN');
 define('CSRF_SIGNUP', 'XS-TKN-SGN');
 define('CSRF_RESEND_ENABLER_ACC', 'XS-TKN-RSENACC');
-define('CSRF_UNLOCK_USER', 'XS-TKN-UNLUSR');
+define('CSRF_LOCK_USER_RESET', 'XS-TKN-LKUSRST');
 define('CSRF_DELETE_USER', 'XS-TKN-DLTUSR');
 define('CSRF_UPDATE_PASS', 'XS-TKN-UPDPSS');
 define('CSRF_UPDATE_USER', 'XS-TKN-UPDUSR');
+define('CSRF_RESTORE_USER', 'XS-TKN-RSTRUSR');
+define('CSRF_REMOVE_SESSION', 'XS-TKN-RMVSSN');
 define('CSRF_NEW_USER', 'XS-TKN-NWUSR');
 define('CSRF_DELETE_ACCOUNT', 'XS-TKN-DLTACC');
 define('CSRF_UPDATE_ACCOUNT', 'XS-TKN-UPDACC');

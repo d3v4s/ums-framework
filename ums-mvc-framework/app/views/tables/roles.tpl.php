@@ -7,7 +7,7 @@
         <table class="table table-striped" id="roles-table">
         	<thead>
         		<tr>
-        			<th colspan="12" class="text-center">
+        			<th colspan="14" class="text-center">
         				<span>TOTAL ROLES <?=${TOT_ROLES}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
@@ -37,8 +37,16 @@
         				<i class="<?=${CLASS_HEAD.CAN_UNLOCK_USER}?>"></i>
         			</th>
         			<th>
+        				<a href="<?=${LINK_HEAD.CAN_RESTORE_USER}?>">RESTORE USER</a>
+        				<i class="<?=${CLASS_HEAD.CAN_RESTORE_USER}?>"></i>
+        			</th>
+        			<th>
         				<a href="<?=${LINK_HEAD.CAN_CHANGE_PASSWORD}?>">CHANGE PASSWORD</a>
         				<i class="<?=${CLASS_HEAD.CAN_CHANGE_PASSWORD}?>"></i>
+        			</th>
+        			<th>
+        				<a href="<?=${LINK_HEAD.CAN_REMOVE_SESSION}?>">REMOVE SESSION</a>
+        				<i class="<?=${CLASS_HEAD.CAN_REMOVE_SESSION}?>"></i>
         			</th>
         			<th>
         				<a href="<?=${LINK_HEAD.CAN_GENERATE_RSA}?>">GENERATE RSA</a>
@@ -99,7 +107,21 @@
             	        		<?php endif; ?>
             	        	</td>
             	        	<td class="align-middle">
+            	        		<?php if ($role->{CAN_RESTORE_USER}): ?>
+                	        		<i class="fas fa-check-circle"></i>
+            	        		<?php else: ?>
+            	        			<i class="far fa-circle"></i>
+            	        		<?php endif; ?>
+            	        	</td>
+            	        	<td class="align-middle">
             	        		<?php if ($role->{CAN_CHANGE_PASSWORD}): ?>
+                	        		<i class="fas fa-check-circle"></i>
+            	        		<?php else: ?>
+            	        			<i class="far fa-circle"></i>
+            	        		<?php endif; ?>
+            	        	</td>
+            	        	<td class="align-middle">
+            	        		<?php if ($role->{CAN_REMOVE_SESSION}): ?>
                 	        		<i class="fas fa-check-circle"></i>
             	        		<?php else: ?>
             	        			<i class="far fa-circle"></i>

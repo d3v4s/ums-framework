@@ -66,7 +66,7 @@
             	        <tr>
             	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=USER_ROUTE.'/'.$user->{USER_ID}?>">
+            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$user->{USER_ID}?>">
     		        	        	<?= $user->{USERNAME}?>
             	        		</a>
             	        	</td>

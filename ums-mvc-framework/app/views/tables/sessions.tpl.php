@@ -57,17 +57,17 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-            	        		<a href="/<?=SESSION_ROUTE.'/'.$session->{SESSION_ID}?>">
+            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$session->{SESSION_ID}?>">
 	            	        		<?=$session->{SESSION_ID}?>
             	        		</a>
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($session->{USERNAME})): ?>
-                	        		<a href="/<?=USER_ROUTE.'/'.$session->{USER_ID}?>">
+                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$session->{USER_ID}?>">
         		        	        	<?= $session->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
-            	        			<a href="/<?=DELETED_USER_ROUTE.'/'.$session->{USER_ID_FRGN}?>" class="text-danger">
+            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$session->{USER_ID_FRGN}?>" class="text-danger">
         		        	        	DELETE: <?= $session->{USER_ID_FRGN}?>
                 	        		</a>
             	        		<?php endif; ?>

@@ -151,20 +151,34 @@ class DeletedUser {
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
 
-//     /* ############# UPDATE FUNCTIONS ############# */
+    /* ############# DELETE FUNCTIONS ############# */
 
-//     /* function to remove account enabler token on pending users table */
-//     public function removeAccountEnablerToken(string $token): bool {
-//         /* prepare sql query and execute it */
-//         $stmt = $this->conn->prepare('UPDATE '.PENDING_USERS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.ENABLER_TOKEN.'=:token');
-//         $stmt->execute(['token' => $token]);
+    public function removeDeleteUser(int $userId) {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Remove deleted user failed',
+            SUCCESS => FALSE
+        ];
         
-//         /* if sql success return true */
-//         if($stmt->rowCount()) return TRUE;
-//         /* else return false */
-//         return FALSE;
-//     }
-
+        /* disable foreign key check */
+        $sql = 'SET FOREIGN_KEY_CHECKS=0;';
+        /* delete query */
+        $sql .= 'DELETE FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID.'=:id;';
+        /* enable foreign key check */
+        $sql .= 'SET FOREIGN_KEY_CHECKS=1';
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $userId]);
+        
+        /* if success then set success result */
+        if ($stmt->errorCode() == 0){
+            $result[SUCCESS] = TRUE;
+            $result[MESSAGE] = 'Deleted user remove successfully';
+            /* else set error info */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        return $result;
+    }
 //     /* ##################################### */
 //     /* PRIVATE FUNCTIONS */
 //     /* ##################################### */

@@ -84,6 +84,25 @@ class Session {
     /* function to get session and user by session id */
     public function getSessionAndUser(int $sessionId) {
         /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.SESSIONS_TABLE.' JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.SESSION_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $sessionId]);
+        
+        /* if find user chech if session is expire */
+        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+            /* else unset password and return user */
+            unset($user->password);
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to get session and user by session id */
+    public function getSessionLeftUser(int $sessionId) {
+        /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.SESSIONS_TABLE.' LEFT JOIN ';
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
         $sql .= ' WHERE '.SESSION_ID.'=:id';
@@ -214,6 +233,22 @@ class Session {
         /* else return false */
         return FALSE;
     }
+
+//     /* function to reassign sessions at new user id */
+//     public function reassignSessionsAtNewUserId(int $oldId, int $newId): bool {
+//         /* prepare sql query and execute it */
+//         $sql = 'UPDATE '.SESSIONS_TABLE.' SET '.USER_ID_FRGN.'=:new_id WHERE '.USER_ID_FRGN.'=:old_id';
+//         $stmt = $this->conn->prepare($sql);
+//         $stmt->execute([
+//             'old_id' => $oldId,
+//             'new_id' => $newId
+//         ]);
+        
+//         /* if sql query success return true */
+//         if ($stmt && $stmt->rowCount()) return TRUE;
+//         /* else return false */
+//         return FALSE;
+//     }
 
     /* ##################################### */
     /* PRIVATE FUNCTIONS */

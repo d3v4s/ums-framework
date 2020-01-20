@@ -17,16 +17,6 @@ $(document).ready(function(){
 			/* crypt and serialize passwords */
 			data += '&' + cryptSerialize($cryptData);
 //			
-//			var rsa = new RSAKey(),
-//				pass = $(this).find('#pass.send-ajax-crypt').val(),
-//				cpass = $(this).find('#cpass.send-ajax-crypt').val(),
-//				data = $(this).find('.send-ajax').serialize();
-//
-//			/* crypt password and append on data */
-//			rsa.setPublic(window.keyN, window.keyE);
-//			pass = rsa.encrypt(pass);
-//			cpass = rsa.encrypt(cpass);
-//			data += '&pass=' + pass + '&cpass=' + cpass;
 		} catch (e) {
 			removeLoading($btn, 'Save');
 			showMessage('Adding new user failed', true);

@@ -1,13 +1,16 @@
 <?php
 namespace app\controllers;
 
-use \PDO;
-use app\models\User;
 use app\controllers\verifiers\UMSVerifier;
 use app\controllers\verifiers\Verifier;
 use app\controllers\data\UMSDataFactory;
 use app\models\PendingUser;
 use app\models\DeletedUser;
+use app\models\User;
+use \PDO;
+use app\models\Session;
+use app\models\PendingEmail;
+use app\models\PasswordResetRequest;
 
 /**
  * Class controller for users admin manage
@@ -23,67 +26,6 @@ class UMSController extends UMSBaseController {
     /* ##################################### */
 
     /* ########## SHOW FUNCTIONS ########## */
-
-    /* function to view a user page */
-    public function showUser($username) {
-        /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
-
-        
-        /* get data by data factory */
-        $data = UMSDataFactory::getInstance($this->conn)->getUserData($username, $this->appConfig[APP][DATETIME_FORMAT], $this->canUpdateUser(), $this->canDeleteUser(), $this->canChangePassword(), $this->canViewRole(), $this->canSendEmails());
-
-        /* if user not found, show error message */
-        if (!$data[USER]) $this->showMessageAndExit('User not found', TRUE);
-
-        /* add javascript sources */ 
-        array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/user-info.js']
-        );
-
-        /* show page */
-        $this->content = view(getPath('ums','user-info'), $data);
-    }
-
-    /* function to view a user page */
-    public function showDeletedUser($username) {
-        /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
-        
-        /* get data by data factory  */
-        $data = UMSDataFactory::getInstance($this->conn)->getDeletedUserData($username, $this->appConfig[APP][DATETIME_FORMAT], $this->canViewRole(), $this->canSendEmails());
-        
-        /* if user not found, show error message */
-        if (!$data[USER]) $this->showMessageAndExit('Deleted user not found', TRUE);
-        
-        /* add javascript sources */
-        array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/deleted-user-info.js']
-        );
-        
-        /* show page */
-        $this->content = view(getPath('ums','deleted-user-info'), $data);
-    }
-
-    /* function to view a user page */
-    public function showSession($sessionId) {
-        /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
-        
-        /* get data by data factory  */
-        $data = UMSDataFactory::getInstance($this->conn)->getSessionData($sessionId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails());
-        
-        /* if user not found, show error message */
-        if (!$data[SESSION]) $this->showMessageAndExit('Session not found', TRUE);
-        
-        /* add javascript sources */
-        array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/session-info.js']
-        );
-        
-        /* show page */
-        $this->content = view(getPath('ums','session-info'), $data);
-    }
 
     /* function to view update user info page */
     public function showUserUpdate($username) {
@@ -207,7 +149,7 @@ class UMSController extends UMSBaseController {
             ];
             $resUser = $userModel->updateUser($id, $data);
 
-            if ($resUser[SUCCESS]) $redirectTo = '/'.USER_ROUTE.'/'.$id;
+            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
 
             /* set result */
             $resUpdate[MESSAGE] = $resUser[MESSAGE];
@@ -262,7 +204,7 @@ class UMSController extends UMSBaseController {
             $user = new User($this->conn);
             /* update user password, and set result */
             $resUser = $user->updatePassword($id, $pass);
-            if ($resUser[SUCCESS]) $redirectTo = '/'.USER_ROUTE.'/'.$id;
+            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
             $resPass[MESSAGE] = $resUser[MESSAGE];
             $resPass[SUCCESS] = $resUser[SUCCESS];
         }
@@ -287,30 +229,30 @@ class UMSController extends UMSBaseController {
         $this->switchResponse($dataOut, (!$resPass[SUCCESS] && $resPass[GENERATE_TOKEN]), $funcDefault, CSRF_UPDATE_PASS);
     }
 
-    /* function to reset counter of user lock */
-    public function unlockUser() {
+    /* function to reset counters of user lock */
+    public function lockCountersReset() {
         /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
-        
+        $this->redirectOrFailIfCanNotUnlockUser();
+
         /* get tokens ad user id */
-        $tokens = $this->getPostSessionTokens(CSRF_UNLOCK_USER);
+        $tokens = $this->getPostSessionTokens(CSRF_LOCK_USER_RESET);
         $id = $_POST[USER_ID];
-        
+
         /* get verifier instance, and check reset wrong user locks request */
         $verifier = UMSVerifier::getInstance($this->conn);
-        $resReset = $verifier->verifUnlockUser($id, $tokens);
+        $resReset = $verifier->verifyLockCounterReset($id, $tokens);
         if ($resReset[SUCCESS]) {
             /* if success init user model, and reset count user locks */
             $user = new User($this->conn);
             /* reset user locks and set results */
-            $resReset = $user->unlockUser($id);
+            $resReset = array_merge($resReset, $user->lockUserReset($id));
         }
         
         /* result data */
         $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USER_LOCK_TABLE.'/'.$id,
             SUCCESS => $resReset[SUCCESS],
             MESSAGE => $resReset[MESSAGE] ?? NULL,
-            USER_ID => $id
         ];
         
         /* function for default response */
@@ -319,10 +261,10 @@ class UMSController extends UMSBaseController {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.USER_ROUTE.'/'.$data[USER_ID]);
+            redirect($data[REDIRECT_TO]);
         };
         
-        $this->switchResponse($dataOut, (!$resReset[SUCCESS] && $resReset[GENERATE_TOKEN]), $funcDefault, CSRF_UNLOCK_USER);
+        $this->switchResponse($dataOut, (!$resReset[SUCCESS] && $resReset[GENERATE_TOKEN]), $funcDefault, CSRF_LOCK_USER_RESET);
     }
 
     /* function to add a new user */
@@ -371,14 +313,16 @@ class UMSController extends UMSBaseController {
                 $resUser = $pendModel->savePendingUser($usrData);
                 /* send enabler email */
                 $this->sendEnablerEmail($email, $resUser[TOKEN]);
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$resUser[USER_ID];
             } else {
                 /* init user model and save user */
                 $user = new User($this->conn);
                 $resUser = $user->saveUser($usrData);
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$resUser[USER_ID];
             }
 
             /* if success set redirect ro users list */
-            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
+//             if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             /* set result */
             $resSignup[MESSAGE] = $resUser[MESSAGE];
             $resSignup[SUCCESS] = $resUser[SUCCESS];
@@ -414,7 +358,7 @@ class UMSController extends UMSBaseController {
         $id = $_POST[USER_ID];
 
         /* ser redirect to */
-        $redirectTo = '/'.USER_ROUTE.'/'.$id;
+        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
         /* get verifier instance, and check delete user request */
         $verifier = Verifier::getInstance($this->conn);
         $resDelete = $verifier->verifyDelete($id, $tokens);
@@ -427,7 +371,16 @@ class UMSController extends UMSBaseController {
                 /* init deleted model and save deleted user */
                 $delModel = new DeletedUser($this->conn);
                 $delModel->saveDeletedUser($resDelete[USER]);
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
+                /* init pending mail model and remove all user tokens */
+                $pendMailModel = new PendingEmail($this->conn);
+                $pendMailModel->removeAllEmailEnablerToken($id);
+                /* init password reset request model and remove all user tokens */
+                $pendPassResReqModel = new PasswordResetRequest($this->conn);
+                $pendPassResReqModel->removePasswordResetReqForUser($id);
+                /* init session model and remove all user tokens */
+                $sessionModel = new Session($this->conn);
+                $sessionModel->removeAllLoginSessionTokens($id);
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
             }
             /* set result */
             $resDelete[MESSAGE] = $resUser[MESSAGE];
@@ -450,20 +403,134 @@ class UMSController extends UMSBaseController {
             }
             redirect($data[REDIRECT_TO]);
         };
-        
+
         $this->switchResponse($dataOut, (!$resDelete[SUCCESS] && $resDelete[GENERATE_TOKEN]), $funcDefault, CSRF_DELETE_USER);
     }
-    
+
+    /* function to restore a deleted user */
+    public function restoreUser() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotRestoreUser();
+
+        /* get tokens ad user id */
+        $tokens = $this->getPostSessionTokens(CSRF_RESTORE_USER);
+        $id = $_POST[USER_ID];
+        /* get verifier instance, and check reset wrong user locks request */
+        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
+        $verifier = UMSVerifier::getInstance($this->conn);
+        $resRestore = $verifier->verifyRestoreUser($id, $tokens);
+        if ($resRestore[SUCCESS]) {
+            /* if success init user model, and set user data */
+            $userModel = new User($this->conn);
+            $password = mb_strcut(getSecureRandomString(), 0, 8);
+            $userData = [
+                NAME => $resRestore[USER]->{NAME},
+                USERNAME => $resRestore[USER]->{USERNAME},
+                EMAIL => $resRestore[USER]->{EMAIL},
+                ROLE_ID_FRGN => $resRestore[USER]->{ROLE_ID_FRGN},
+                REGISTRATION_DATETIME => $resRestore[USER]->{REGISTRATION_DATETIME},
+                PASSWORD => $password,
+                ENABLED => TRUE
+            ];
+
+            /* restore usere and merge results */
+            $resRestore = array_merge($resRestore, $userModel->saveUserSetRegistrationDatetime($userData));
+            /* if restore success */
+            if ($resRestore[SUCCESS]) {
+                $resRestore = array_merge($resRestore, $userModel->changeUserId($resRestore[USER_ID], $resRestore[USER]->{USER_ID}));
+                /* if fail change user id, then delete created user */
+                if (!$resRestore[SUCCESS]) $userModel->deleteUser($resRestore[USER_ID]);
+                else {
+                    /* send email with new random password */
+                    $this->sendEmailNewRandomPassword($resRestore[USER]->{EMAIL}, $password);
+                    /* set redirect to restor user */
+                    $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+                    /* remove from delete users table */
+                    $delUserModel = new DeletedUser($this->conn);
+                    $delUserModel->removeDeleteUser($resRestore[USER]->{USER_ID});
+                }
+            }
+        }
+
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => $redirectTo,
+            SUCCESS => $resRestore[SUCCESS],
+            MESSAGE => $resRestore[MESSAGE] ?? NULL,
+        ];
+
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+
+        $this->switchResponse($dataOut, (!$resRestore[SUCCESS] && $resRestore[GENERATE_TOKEN]), $funcDefault, CSRF_RESTORE_USER);
+    }
+
+    /* function to remove session */
+    public function removeSession() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotRemoveSession();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_REMOVE_SESSION);
+        $id = $_POST[SESSION_ID] ?? '';
+        /* get verifier instance, and check remove session request */
+        $verifier = UMSVerifier::getInstance($this->conn);
+        $resRemove = $verifier->verifyRemoveSession($id, $tokens);
+        if ($resRemove[SUCCESS]) {
+            /* if success init session model and remove session */
+            $sessionModel = new Session($this->conn);
+            if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = 'Session removed successfully'; 
+            else $resRemove[MESSAGE] = 'Remove session failed';
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$id,
+            SUCCESS => $resRemove[SUCCESS],
+            MESSAGE => $resRemove[MESSAGE] ?? NULL,
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+        
+        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_REMOVE_SESSION);
+    }
+
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
     
-    /* function to redirect if yser can not change password */
+    /* function to redirect if user can not change password */
     private function redirectOrFailIfCanNotChangePassword() {
         if (!$this->canChangePassword()) $this->switchFailResponse();
     }
 
+    /* function to redirect if user can not unlock users */
+    private function redirectOrFailIfCanNotUnlockUser() {
+        if (!$this->canUnlockUser()) $this->switchFailResponse();
+    }
 
+    /* function to redirect if user can not restore users */
+    private function redirectOrFailIfCanNotRestoreUser() {
+        if (!$this->canRestoreUser()) $this->switchFailResponse();
+    }
+
+    /* function to redirect if user can not remove session */
+    private function redirectOrFailIfCanNotRemoveSession() {
+        if (!$this->canRestoreUser()) $this->switchFailResponse();
+    }
 
 
 
