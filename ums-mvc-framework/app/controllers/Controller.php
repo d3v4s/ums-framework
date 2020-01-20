@@ -409,14 +409,24 @@ class Controller {
         return (bool) $this->userRole[CAN_DELETE_USER];
     }
 
-    /* function to check if user can change password at another user */
+    /* function to check if user can unlock another user */
     protected function canUnlockUser(): bool {
         return (bool) $this->userRole[CAN_UNLOCK_USER];
+    }
+
+    /* function to check if user can restore another user */
+    protected function canRestoreUser(): bool {
+        return (bool) $this->userRole[CAN_RESTORE_USER];
     }
 
     /* function to check if user can change password at another user */
     protected function canChangePassword(): bool {
         return (bool) $this->userRole[CAN_CHANGE_PASSWORD];
+    }
+
+    /* function to check if user can remove session */
+    protected function canRemoveSession(): bool {
+        return (bool) $this->userRole[CAN_REMOVE_SESSION];
     }
 
     /* function to check if user can genaret rsa key pair */
@@ -439,7 +449,7 @@ class Controller {
         return (bool) $this->userRole[CAN_SEND_EMAIL];
     }
 
-    /* function to check if user can send emails */
+    /* function to check if user can view tables */
     protected function canViewTables(): bool {
         return (bool) $this->userRole[CAN_VIEW_TABLES];
     }
@@ -557,6 +567,32 @@ class Controller {
         $email->setData([
             LINK => $link,
             MESSAGE => $message
+        ]);
+        $email->generateContentWithLayout();
+        return $email->send();
+    }
+
+    /* function to send email with random password */
+    protected function sendEmailNewRandomPassword(string $to, string $password): bool {
+//         /* get domain url from configuration, next append source path and token */
+//         $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
+//         $link .= '/'.PASS_RESET_ROUTE.'/'.$token;
+        
+        /* insert link on session if on DEV mode */
+        if (DEV) {
+            $_SESSION[MESSAGE] = "New password: $password";
+        }
+
+        /* init email model and set headers */
+        $email = new Email($to, $this->appConfig[UMS][ENABLER_EMAIL_FROM]);
+        $headers = 'MIME-Version: 1.0' . "\r\n";
+        $headers .= 'Content-type:text/html;charset=utf-8' . "\r\n";
+        $email->setHeaders($headers);
+        /* set layout and data, then generate email body and send it */
+        $email->setLayout(RANDOM_PASSWORD_EMAIL_LAYOUT);
+        
+        $email->setData([
+            PASSWORD => $password
         ]);
         $email->generateContentWithLayout();
         return $email->send();

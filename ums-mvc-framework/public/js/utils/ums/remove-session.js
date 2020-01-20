@@ -1,10 +1,10 @@
 $(document).ready(function() {
 	/* click event on delete user button to send XML HTTP request */
-	$('#delete-user-form').on('submit', function(event) {
+	$('#remove-session-form').on('submit', function(event) {
 		/* get form and button */
 		const $form = $(this),
 			actionUrl = $(this).attr('action'),
-			$btn = $(this).find('#btn-delete-user');
+			$btn = $(this).find('#btn-remove-session');
 
 		/* block default submit form and show loading */
 		event.preventDefault();
@@ -14,11 +14,11 @@ $(document).ready(function() {
 		$.MessageBox({
 			buttonDone  : "Yes",
 	    	buttonFail  : "No",
-	    	message     : "Delete this account?"
+	    	message     : "Remove this session?"
 		}).done(function(){
 			/* confirm function */
 			/* get token and serialize data */
-			const $xf = $form.find('#_xf'),
+			const $xf = $form.find('#_xf_rmv_ssn'),
 				data = $form.find('.send-ajax').serialize();
 			
 			/* success function */
@@ -30,13 +30,13 @@ $(document).ready(function() {
 					else if (response.ntk !== undefined) $xf.val(response.ntk);
 					
 				} catch (e) {
-					showMessage('Delete user failed', true);
+					showMessage('Remove session failed', true);
 				}
 			};
 			
 			/* fail function */
 			funcFail = function() {
-				removeLoading($btn, 'Delete');
+				removeLoading($btn, txtBttn);
 				showMessage('Problem to contact server', true);
 			};
 			

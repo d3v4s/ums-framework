@@ -4,23 +4,18 @@ namespace app\controllers\verifiers;
 use app\models\User;
 use \PDO;
 use app\models\Role;
+use app\models\DeletedUser;
+use app\models\Session;
 
 class UMSVerifier extends Verifier {
-//     protected $userRoles = [];
 
     protected function __construct(PDO $conn) {
         parent::__construct($conn);
-//         $this->userRoles = getList('userRoles');
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
-
-//     /* function to set list of user roles */
-//     public function setUserRoles(array $userRoles) {
-//         $this->userRoles = $userRoles;
-//     }
 
     /* functio to verify a new user request */
     public function verifyNewUser(string $name, string $email, string $username, string $pass, string $cpass, string $role, array $tokens): array {
@@ -72,10 +67,10 @@ class UMSVerifier extends Verifier {
     }
 
     /* function to verify reset user locks request */
-    public function verifUnlockUser(int $id, array $tokens): array {
+    public function verifyLockCounterReset(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Unlock user failed',
+            MESSAGE => 'Lock counter reset failed',
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -86,7 +81,7 @@ class UMSVerifier extends Verifier {
 
         /* init user model and validate user */
         $user = new User($this->conn);
-        if ($user->getUser($id)) return $result;
+        if (!$user->getUser($id)) return $result;
 
         /* unset error message */
         unset($result[MESSAGE]);
@@ -96,49 +91,66 @@ class UMSVerifier extends Verifier {
         return $result;
     }
 
-//     /* function to verify reset user locks request */
-//     public function verifyResetLockUser(int $id, array $tokens): array {
-//         /* set fail result */
-//         $result = [
-//             'message' => 'Reset lock user failed',
-//             'success' => FALSE
-//         ];
+    /* function to verify restore delete user request */
+    public function verifyRestoreUser(int $id, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'User restore failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init deleted user model and validate user */
+        $delUserModel = new DeletedUser($this->conn);
+        if (!($user = $delUserModel->getDeleteUserByUserId($id))) return $result;
 
-//         /* init user model */
-//         $user = new User($this->conn, $this->appConfig);
+        /* init user model and check if username or email already exists */
+        $userModel = new User($this->conn);
+        if ($userModel->getUserByUsername($user->{USERNAME})) {
+            $result[MESSAGE] = 'User already exists with this username';
+            return $result;
+        }
+        if ($userModel->getUserByEmail($user->{EMAIL})) {
+            $result[MESSAGE] = 'User already exists with this email';
+            return $result;
+        }
 
-//         /* validate tokens nad user id */
-//         if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
+        /* unset error message */
+        unset($result[MESSAGE]);
+        /* set success and return result */
+        $result[SUCCESS] = TRUE;
+        $result[USER] = $user;
+        return $result;
+    }
 
-//         /* unset error message */
-//         unset($result['message']);
+    /* function to verify a update user request */
+    public function verifyRemoveSession(string $sessionId, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Remove session failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
 
-//         /* set success and return result */
-//         $result['success'] = TRUE;
-//         return $result;
-//     }
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
 
-//     /* function to verify reset wrong password request */
-//     public function verifyResetWrongPasswords(int $id, array $tokens): array {
-//         /* set fail result */
-//         $result = [
-//             'message' => 'Reset wrong passwords failed',
-//             'success' => FALSE
-//         ];
-
-//         /* init user model */
-//         $user = new User($this->conn, $this->appConfig);
-
-//         /* validate tokens and user id */
-//         if (!($this->verifyTokens($tokens) && $user->getUser($id))) return $result;
-
-//         /* unset error message */
-//         unset($result['message']);
-
-//         /* set success and return result */
-//         $result['success'] = TRUE;
-//         return $result;
-//     }
+        /* init session model validate sessionm id */
+        $sessionModel = new Session($this->conn);
+        if (!$sessionModel->getSessionAndUser($sessionId)) {
+            $result[MESSAGE] = 'Invalid session';
+            return $result;
+        }
+        /* set successs result and return it */
+        $result[SUCCESS] = TRUE;
+        unset($result[MESSAGE]);
+        return $result;
+    }
 
     /* function to verify update password request */
     public function verifyUpdatePass(int $id, string $pass, string $cpass, array $tokens): array {

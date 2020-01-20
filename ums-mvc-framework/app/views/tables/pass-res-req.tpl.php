@@ -61,11 +61,11 @@
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($req->{USERNAME})): ?>
-                	        		<a href="/<?=USER_ROUTE.'/'.$req->{USER_ID}?>">
+                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$req->{USER_ID}?>">
         		        	        	<?= $req->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
-            	        			<a href="/<?=DELETED_USER_ROUTE.'/'.$req->{USER_ID_FRGN}?>" class="text-danger">
+            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$req->{USER_ID_FRGN}?>" class="text-danger">
         		        	        	DELETE: <?= $req->{USER_ID_FRGN}?>
                 	        		</a>
             	        		<?php endif; ?>

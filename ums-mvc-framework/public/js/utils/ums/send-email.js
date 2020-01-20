@@ -21,16 +21,6 @@ $(document).ready(function(){
 		try {
 			/* crypte data */
 			var data = cryptSerialize($dataCrypt);
-//			var rsa = new RSAKey(),
-//				to = $(this).find.val(),
-//				subject = $(this).find('#subject.send-ajax-crypt').val(),
-//				content = $(this).find('#content.send-ajax-crypt').val();
-//
-//			/* crypt password and append on data */
-//			rsa.setPublic(window.keyN, window.keyE);
-//			to = rsa.encrypt(to);
-//			subject = rsa.encrypt(subject);
-//			content = rsa.encrypt(content);
 		} catch (e) {
 			removeLoading($btn, 'Send');
 			showMessage('Send email failed', true);
@@ -58,13 +48,6 @@ $(document).ready(function(){
 			showMessage('Problem to contact server', true);
 		};
 
-//		/* data to send on request */
-//		data = {
-//			to: to,
-//			subject: subject,
-//			content: content,
-//			_xf: $xf.val()
-//		}
 		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
 	});
 });

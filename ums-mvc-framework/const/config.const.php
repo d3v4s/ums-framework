@@ -20,6 +20,7 @@ define('UMS_LAYOUT', 'ums');
 define('SETTINGS_LAYOUT', 'settings');
 define('EMAIL_LAYOUT', 'email');
 define('PASSWORD_RESET_EMAIL_LAYOUT', 'password_reset_email');
+define('RANDOM_PASSWORD_EMAIL_LAYOUT', 'random_pass_email');
 define('ENABLER_EMAIL_LAYOUT', 'enabler_email');
 define('UMS_TABLES_LAYOUT', 'ums_tables_layout');
 

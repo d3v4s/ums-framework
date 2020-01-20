@@ -36,7 +36,11 @@
     				<td class="align-middle"><?=${USER}->{REGISTRATION_DATETIME}?></td>
     			</tr>
     			<tr>
-    				<td colspan="2" class="align-middle <?=${CLASS_ENABLE_ACC}?>"><?=${NO_ESCAPE.MESSAGE_ENABLE_ACC}.${NO_ESCAPE.MESSAGE_LOCK_ACC}?></td>
+    				<td class="text-primary align-middle">Lock expiration date</td>
+    				<td class="align-middle <?=${IS_LOCK} ? 'text-danger' : ''?>"><?=(${USER}->{EXPIRE_LOCK} ?? 'NULL').'<br>'.${MESSAGE_LOCK_ACC}?></td>
+    			</tr>
+    			<tr>
+    				<td colspan="2" class="align-middle <?=${USER}->{ENABLED} ? 'text-success' : 'text-danger'?>"><?=${MESSAGE_ENABLE_ACC}?></td>
     			</tr>
         	</tbody>
         </table>
@@ -47,7 +51,7 @@
     	    	<a class="btn btn-warning mx-3 my-1" href="/<?=USER_ROUTE.'/'.${USER}->{USER_ID}.'/'.UPDATE_ROUTE?>"><i class="fa fa-pen fa-xs"></i> Update</a>
     	    <?php endif; ?>
     	    <?php if (${CAN_DELETE_USER}): ?>
-    	    	<form id="delete-user-form" action="/<?=USER_ROUTE.'/'.DELETE_ROUTE?>" method="get">
+    	    	<form id="delete-user-form" action="/<?=USER_ROUTE.'/'.DELETE_ROUTE?>" method="post">
     	    		<button id="btn-delete-user" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fa fa-trash-alt fa-xs"></i>
 	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
@@ -57,8 +61,17 @@
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
     	    	</form>
     	    <?php endif; ?>
-    	    <?php if (${CAN_CHANGE_PASSWORD}): ?>
-    	    	<a class="btn btn-primary mx-3 my-1" href="/<?=USER_ROUTE.'/'.${USER}->{USER_ID}.'/'.PASS_UPDATE_ROUTE?>"><i class="fas fa-key"></i> Change Password</a>
+	    	<a class="btn btn-primary mx-3 my-1" href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USER_LOCK_TABLE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-user-lock"></i> View Locks</a>
+	    	<?php if (${IS_LOCK} && ${CAN_UNLOCK_USER}): ?>
+	    		<form id="lock-user-reset-form" action="/<?=USER_ROUTE.'/'.LOCK_COUNTERS_RESET_ROUTE?>" method="post">
+    	    		<button id="btn-lock-user-reset" class="btn btn-danger mx-3 my-1" type="submit">
+    	    			<i id="ico-btn" class="fas fa-unlock fa-xs"></i>
+	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  						<span id="text-btn">Unlock</span>
+	    			</button>
+    		    	<input id="<?=LOCKS_USER_RESET_TOKEN?>" name="<?=CSRF_LOCK_USER_RESET?>" value="<?=${LOCKS_USER_RESET_TOKEN}?>" type="hidden">
+    		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
+    	    	</form>
 	    	<?php endif; ?>
     	</div>
     </div>

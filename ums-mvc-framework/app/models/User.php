@@ -68,12 +68,9 @@ class User {
             MESSAGE => 'Save user failed',
             SUCCESS => FALSE
         ];
-        
-        //         $data[PASSWORD] = $data[PASSWORD]; // ?? $this->appConfig[UMS][PASS_DEFAULT];
-        /* create hash of password */
+
         $password = $cryptPass ? password_hash($data[PASSWORD], PASSWORD_DEFAULT) : $data[PASSWORD];
-        //         $roleId = $data[ROLE] ?? $this->appConfig[DEFAULT_USER_ROLE];
-        
+
         /* create sql query */
         $sql = 'INSERT INTO '.USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLED.', '.REGISTRATION_DATETIME.') VALUES ';
         $sql .= '(:name, :username, :email, :password, :role_id, :enabled, :reg_datetime)';
@@ -277,7 +274,7 @@ class User {
         ]);
         
         /* check statement, get lock and return it */
-        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) {
+        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* unset password and return user */
             unset($userLock->{PASSWORD});
             return $userLock;
@@ -326,6 +323,39 @@ class User {
     
 
     /* ############# UPDATE FUNCTIONS ############# */
+
+    /* function to update a user */
+    public function changeUserId(int $oldId, int $newId): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Change user id failed',
+            SUCCESS => FALSE
+        ];
+        
+        /* set user param */
+        $param = [
+            'old_id' => $oldId,
+            'new_id' => $newId
+        ];
+
+        /* disable foreign key check */
+        $sql = 'SET FOREIGN_KEY_CHECKS=0;';
+        /* set sql query */
+        $sql .= 'UPDATE '.USERS_TABLE.' SET '.USER_ID.'=:new_id WHERE '.USER_ID.'=:old_id;';
+        /* enable foreign key check */
+        $sql .= 'SET FOREIGN_KEY_CHECKS=1;';
+        /* get statement and execute query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($param);
+        /* if success set success result */
+        if ($stmt->rowCount() || $stmt->errorCode() == 0) {
+            $result[SUCCESS] = TRUE;
+            $result[MESSAGE] = 'User successfully updated';
+            /* else set error info */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        return $result;
+    }
 
     /* function to update a user */
     public function updateUser(int $id, array $data): array {
@@ -420,19 +450,23 @@ class User {
     }
 
     /* function to unlock the user */
-    public function unlockUser(int $id): array {
+    public function lockUserReset(int $id): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Unlock user failed',
+            MESSAGE => 'Locks user failed',
             SUCCESS => FALSE
         ];
 
         /* prepare sql query and execute it */
-        $stmt = $this->conn->prepare('UPDATE '.USERS_TABLE.' SET '.EXPIRE_LOCK.'=NULL WHERE '.USER_ID.'=:id');
+        $sql = 'UPDATE '.USERS_TABLE.' JOIN ';
+        $sql .= USER_LOCK_TABLE.' ON '.USER_ID.'='.USER_ID_FRGN;
+        $sql .= ' SET '.EXPIRE_LOCK.'=NULL, '.EXPIRE_TIME_WRONG_PASSWORD.'=0, '.COUNT_WRONG_PASSWORDS.'=0, '.COUNT_LOCKS.'=0';
+        $sql .= ' WHERE '.USER_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $id]);
 
-        if($stmt->rowCount()) {
-            $result[MESSAGE] = 'User successfully unlocked';
+        if($stmt->errorCode() == 0) {
+            $result[MESSAGE] = 'User locks successfully resetted';
             $result[SUCCESS] = TRUE;
         } else $result[ERROR_INFO] = $stmt->errorInfo();
 
@@ -603,7 +637,7 @@ class User {
         /* delete query */
         $sql .= 'DELETE FROM '.USERS_TABLE.' WHERE '.USER_ID.'=:id;';
         /* enable foreign key check */
-        $sql .= 'SET FOREIGN_KEY_CHECKS=1';
+        $sql .= 'SET FOREIGN_KEY_CHECKS=1;';
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $id]);

@@ -9,6 +9,7 @@ use app\models\PendingUser;
 use app\models\Session;
 use app\models\User;
 use app\models\Role;
+use \DateTime;
 use \PDO;
 
 /**
@@ -26,6 +27,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* ########## TABLES FUNCTIONS ########## */
 
     /* function to get data of users list */
     public function getUsersListData(string $orderBy, string $orderDir, int $page, int $usersForPage, string $search, bool $canViewRole, bool $canSendEmails): array {
@@ -238,6 +241,157 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         return $data;
     }
 
+    /* ########## ROWS FUNCTIONS ########## */
+
+    /* function to get data of user */
+    public function getUserData(string $username, string $datetimeFormat, bool $canUpdateUser, bool $canDeleteUser, bool $canViewRole, bool $canSendEmail, $canUnlockUser): array {
+        /* init user model and get user */
+        $userModel = new User($this->conn);
+        /* if is numeric get user by id */
+        if (is_numeric($username)) $user = $userModel->getUserAndRole($username);
+        /* else get user by username */
+        else $user = $userModel->getUserAndRoleByUsername($username);
+        /* init var */
+        $messageEnable = '';
+        $messageLockUser = '';
+        $isLock = FALSE;
+        if ($user) {
+            /* set enabled message */
+            $messageEnable = $user->{ENABLED} ? 'ENABLED' : 'DISABLED';
+            
+            /* init message */
+            $messageLockUser = 'Unlocked';
+            /* check lock */
+            if (isset($user->{EXPIRE_LOCK})) {
+                /* if user has a lock, then set message */
+                if (($isLock = new DateTime($user->{EXPIRE_LOCK}) > new DateTime())) $messageLockUser = 'Temporarily locked';
+                /* format the date */
+                $user->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($user->{EXPIRE_LOCK}));
+            }
+
+            /* format the date */
+            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
+        }
+        
+        /* return data */
+        return [
+            USER => $user,
+            IS_LOCK => $isLock,
+            TOKEN => generateToken(CSRF_DELETE_USER),
+            LOCKS_USER_RESET_TOKEN => generateToken(CSRF_LOCK_USER_RESET),
+            MESSAGE_ENABLE_ACC => $messageEnable,
+            MESSAGE_LOCK_ACC => $messageLockUser,
+            CAN_UPDATE_USER => $canUpdateUser,
+            CAN_DELETE_USER => $canDeleteUser,
+            CAN_UNLOCK_USER => $canUnlockUser,
+            VIEW_ROLE => $canViewRole,
+            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail)
+        ];
+    }
+
+    /* function to get data of deleted user */
+    public function getDeletedUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail, bool $canRestoreUser): array {
+        /* init user model and get user */
+        $userModel = new DeletedUser($this->conn);
+        
+        /* if is numeric get session by id */
+        if (is_numeric($userId) && ($user = $userModel->getDeleteUserAndRole($userId))) {
+            /* if found user check if is expired and format the date*/
+            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
+            $user->{DELETE_DATETIME} = date($datetimeFormat, strtotime($user->{DELETE_DATETIME}));
+        /* else set false */
+        } else $user = FALSE;
+        
+        /* return data */
+        return [
+            USER => $user,
+            VIEW_ROLE => $canViewRole,
+            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
+            CAN_RESTORE_USER => $canRestoreUser,
+            RESTORE_TOKEN => generateToken(CSRF_RESTORE_USER),
+        ];
+    }
+
+    /* function to get data of session */
+    public function getSessionData(string $sessionId, string $datetimeFormat, bool $canSendEmail, $canRemoveSession): array {
+        /* init user model and get user */
+        $sessionModel = new Session($this->conn);
+        /* init var */
+        $rmvSsnTkn = '';
+        $isExpired = TRUE;
+        $messageExpire = '';
+        /* if is numeric get session by id */
+        if (is_numeric($sessionId) && ($session = $sessionModel->getSessionLeftUser($sessionId))) {
+            /* if found session check if is expired and format the date*/
+            /* init user model */
+            $userModel = new User($this->conn);
+            /* if is not set token */
+            if (!isset($session->{SESSION_TOKEN})) $messageExpire = 'No token';
+            /* else if is expired */
+            elseif (new DateTime($session->{EXPIRE_DATETIME}) < new DateTime()) $messageExpire = 'Expired';
+            /* else if is valid */
+            elseif ($userModel->getUser($session->{USER_ID_FRGN})) {
+                $rmvSsnTkn = generateToken(CSRF_REMOVE_SESSION);
+                $messageExpire = 'Valid';
+                $isExpired = FALSE;
+            }
+            $session->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($session->{EXPIRE_DATETIME}));
+        /* else set false */
+        } else $session = FALSE;
+        /* return data */
+        return [
+            SESSION => $session,
+            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
+            IS_EXPIRED => $isExpired,
+            MESSAGE_EXPIRE => $messageExpire,
+            REMOVE_SESSION_TOKEN => $rmvSsnTkn,
+            CAN_REMOVE_SESSION => $canRemoveSession
+        ];
+    }
+
+    /* function to get lock data of user */
+    public function getUserLocksData(int $userId, string $datetimeFormat, bool $canUnlockUser): array {
+        /* init user model and get user */
+        $userModel = new User($this->conn);
+        /* init var */
+        $messageEnable = '';
+        $messageLockUser = '';
+        $isLock = FALSE;
+        /* if is numeric get lock by user id */
+        if (is_numeric($userId) && ($userLocks = $userModel->getUserAndLock($userId))) {
+            /* set enabled message */
+            $messageEnable = $userLocks->{ENABLED} ? 'ENABLED' : 'DISABLED';
+            
+            /* init message */
+            $messageLockUser = 'Unlocked';
+            $isLock = FALSE;
+            /* check lock */
+            if (isset($userLocks->{EXPIRE_LOCK})) {
+                /* if user has a lock, then set message */
+                if (($isLock = new DateTime($userLocks->{EXPIRE_LOCK}) > new DateTime())) $messageLockUser = 'Temporarily locked';
+                /* format the date */
+                $userLocks->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($userLocks->{EXPIRE_LOCK}));
+            }
+
+            /* if is set time wrong password format the date */
+            if (isset($userLocks->{EXPIRE_TIME_WRONG_PASSWORD})) $userLocks->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($userLocks->{EXPIRE_LOCK}));
+            
+            /* format the date */
+            $userLocks->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($userLocks->{REGISTRATION_DATETIME}));
+        /* else set user false */
+        } else $userLocks = FALSE;
+        
+        /* return data */
+        return [
+            USER => $userLocks,
+            IS_LOCK => $isLock,
+            LOCKS_USER_RESET_TOKEN => generateToken(CSRF_LOCK_USER_RESET),
+            MESSAGE_ENABLE_ACC => $messageEnable,
+            MESSAGE_LOCK_ACC => $messageLockUser,
+            CAN_UNLOCK_USER => $canUnlockUser,
+        ];
+    }
+
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
@@ -257,4 +411,5 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         }
         return $data;
     }
+
 }

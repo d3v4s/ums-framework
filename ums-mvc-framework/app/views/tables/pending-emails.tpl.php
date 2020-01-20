@@ -59,11 +59,11 @@
             	        	<td class="align-middle"><?=$email->{PENDING_EMAIL_ID}?></td>
             	        	<td class="align-middle">
             	        		<?php if (isset($email->{USERNAME})): ?>
-                	        		<a href="/<?=USER_ROUTE.'/'.$email->{USER_ID}?>">
+                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$email->{USER_ID}?>">
         		        	        	<?= $email->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
-            	        			<a href="/<?=DELETED_USER_ROUTE.'/'.$email->{USER_ID_FRGN}?>" class="text-danger">
+            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$email->{USER_ID_FRGN}?>" class="text-danger">
         		        	        	DELETE: <?= $email->{USER_ID_FRGN}?>
                 	        		</a>
             	        		<?php endif; ?>
