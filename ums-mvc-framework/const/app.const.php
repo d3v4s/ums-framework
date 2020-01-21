@@ -35,7 +35,7 @@ define('DEFAULT_SETTING_SECTION', 'app');
 define('COOKIE_EXPIRE_DAYS', 30);
 define('CSRF_TOKEN_EXPIRE_TIME', '10 minutes');
 define('DATE_TIME_ZONE_DEFAULT', 'Europe/Rome');
-define('DELETE_SESSION_EXPIRE_TIME', '5 minutes');
+define('DOUBLE_LOGIN_SESSION_EXPIRE_TIME', '3 minutes');
 define('MAX_FAKE_USERS', 200);
 
 /* TEMPLATE CONSTANTS */
@@ -102,6 +102,7 @@ define('MESSAGE', 'message');
 define('KEY_N', 'keyN');
 define('KEY_E', 'keyE');
 define('REDIRECT_TO', 'redirect_to');
+define('DOUBLE_LOGIN_REQUIRE', 'dbl_lgn_rq');
 
 /* ROUTES CONSTANTS */
 define('HOME_ROUTE', '');
@@ -120,6 +121,7 @@ define('SITE_MAP_GENERATOR_ROUTE', 'ums/generator/site/map');
 define('SITE_MAP_UPDATE_ROUTE', 'ums/generator/site/map/update');
 define('ACCOUNT_ENABLER_ROUTE', 'account/enable');
 define('EMAIL_ENABLER_ROUTE', 'validate/new/email');
+define('DOUBLE_LOGIN_ROUTE', 'account/double_login');
 define('LOGIN_ROUTE', 'auth/login');
 define('SIGNUP_ROUTE', 'auth/signup');
 define('LOGOUT_ROUTE', 'auth/logout');
@@ -328,8 +330,9 @@ define('IS_EXPIRED', 'is_expired');
 define('MESSAGE_LOCK_ACC', 'msg_lck_acc');
 define('MESSAGE_EXPIRE', 'msg_expr');
 define('WAIT_EMAIL_CONFIRM', 'wt_cnf_mail');
-define('DELETE_SESSION', 'dlt_ssn');
+// define('DELETE_SESSION', 'dlt_ssn');
 define('VIEW_ROLE', 'view_role');
+define('DOUBLE_LOGIN_SESSION', 'dbl_lgn_ssn');
 
 /* CONSTANTS FOR PAGINATION */
 define('LINK_PAGIN_ARROW_LEFT', 'lnk_pgn_arlft');
@@ -354,6 +357,7 @@ define('CSRF_GEN_SITEMAP', 'XS-TKN-GSM');
 define('CSRF_GEN_RSA', 'XS-TKN-GR');
 define('CSRF_GEN_SAVE_RSA', 'XS-TNK-GSR');
 define('CSRF_ADD_FAKE_USER', 'XS-TKN-FU');
+define('CSRF_DOUBLE_LOGIN', 'XS-TKN-DBLLGN');
 define('CSRF_LOGIN', 'XS-TKN-LGN');
 define('CSRF_SIGNUP', 'XS-TKN-SGN');
 define('CSRF_RESEND_ENABLER_ACC', 'XS-TKN-RSENACC');

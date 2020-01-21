@@ -174,6 +174,30 @@ class Controller {
         $this->content = view(PAGE_EXCEPTION, $data);
     }
 
+    /* function to view the home page */
+    public function showDoubleLogin() { 
+        /* if already double login session redirect */
+        if ($this->isDoubleLoginSession()) redirect($_GET[REDIRECT_TO] ?? '/'.HOME_ROUTE);
+
+        /* add javascript source */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/crypt/jsbn.js'],
+            [SOURCE => '/js/crypt/prng4.js'],
+            [SOURCE => '/js/crypt/rng.js'],
+            [SOURCE => '/js/crypt/rsa.js'],
+            [SOURCE => '/js/utils/req-key.js'],
+            [SOURCE => '/js/utils/login/double-login.js']
+        );
+        /* set redirect data */
+        $data = [
+            REDIRECT_TO => $_GET[REDIRECT_TO] ?? NULL,
+            TOKEN => generateToken(CSRF_DOUBLE_LOGIN),
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+        ];
+        /* show page */
+        $this->content = view(getPath('login', 'double-login'), $data);
+    }
+
     /* function to send public key on json format */
     public function showKeyJSON() {
         /* redirect */
@@ -204,6 +228,32 @@ class Controller {
     /* PROTECTED FUNCTIONS */
     /* ##################################### */
 
+    /* function to request double login */
+    protected function handlerDoubleLogin() {
+        /* if is not double login session */
+        if (!$this->isDoubleLoginSession()) {
+            $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+            /* switc the response according to the header */
+            switch ($header) {
+                /* if response is XMLHTTP, then send json response */
+                case 'XMLHTTPREQUEST':
+                    sendJsonResponse([
+                        DOUBLE_LOGIN_REQUIRE => TRUE,
+                        MESSAGE => 'Double login require',
+                        SUCCESS => FALSE,
+                        REDIRECT_TO => '/'.DOUBLE_LOGIN_ROUTE
+                    ]);
+                    exit;
+                    /* default function */
+                default:
+                    /* show double login page and exit */
+                    $this->showDoubleLogin();
+                    $this->display();
+                    exit();
+                }
+            }
+    }
+
     /* function to send response json (XML HTTP) or default */
     protected function switchFailResponse(string $message='Fail', string $redirectTo='/'.HOME_ROUTE) {
         /* get request with header */
@@ -223,11 +273,6 @@ class Controller {
                 $_SESSION[MESSAGE] = $message;
                 $_SESSION[SUCCESS] = FALSE;
                 redirect($redirectTo);
-//                 if (isset($redirectTo)) {
-//                 }
-//                 /* else display fail message and exit */
-//                 $this->showMessageAndExit($message, TRUE);
-//                 exit;
         }
     }
 
@@ -369,12 +414,25 @@ class Controller {
         }
     }
 
+    /* function to reseset login session */
     protected function resetLoginSession(): bool {
         /* reset session */
         $this->resetSession();
         /* remove login session */
         setcookie(CK_LOGIN_SESSION, '', time()-1);
         return $this->removeLoginSession($this->loginSession->{SESSION_TOKEN});
+    }
+
+    /* function to create double login session */
+    protected function createDoubleLoginSession() {
+        $_SESSION[DOUBLE_LOGIN_SESSION] = new DateTime();
+        $_SESSION[DOUBLE_LOGIN_SESSION]->modify(DOUBLE_LOGIN_SESSION_EXPIRE_TIME);
+    }
+
+    /* function to check dobuble login */
+    protected function isDoubleLoginSession(): bool {
+        /* check login and, if is setted, double login session expire time */
+        return $this->loginSession && isset($_SESSION[DOUBLE_LOGIN_SESSION]) && $_SESSION[DOUBLE_LOGIN_SESSION] > new DateTime();
     }
 
     /* USER ROLETYPE FUNCTIONS */
