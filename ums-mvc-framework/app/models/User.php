@@ -350,7 +350,7 @@ class User {
         /* if success set success result */
         if ($stmt->rowCount() || $stmt->errorCode() == 0) {
             $result[SUCCESS] = TRUE;
-            $result[MESSAGE] = 'User successfully updated';
+            $result[MESSAGE] = 'User id successfully updated';
             /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
         
@@ -554,7 +554,7 @@ class User {
     public function updateEmail(int $userId, string $email): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Confirm email failed',
+            MESSAGE => 'Save new email failed',
             SUCCESS => FALSE
         ];
         
@@ -568,7 +568,7 @@ class User {
         /* if sql success, then set success result */
         if ($stmt->rowCount()) {
             $result[SUCCESS] = TRUE;
-            $result[MESSAGE] = 'Email confirmed';
+            $result[MESSAGE] = 'New email saved';
         /* else append error info on result */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
         

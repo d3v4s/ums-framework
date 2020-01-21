@@ -167,6 +167,46 @@ class LoginController extends Controller {
 
     /* ############ ACTION FUNCTIONS ############ */
 
+    /* function to double counfirm */
+    public function doubleLogin() {
+        /* redirect */
+        $this->redirectOrFailIfNotLogin();
+        if ($this->isDoubleLoginSession()) $this->switchFailResponse('Double login session already setted');
+
+        /* get tokens */
+        $tokens = $this->getPostSessionTokens(CSRF_DOUBLE_LOGIN);
+        $pass = $_POST[PASSWORD];
+        $userId = $this->loginSession->{USER_ID};
+        
+        /* decrypt pass */
+        $pass = $this->decryptData($pass);
+        
+        /* verify request and if success create double login session */
+        $resDoubleLogin = LoginVerifier::getInstance($this->conn)->verifyDoubleLogin($userId, $pass, $tokens);
+        if ($resDoubleLogin[SUCCESS]) {
+            $this->createDoubleLoginSession();
+            $resDoubleLogin[MESSAGE] = 'Double login successfully';
+        } elseif ($resDoubleLogin[WRONG_PASSWORD]) $this->handlerWrongPassword($userId);
+        
+        /* result data */
+        $dataOut = [
+            SUCCESS => $resDoubleLogin[SUCCESS],
+            MESSAGE => $resDoubleLogin[MESSAGE] ?? NULL,
+            ERROR => $resDoubleLogin[ERROR] ?? NULL
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect('/'.DOUBLE_LOGIN_ROUTE);
+        };
+        
+        $this->switchResponse($dataOut, (!$resDoubleLogin[SUCCESS] && $resDoubleLogin[GENERATE_TOKEN]), $funcDefault, CSRF_DOUBLE_LOGIN);
+    }
+
     /* function to login */
     public function login() {
         /* redirects */

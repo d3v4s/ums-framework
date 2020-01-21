@@ -39,6 +39,14 @@ function sendAjaxReq(url, data, $token, funcSuccess, funcFail=null) {
 		showMessage('Problem to contact server', true);
 	} : funcFail;
 	/* send ajax request */
+	var funcSuccAjax = function(response) {
+		if (response.dbl_lgn_rq !== undefined && response.dbl_lgn_rq) {
+			showMessage(response.message, !response.success);
+			setTimeout(redirect, 2000, response.redirect_to + "?redirect_to=" + window.location.pathname);
+			return;
+		}
+		funcSuccess(response);
+	}
 	$.ajax({
 		method: 'post',
 		data: data,
@@ -47,7 +55,7 @@ function sendAjaxReq(url, data, $token, funcSuccess, funcFail=null) {
 			/* set csrf token header */
 			request.setRequestHeader($token.attr('name'), $token.val());
 		},
-		success: funcSuccess,
+		success: funcSuccAjax,
 		failure: funcFail
 	});
 	

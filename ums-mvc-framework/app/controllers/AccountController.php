@@ -31,17 +31,18 @@ class AccountController extends Controller {
     public function showDeleteAccount() {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
+        $this->handlerDoubleLogin();
 
         /* add javascript sources */
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/account/delete.js']
         );
 
-        /* calc expire time */
-        $expireDatetime = new DateTime();
-        $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
-        /* create a delete session */
-        $_SESSION[DELETE_SESSION] = [EXPIRE_DATETIME => $expireDatetime];
+//         /* calc expire time */
+//         $expireDatetime = new DateTime();
+//         $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
+//         /* create a delete session */
+//         $_SESSION[DELETE_SESSION] = [EXPIRE_DATETIME => $expireDatetime];
 
         /* generate token and show page */
         $this->content = view(getPath('account','delete'), [TOKEN => generateToken(CSRF_DELETE_ACCOUNT)]);
@@ -77,6 +78,7 @@ class AccountController extends Controller {
         /* generate token and show change account info page */
         $this->content = view(getPath('account','info'), $data);
     }
+
     /* function to view password change page */
     public function showChangePassword() {
         /* redirect */
@@ -107,7 +109,8 @@ class AccountController extends Controller {
     public function deleteAccount() {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
-        $this->redirectOrFailIfNotDeleteSession();
+//         $this->redirectOrFailIfNotDeleteSession();
+        $this->handlerDoubleLogin();
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_ACCOUNT);
@@ -388,8 +391,8 @@ class AccountController extends Controller {
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
 
-    /* function to redirect if is not valid delete session */
-    private function redirectOrFailIfNotDeleteSession(){
-        if (!(isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][EXPIRE_DATETIME] > new DateTime())) $this->switchFailResponse();
-    }
+//     /* function to redirect if is not valid delete session */
+//     private function redirectOrFailIfNotDeleteSession(){
+//         if (!(isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][EXPIRE_DATETIME] > new DateTime())) $this->switchFailResponse();
+//     }
 } 

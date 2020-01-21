@@ -29,8 +29,6 @@ class AccountVerifier extends Verifier {
 
         /* init user model */
         $pendMail = new PendingEmail($this->conn);
-//         $user = new User($this->conn);
-        /* validate user id and check if user has new email on pending */
         if (!($email = $pendMail->getPendingEmailByUserId($id))) return $result;
 
         /* unset error message */

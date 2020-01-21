@@ -21,6 +21,37 @@ class LoginVerifier extends Verifier {
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
+    
+    /* fucntio to verify a double login request */
+    public function verifyDoubleLogin(int $userId, string $password, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Double login failed',
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE,
+            WRONG_PASSWORD => FALSE
+        ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init user model and get user */
+        $userModel = new User($this->conn);
+        $user = $userModel->getUser($userId, FALSE);
+        /* validate password */
+        if (!password_verify($password, $user->{PASSWORD})) {
+            $result[ERROR] = PASSWORD;
+            $result[WRONG_PASSWORD] = TRUE;
+            $result[MESSAGE] = 'Wrong password';
+            return $result;
+        }
+        /* unset error message */
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
+        return $result;
+    }
+
     /* function to verify a login */
     public function verifyLogin(string $username, string $pass, array $tokens): array {
         /* set fail result */

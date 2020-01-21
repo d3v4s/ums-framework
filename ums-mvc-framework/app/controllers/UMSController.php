@@ -53,6 +53,7 @@ class UMSController extends UMSBaseController {
     public function showPasswordUpdate($username) {
         /* redirect */
         $this->redirectOrFailIfCanNotChangePassword();
+        $this->handlerDoubleLogin();
         
         /* init user model and get user */
         $userModel = new User($this->conn);
@@ -112,6 +113,7 @@ class UMSController extends UMSBaseController {
     public function userUpdate() {
         /* redirect */
         $this->redirectOrFailIfCanNotUpdateUser();
+        
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_USER);
@@ -182,6 +184,7 @@ class UMSController extends UMSBaseController {
         $this->redirectOrFailIfCanNotChangePassword();
         $id = $_POST[USER_ID] ?? '';
         $this->redirectIfNotXMLHTTPRequest('/'.USER_ROUTE."/$id/".PASS_UPDATE_ROUTE);
+        $this->handlerDoubleLogin();
         
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_PASS);
@@ -233,6 +236,7 @@ class UMSController extends UMSBaseController {
     public function lockCountersReset() {
         /* redirect */
         $this->redirectOrFailIfCanNotUnlockUser();
+        $this->handlerDoubleLogin();
 
         /* get tokens ad user id */
         $tokens = $this->getPostSessionTokens(CSRF_LOCK_USER_RESET);
@@ -320,9 +324,6 @@ class UMSController extends UMSBaseController {
                 $resUser = $user->saveUser($usrData);
                 $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$resUser[USER_ID];
             }
-
-            /* if success set redirect ro users list */
-//             if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             /* set result */
             $resSignup[MESSAGE] = $resUser[MESSAGE];
             $resSignup[SUCCESS] = $resUser[SUCCESS];
@@ -352,6 +353,7 @@ class UMSController extends UMSBaseController {
     public function deleteUser() {
         /* redirect */
         $this->redirectOrFailIfCanNotDeleteUser();
+        $this->handlerDoubleLogin();
         
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_USER);
@@ -411,6 +413,7 @@ class UMSController extends UMSBaseController {
     public function restoreUser() {
         /* redirect */
         $this->redirectOrFailIfCanNotRestoreUser();
+        $this->handlerDoubleLogin();
 
         /* get tokens ad user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESTORE_USER);
@@ -438,16 +441,22 @@ class UMSController extends UMSBaseController {
             /* if restore success */
             if ($resRestore[SUCCESS]) {
                 $resRestore = array_merge($resRestore, $userModel->changeUserId($resRestore[USER_ID], $resRestore[USER]->{USER_ID}));
-                /* if fail change user id, then delete created user */
-                if (!$resRestore[SUCCESS]) $userModel->deleteUser($resRestore[USER_ID]);
-                else {
+                /* if change id success */
+                if ($resRestore[SUCCESS]) {
+                    /* set success messege */
+                    $resRestore[MESSAGE] = 'User successfully restored';
                     /* send email with new random password */
                     $this->sendEmailNewRandomPassword($resRestore[USER]->{EMAIL}, $password);
-                    /* set redirect to restor user */
+                    /* set redirect to user */
                     $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
                     /* remove from delete users table */
                     $delUserModel = new DeletedUser($this->conn);
-                    $delUserModel->removeDeleteUser($resRestore[USER]->{USER_ID});
+                    $delUserModel->removeDeleteUser($resRestore[USER]->{USER_ID});                    
+                /* else delete created user */
+                } else {
+                    /* set fail messege */
+                    $resRestore[MESSAGE] = 'Restor user failed';
+                    $userModel->deleteUser($resRestore[USER_ID]);
                 }
             }
         }
@@ -475,6 +484,7 @@ class UMSController extends UMSBaseController {
     public function removeSession() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveSession();
+        $this->handlerDoubleLogin();
         
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_REMOVE_SESSION);
@@ -531,150 +541,4 @@ class UMSController extends UMSBaseController {
     private function redirectOrFailIfCanNotRemoveSession() {
         if (!$this->canRestoreUser()) $this->switchFailResponse();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//     /* function to reset wrong passwords */
-//     public function resetWrongPasswords() {
-//         /* redirect */
-//         $this->redirectOrFailIfCanNotUpdateUser();
-
-//         /* get tokens and user id */
-//         $tokens = $this->getPostSessionTokens('XS_TKN_RWP', 'csrfResetWrongPass');
-//         $id = $_POST['id'];
-
-//         /* get verifier instance, and check reset wrong password request */
-//         $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
-//         $resReset = $verifier->verifyResetWrongPasswords($id, $tokens);
-//         if ($resReset['success']) {
-//             /* if success reset worong password */
-//             $user = new User($this->conn, $this->appConfig);
-//             $resReset = $user->resetDatetimeAndNWrongPassword($id);
-//             $resReset['message'] = $resReset['success'] ? 'Wrong passwords succesfully reset' : 'Reset wrong passwords failed';
-//         }
-
-//         /* result data */
-//         $dataOut = [
-//             'success' => $resReset['success'],
-//             'message' => $resReset['message'] ?? NULL,
-//             'id' => $id
-//         ];
-
-//         /* function for default response */
-//         $funcDefault = function($data) {
-//             if (isset($data['message'])) {
-//                 $_SESSION['message'] = $data['message'];
-//                 $_SESSION['success'] = $data['success'];
-//             }
-//             redirect('/ums/user/'.$data['id']);
-//         };
-
-//         $this->switchResponse($dataOut, !$resReset['success'], $funcDefault, 'csrfResetWrongPass');
-//     }
-
-//     /* function to reset counter of user lock */
-//     public function resetLockUser() {
-//         /* redirect */
-//         $this->redirectIfCanNotUpdate();
-
-//         /* get tokens ad user id */
-//         $tokens = $this->getPostSessionTokens('XS_TKN_RLU', 'csrfResetLockUser');
-//         $id = $_POST['id'];
-
-//         /* get verifier instance, and check reset wrong user locks request */
-//         $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
-//         $resReset = $verifier->verifyResetLockUser($id, $tokens);
-//         if ($resReset['success']) {
-//             /* if success init user model, and reset count user locks */
-//             $user = new User($this->conn, $this->appConfig);
-//             /* reset user locks and set results */
-//             $resReset = $user->resetLockUser($id);
-//             $resReset['message'] = $resReset['success'] ? 'Lock user succesfully reset' : 'Reset lock user failed';
-//         }
-
-//         /* result data */
-//         $dataOut = [
-//             'success' => $resReset['success'],
-//             'message' => $resReset['message'] ?? NULL,
-//             'id' => $id
-//         ];
-
-//         /* function for default response */
-//         $funcDefault = function($data) {
-//             if (isset($data['message'])) {
-//                 $_SESSION['message'] = $data['message'];
-//                 $_SESSION['success'] = $data['success'];
-//             }
-//             redirect('/ums/user/'.$data['id']);
-//         };
-
-//         $this->switchResponse($dataOut, !$resReset['success'], $funcDefault, 'csrfResetLockUser');
-//     }
-
-
-
-//     /* function to delete a new email pending of user */
-//     public function deleteNewEmail() {
-//         /* redirect */
-//         $this->redirectIfCanNotUpdate();
-
-//         /* get tokens and user id */
-//         $tokens = $this->getPostSessionTokens('XS_TKN_DNM', 'csrfDeleteNewEmail');
-//         $id = $_POST['id'];
-
-//         /* get verifier instance, and check delete new email request */
-//         $verifier = UMSVerifier::getInstance($this->appConfig, $this->conn);
-//         $resDelete = $verifier->verifyDeleteNewEmail($id, $tokens);
-//         if ($resDelete['success']) {
-//             $user = new User($this->conn);
-//             /* delet new email with token, and set result */
-//             $resDelete['success'] = $user->removeNewEmailAndToken($id);
-//             $resDelete['message'] = $resDelete['success'] ? 'New email succesfully deleted' : 'Delete new email failed';
-//         }
-
-//         /* result data */
-//         $dataOut = [
-//             'success' => $resDelete['success'],
-//             'message' => $resDelete['message'] ?? NULL,
-//             'id' => $id
-//         ];
-
-//         /* function for default response */
-//         $funcDefault = function($data) {
-//             if (isset($data['message'])) {
-//                 $_SESSION['message'] = $data['message'];
-//                 $_SESSION['success'] = $data['success'];
-//             }
-//             redirect("/ums/user/{$data['id']}");
-//         };
-
-//         $this->switchResponse($dataOut, !$resDelete['success'], $funcDefault, 'csrfDeleteNewEmail');
-// //         $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-// //         switch ($header) {
-// //             case 'XMLHTTPREQUEST':
-// //                 $resJSON
-// //                 if (!$resDelete['success']) $resJSON['ntk'] = generateToken('csrfDeleteNewEmail');
-// //                 header("Content-Type: application/json");
-// //                 header("X-Content-Type-Options: nosniff");
-// //                 echo json_encode($resJSON);
-// //                 exit;
-// //             default:
-                
-// //                 break;
-// //         };
-//     }
-
 }
