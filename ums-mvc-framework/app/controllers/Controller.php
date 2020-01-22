@@ -443,7 +443,7 @@ class Controller {
 
     /* function to manage the resend lock */
     protected function handlerResendLock() {
-        if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse();
+        if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse($this->lang[MESSAGE][GENERIC][RESEND_LOCK]);
     }
 
     /* USER ROLETYPE FUNCTIONS */
@@ -496,6 +496,11 @@ class Controller {
     /* function to check if user can remove session */
     protected function canRemoveSession(): bool {
         return (bool) $this->userRole[CAN_REMOVE_SESSION];
+    }
+
+    /* function to check if user can remove enabler token */
+    protected function canRemoveEnablerToken(): bool {
+        return (bool) $this->userRole[CAN_REMOVE_ENABLER_TOKEN];
     }
 
     /* function to check if user can genaret rsa key pair */

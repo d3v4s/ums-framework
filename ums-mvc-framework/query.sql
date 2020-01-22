@@ -15,6 +15,7 @@ CREATE TABLE `roles` (
 	`restore_user` bit(1) NOT NULL DEFAULT b'0',
 	`change_pass` bit(1) NOT NULL DEFAULT 0,
 	`remove_session` bit(1) NOT NULL DEFAULT b'0',
+	`remove_enabler_token` bit(1) NOT NULL DEFAULT b'0',
 	`gen_rsa` bit(1) NOT NULL DEFAULT 0,
 	`gen_sitemap` bit(1) NOT NULL DEFAULT 0,
 	`change_settings` bit(1) NOT NULL DEFAULT 0,
@@ -77,7 +78,6 @@ CREATE TABLE `pending_emails` (
 	`expire_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`),
-	UNIQUE `new_email` (`new_email`),
 	UNIQUE `enabler_token` (`enabler_token`)
 );
 
@@ -133,26 +133,26 @@ DELIMITER ;
 -- INSERT ROLES --
 
 -- insert admin role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
 -- insert editor role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (1, 'editor', 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (1, 'editor', 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1);
 
 -- insert user role
-INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `roles` (`id`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
+	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- INSERT USER --
 
 -- insert andrea serra user
 INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`, `enabled`)
-	VALUES ('Andrea Serra', 'devas', 'test@devas.info', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 'admin', 1);
+	VALUES ('Andrea Serra', 'devas', 'test@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 'admin', 1);
 
 -- insert ums user
 INSERT INTO `ums`.`users` (`name`, `username`, `email`, `password`, `roletype`, `enabled`)
-	VALUES ('ums', 'ums', 'ums@devas.info', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 'admin', 1);
+	VALUES ('ums', 'ums', 'ums@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 'admin', 1);
 
 -- ADD DB USER --
 

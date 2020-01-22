@@ -114,13 +114,4 @@ class EmailController extends UMSBaseController {
 
         $this->switchResponse($dataOut, (!$resSendEmail[SUCCESS] && $resSendEmail[GENERATE_TOKEN]), $funcDefault, CSRF_NEW_EMAIL);
     }
-
-    /* ##################################### */
-    /* PRIVATE FUNCTIONS */
-    /* ##################################### */
-
-    /* function to redirect if user can not send email */
-    private function redirectOrFailIfCanNotSendEmail() {
-        if (!$this->canSendEmails()) $this->switchFailResponse();
-    }
 }

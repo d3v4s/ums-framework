@@ -15,7 +15,7 @@ class AccountVerifier extends Verifier {
     /* ##################################### */
 
     /* fucntio to verify a resend validation new email request */
-    public function verifyResendNewEmailValidation(int $id, array $tokens): array {
+    public function verifyResendNewEmailValidation(int $userId, array $tokens): array {
         /* set fail result */
         $result = [
             MESSAGE => $this->langMessage[SEND_EMAIL][FAIL],
@@ -29,7 +29,7 @@ class AccountVerifier extends Verifier {
 
         /* init user model */
         $pendMail = new PendingEmail($this->conn);
-        if (!($email = $pendMail->getPendingEmailByUserId($id))) return $result;
+        if (!($email = $pendMail->getValidPendingEmailByUserId($userId))) return $result;
 
         /* unset error message */
         unset($result[MESSAGE]);
@@ -41,8 +41,35 @@ class AccountVerifier extends Verifier {
         return $result;
     }
 
+    /* function to verify delete new email requests */
+    public function verifyDeleteNewEmail(int $userId, array $tokens): array {
+        /* set fail results */
+        $result = [
+            MESSAGE => $this->langMessage[NEW_EMAIL_DELETE][FAIL],
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init pending mail model */
+        $pendMail = new PendingEmail($this->conn);
+        
+        /* get pending emails by id and check if they have a new email */
+        if (!$pendMail->getValidPendingEmailByUserId($userId)) return $result;
+        
+        /* unset error message and set success */
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
+        
+        /* return result */
+        return $result;
+    }
+
     /* function to verify change password request */
-    public function verifyChangePass(int $id, string $oldPass, string $pass, string $cpass, array $tokens): array {
+    public function verifyChangePass(int $userId, string $oldPass, string $pass, string $cpass, array $tokens): array {
         /* set fail result */
         $result = [
             WRONG_PASSWORD => FALSE,
@@ -55,7 +82,7 @@ class AccountVerifier extends Verifier {
         $user = new User($this->conn);
 
         /* validate tokens and user id, next check if user is locked or disabled */
-        if (!($this->verifyTokens($tokens) && ($usr = $user->getUser($id, FALSE)) && !$this->isUserLockedOrDisabled($usr) && $this->isUserEnable($usr))) return $result;
+        if (!($this->verifyTokens($tokens) && ($usr = $user->getUser($userId, FALSE)) && !$this->isUserLockedOrDisabled($usr) && $this->isUserEnable($usr))) return $result;
         $result[GENERATE_TOKEN] = TRUE;
 
         /* validate old password */

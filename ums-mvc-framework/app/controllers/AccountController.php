@@ -189,9 +189,9 @@ class AccountController extends Controller {
                 $expireDatetime = getExpireDatetime(ENABLER_LINK_EXPIRE_TIME);
                 /* remove all previus request and add a new pending mail */
                 $pendMailModel->removeAllEmailEnablerToken($this->loginSession->{USER_ID});
-                $resPend = $pendMailModel->newPendingEmail($id, $email, $expireDatetime);
+                $resUpdate = array_merge($resUpdate, $pendMailModel->newPendingEmail($id, $email, $expireDatetime));
                 /* if success send email and set success result */
-                $resUpdate[SUCCESS] = $resPend[SUCCESS] && $this->sendEnablerEmail($email, $resPend[TOKEN], 'ENABLE YOUR EMAIL', TRUE);
+                $resUpdate[SUCCESS] = $resUpdate[SUCCESS] && $this->sendEnablerEmail($email, $resUpdate[TOKEN], 'ENABLE YOUR EMAIL', TRUE);
             }
             if ($resUpdate[SUCCESS]) {
                 /* init user model */
@@ -303,7 +303,7 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete new email request */
-        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
+        $verifier = AccountVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resDeleteEmail = $verifier->verifyDeleteNewEmail($id, $tokens);
         /* if success */
         if ($resDeleteEmail[SUCCESS]) {

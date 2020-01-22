@@ -86,10 +86,11 @@ class PendingEmail {
     }
 
     /* function to get user by login session token */
-    public function getPendingEmailByUserId(string $userId) {
+    public function getValidPendingEmailByUserId(string $userId) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE;
-        $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND '.ENABLER_TOKEN.' IS NOT NULL';
+        $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND ';
+        $sql .= ENABLER_TOKEN.' IS NOT NULL ORDER BY '.PENDING_EMAIL_ID.' DESC LIMIT 1';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $userId]);
 
@@ -147,6 +148,21 @@ class PendingEmail {
         return FALSE;
     }
 
+    /* function to get pending mail and user by pending email id */
+    public function getValidPendingEmailAndUser(string $pendMailId) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE.' JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.PENDING_EMAIL_ID.'=:id AND '.ENABLER_TOKEN.' IS NOT NULL';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $pendMailId]);
+        
+        /* if find pending mail return it */
+        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
+        /* else return false */
+        return FALSE;
+    }
+
     /* function to count the all pending users on table */
     public function countAllPendingEmails($search=''): int {
         /* create sql query */
@@ -181,6 +197,18 @@ class PendingEmail {
     }
 
     /* ############# UPDATE FUNCTIONS ############# */
+
+    /* function to remove email enabler token */
+    public function removeEmailEnablerTokenById(int $id): bool {
+        /* prepare sql query and execute it */
+        $stmt = $this->conn->prepare('UPDATE '.PENDING_EMAILS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.PENDING_EMAIL_ID.'=:id');
+        $stmt->execute(['id' => $id]);
+        
+        /* if sql success return true */
+        if($stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
 
     /* function to remove email enabler token */
     public function removeEmailEnablerToken(string $token): bool {

@@ -4,7 +4,6 @@ namespace app\controllers\verifiers;
 use app\models\User;
 use \DateTime;
 use \PDO;
-use app\models\PendingEmail;
 
 /**
  * Class verifier, to validate a requests
@@ -219,34 +218,6 @@ class Verifier {
         return $result;
     }
 
-    
-    /* function to verifu delete new email requests */
-    public function verifyDeleteNewEmail(int $id, array $tokens): array {
-        /* set fail results */
-        $result = [
-            MESSAGE => $this->langMessage[NEW_EMAIL_DELETE][FAIL],
-            SUCCESS => FALSE,
-            GENERATE_TOKEN => FALSE
-        ];
-        
-        /* validate tokens */
-        if (!$this->verifyTokens($tokens)) return $result;
-        $result[GENERATE_TOKEN] = TRUE;
-        
-        /* init pending mail model */
-        $pendMail = new PendingEmail($this->conn);
-        
-        /* get pending emails by id and check if they have a new email */
-        if (!$pendMail->getPendingEmailByUserId($id)) return $result;
-        
-        /* unset error message and set success */
-        unset($result[MESSAGE]);
-        $result[SUCCESS] = TRUE;
-        
-        /* return result */
-        return $result;
-    }
-
     /* function to validate the tokens */
     public  function verifyTokens(array $tokens): bool {
         /* check if tokens are not set or are empty, then compare tokens */
@@ -277,6 +248,7 @@ class Verifier {
         return is_numeric($number) && verifyNumVarRange($number, $minValue, $maxValue);
     }
 
+    /* function to check if user is lock or disabled */
     protected function isUserLockedOrDisabled($user) {
         return $this->isUserTempLocked($user) || !$this->isUserEnable($user);
     }
