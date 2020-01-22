@@ -33,7 +33,7 @@ class AccountDataFactory extends DataFactory {
 
     /* function to get account info data */
     public function getAccountInfoData($userId): array {
-        /* init user model */
+        /* init user model and get user with role */
         $userModel = new User($this->conn);
         $user = $userModel->getUserAndRole($userId);
         return [

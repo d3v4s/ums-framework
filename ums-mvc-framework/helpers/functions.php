@@ -100,15 +100,18 @@ function sendJsonResponse(array $data) {
     exit;
 }
 
-function getSendEmailLink(bool $canSendEmail) {
+/* function to get a sender email link */
+function getSendEmailLink(bool $canSendEmail): string {
     return $canSendEmail ? '/'.NEW_EMAIL_ROUTE.'?to=' : 'mailto:';
 }
 
+/* function to verify if a number is in a range */
 function verifyNumVarRange(int $var, int $min, int $max): bool {
     if ($var < $min || $var > $max) return FALSE;
     return TRUE;
 }
 
+/* function to write a ini file */
 function writeFileIni(array $data, string $filename): bool {
     $res = array();
     foreach($data as $key => $val) {
@@ -178,11 +181,6 @@ function view(string $view, array $data = []) {
     return $content;
 }
 
-// function getList(string $nameList): array {
-//     $lists = require getPath(getcwd(), 'config', 'lists.php');
-//     return $lists[$nameList];
-// }
-
 function getRoutes(): array {
     return require getPath(getcwd(), 'config', 'app.routes.php');
 }
@@ -206,8 +204,8 @@ function generateToken(string $name = CSRF): string {
     return $token;
 }
 
-function getSecureRandomString(): string {
-    return bin2hex(random_bytes(32));
+function getSecureRandomString(int $lenght=32): string {
+    return bin2hex(random_bytes($lenght));
 }
 
 function getDomain(string $url): string {

@@ -6,8 +6,8 @@ use \PDO;
 use app\models\PendingEmail;
 
 class AccountVerifier extends Verifier {
-    protected function __construct(PDO $conn) {
-        parent::__construct($conn);
+    protected function __construct(PDO $conn, array $langMessage) {
+        parent::__construct($conn, $langMessage);
     }
 
     /* ##################################### */
@@ -18,7 +18,7 @@ class AccountVerifier extends Verifier {
     public function verifyResendNewEmailValidation(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Sending email failed',
+            MESSAGE => $this->langMessage[SEND_EMAIL][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -46,7 +46,7 @@ class AccountVerifier extends Verifier {
         /* set fail result */
         $result = [
             WRONG_PASSWORD => FALSE,
-            MESSAGE => 'Change password failed',
+            MESSAGE => $this->langMessage[CHANGE_PASS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -61,7 +61,7 @@ class AccountVerifier extends Verifier {
         /* validate old password */
         if (!password_verify($oldPass, $usr->{PASSWORD})) {
             $result[WRONG_PASSWORD] = TRUE;
-            $result[MESSAGE] = 'Wrong current password';
+            $result[MESSAGE] = $this->langMessage[GENERIC][WRONG_PASSWORD];
             $result[ERROR] = OLD_PASS;
             return $result;
         }
@@ -73,14 +73,14 @@ class AccountVerifier extends Verifier {
 
         /* validate new password */
         if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX_PASSWORD, REGEX_PASSWORD)) {
-            $result[MESSAGE] = 'Invalid new password';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_PASSWORD];
             $result[ERROR] = PASSWORD;
             return $result;
         }
 
         /* confirm new password */
         if ($pass !== $cpass) {
-            $result[MESSAGE] = 'New passwords mismatch';
+            $result[MESSAGE] = $this->langMessage[GENERIC][PASS_MISMATCH];
             $result[ERROR] = CONFIRM_PASS;
             return $result;
         }

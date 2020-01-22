@@ -13,8 +13,8 @@ use \PDO;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginVerifier extends Verifier {
-    protected function __construct(PDO $conn) {
-        parent::__construct($conn);
+    protected function __construct(PDO $conn, array $langMessage) {
+        parent::__construct($conn, $langMessage);
     }
 
     /* ##################################### */
@@ -26,7 +26,7 @@ class LoginVerifier extends Verifier {
     public function verifyDoubleLogin(int $userId, string $password, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Double login failed',
+            MESSAGE => $this->langMessage[DOUBLE_LOGIN][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE,
             WRONG_PASSWORD => FALSE
@@ -43,7 +43,7 @@ class LoginVerifier extends Verifier {
         if (!password_verify($password, $user->{PASSWORD})) {
             $result[ERROR] = PASSWORD;
             $result[WRONG_PASSWORD] = TRUE;
-            $result[MESSAGE] = 'Wrong password';
+            $result[MESSAGE] = $this->langMessage[GENERIC][WRONG_PASSWORD];
             return $result;
         }
         /* unset error message */
@@ -57,7 +57,7 @@ class LoginVerifier extends Verifier {
         /* set fail result */
         $result = [
             WRONG_PASSWORD => FALSE,
-            MESSAGE => 'Login failed',
+            MESSAGE => $this->langMessage[LOGIN][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -66,24 +66,23 @@ class LoginVerifier extends Verifier {
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
         
-        /* get ums configuartions and init user model */
-//         $umsConf = $this->appConfig[UMS];
+        /* init user model */
         $userModel = new User($this->conn);
         /* if is valid email, loggin with it */
         if ($this->isValidEmail($username, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
             /* if user not found, then set user not found message and return */
             if (!$user = $userModel->getUserByEmail($username, FALSE)) {
-                $result[MESSAGE] = 'User not found - Wrong email';
-                $result[ERROR] = USER;
+                $result[MESSAGE] = $this->langMessage[GENERIC][USER_NOT_FOUND].' - '.$this->langMessage[GENERIC][WRONG_EMAIL];
+                $result[ERROR] = EMAIL;
                 return $result;
             }
         /* else loggin with username, and check if user exists */
         } else if (!$user = $userModel->getUserByUsername($username, FALSE)) {
-            $result[MESSAGE] = 'User not found - Wrong username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][USER_NOT_FOUND].' - '.$this->langMessage[GENERIC][WRONG_USERNAME];
             $result[ERROR] = USER;
             return $result;
         }
-        
+
         /* check if user is locked or disabled */
         if ($this->isUserLockedOrDisabled($user)) return $result;
 
@@ -91,16 +90,15 @@ class LoginVerifier extends Verifier {
         if (!password_verify($pass, $user->{PASSWORD})) {
             $result[WRONG_PASSWORD] = TRUE;
             $result[USER_ID] = $user->{USER_ID};
-            $result[MESSAGE] = 'Wrong password';
+            $result[MESSAGE] = $this->langMessage[GENERIC][WRONG_PASSWORD];
             $result[ERROR] = PASSWORD;
             return $result;
         }
         
-        /* unset password of user obj */
-        unset($user->{PASSWORD});
+        /* unset password of user obj and error message*/
+        unset($user->{PASSWORD}, $result[MESSAGE]);
         
         /* set success result and return it */
-        $result[MESSAGE] = 'User logged in successfully';
         $result[SUCCESS] = TRUE;
         $result[USER] = $user;
         return $result;
@@ -110,7 +108,7 @@ class LoginVerifier extends Verifier {
     public function verifySignupResendEmail(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Resend email failed',
+            MESSAGE => $this->langMessage[SEND_EMAIL][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -131,7 +129,7 @@ class LoginVerifier extends Verifier {
         
         /* set success result and return it */
         $result[TOKEN] = $usr->{ENABLER_TOKEN};
-        $result[EMAIL] = $usr->email;
+        $result[EMAIL] = $usr->{EMAIL};
         $result[SUCCESS] = TRUE;
         return $result;
     }
@@ -140,7 +138,7 @@ class LoginVerifier extends Verifier {
     public function verifyLogout(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Logout failed',
+            MESSAGE => $this->langMessage[LOGOUT][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -167,7 +165,7 @@ class LoginVerifier extends Verifier {
     public function verifyPassResetReq(string $email, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Password reset request failed',
+            MESSAGE => $this->langMessage[PASS_RESET_REQ][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -178,7 +176,7 @@ class LoginVerifier extends Verifier {
 
         /* validate email */
         if (!$this->isValidEmail($email, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
-            $result[MESSAGE] = 'Invalid email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][WRONG_EMAIL];
             $result[ERROR] = EMAIL;
             return $result;
         }
@@ -186,7 +184,7 @@ class LoginVerifier extends Verifier {
         /* init user model check if email user exists */
         $userModel = new User($this->conn);
         if (!$user = $userModel->getUserByEmail($email)) {
-            $result[MESSAGE] = 'User not found - Wrong email';
+            $result[MESSAGE] =  $this->langMessage[GENERIC][USER_NOT_FOUND].' - '.$this->langMessage[GENERIC][WRONG_EMAIL];
             $result[ERROR] = EMAIL;
             return $result;
         }
@@ -207,7 +205,7 @@ class LoginVerifier extends Verifier {
     public function verifyPassReset(string $token, string $pass, string $cpass, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Password reset failed',
+            MESSAGE => $this->langMessage[CHANGE_PASS][FAIL],
             REMOVE_TOKEN => FALSE,
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
@@ -224,7 +222,7 @@ class LoginVerifier extends Verifier {
         /* chech if reset password token is expired */
         if (new DateTime($user->{EXPIRE_DATETIME}) < new DateTime()) {
             /* if expire set fail result and return it */
-            $result[MESSAGE] = 'Link expired';
+            $result[MESSAGE] = $this->langMessage[GENERIC][LINK_EXPIRE];
             $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
@@ -234,14 +232,14 @@ class LoginVerifier extends Verifier {
 
         /* validate password */
         if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX_PASSWORD, REGEX_PASSWORD)) {
-            $result[MESSAGE] = 'Invalid password';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_PASSWORD];
             $result[ERROR] = PASSWORD;
             return $result;
         }
 
         /* confirm password */
         if ($pass !== $cpass) {
-            $result[MESSAGE] = 'Passwords mismatch';
+            $result[MESSAGE] = $this->langMessage[GENERIC][PASS_MISMATCH];
             $result[ERROR] = CONFIRM_PASS;
             return $result;
         }
@@ -260,7 +258,7 @@ class LoginVerifier extends Verifier {
     public function verifyEnableAccount(string $token): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Enable account failed',
+            MESSAGE => $this->langMessage[ENABLE_ACCOUNT][FAIL],
             REMOVE_TOKEN => FALSE,
             SUCCESS => FALSE
         ];
@@ -273,21 +271,21 @@ class LoginVerifier extends Verifier {
 
         /* check if not expired */
         if (new DateTime($user->{EXPIRE_DATETIME}) < new DateTime()) {
-            $result[MESSAGE] = 'Your enabler link has expire';
+            $result[MESSAGE] = $this->langMessage[GENERIC][LINK_EXPIRE];
             $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
         $userModel = new User($this->conn);
         /* check if email already exists */
         if ($userModel->getUserByEmail($user->{EMAIL})) {
-            $result[MESSAGE] = 'User already exist with this email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][EMAIL_ALREADY_EXISTS];
             $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
 
         /* check if username already exists */
         if ($userModel->getUserByUsername($user->{USERNAME})) {
-            $result[MESSAGE] = 'User already exist with this username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][USERNAME_ALREADY_EXISTS];
             $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
@@ -305,7 +303,7 @@ class LoginVerifier extends Verifier {
     public function verifyEnableNewEmail(string $token): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Confirm new email failed',
+            MESSAGE => $this->langMessage[ENABLE_EMAIL][FAIL],
             SUCCESS => FALSE,
             REMOVE_TOKEN => FALSE
         ];
@@ -317,7 +315,7 @@ class LoginVerifier extends Verifier {
 
         /* check if token is expire */
         if (new DateTime($mail->{EXPIRE_DATETIME}) < new DateTime()) {
-            $result[MESSAGE] = 'Your enabler link has expire';
+            $result[MESSAGE] =$this->langMessage[GENERIC][LINK_EXPIRE];
             $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }
@@ -325,7 +323,7 @@ class LoginVerifier extends Verifier {
         /* check if new email confirmed already exists */
         $userModel = new User($this->conn);
         if ($userModel->getUserByEmail($mail->{NEW_EMAIL})) {
-            $result[MESSAGE] = 'User already exist with this email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][EMAIL_ALREADY_EXISTS];
             $result[REMOVE_TOKEN] = TRUE;
             return $result;
         }

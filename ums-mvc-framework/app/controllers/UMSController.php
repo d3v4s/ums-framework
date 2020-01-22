@@ -19,6 +19,7 @@ use app\models\PasswordResetRequest;
 class UMSController extends UMSBaseController {
     public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
+        $this->lang = array_merge_recursive($this->lang, $this->getLanguageArray('ums'));
     }
 
     /* ##################################### */
@@ -137,7 +138,7 @@ class UMSController extends UMSBaseController {
         /* set redirect to */
         $redirectTo = '/'.USER_ROUTE.'/'.$id.'/'.UPDATE_ROUTE;
         /* get verifier instance, and check update user request */
-        $verifier = UMSVerifier::getInstance($this->conn);
+        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resUpdate = $verifier->verifyUpdateUser($id, $name, $email, $username, $roletype, $tokens);
         /* if success */
         if($resUpdate[SUCCESS]) {
@@ -149,13 +150,14 @@ class UMSController extends UMSBaseController {
                 ROLE_ID_FRGN => $roletype,
                 ENABLED => $enabled
             ];
-            $resUser = $userModel->updateUser($id, $data);
+            $resUpdate = array_merge($resUpdate, $userModel->updateUser($id, $data));
 
-            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
-
-            /* set result */
-            $resUpdate[MESSAGE] = $resUser[MESSAGE];
-            $resUpdate[SUCCESS] = $resUser[SUCCESS];
+            /* if update success set success message and redirect to */
+            if ($resUpdate[SUCCESS]){
+                $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][SUCCESS];
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+            /* else set fail message */
+            } else $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][FAIL];
         }
         
         /* result data */
@@ -189,7 +191,6 @@ class UMSController extends UMSBaseController {
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_PASS);
         $pass = $_POST[PASSWORD] ?? '';
-        if (empty($pass)) $this->switchFailResponse('Insert a password', '/'.USER_ROUTE."/$id/".PASS_UPDATE_ROUTE);
         $cpass = $_POST[CONFIRM_PASS] ?? '';
         
         /* decrypt passwords */
@@ -199,17 +200,20 @@ class UMSController extends UMSBaseController {
         /* set redirect to */
         $redirectTo = '/'.USER_ROUTE.'/'.$id.'/'.PASS_UPDATE_ROUTE;
         /* get instance of verifier and check password update request */
-        $verifier = UMSVerifier::getInstance($this->conn);
+        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resPass = $verifier->verifyUpdatePass($id, $pass, $cpass, $tokens);
         /* if success */
         if($resPass[SUCCESS]) {
             /* init user model */
             $user = new User($this->conn);
             /* update user password, and set result */
-            $resUser = $user->updatePassword($id, $pass);
-            if ($resUser[SUCCESS]) $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
-            $resPass[MESSAGE] = $resUser[MESSAGE];
-            $resPass[SUCCESS] = $resUser[SUCCESS];
+            $resPass = array_merge($resPass, $user->updatePassword($id, $pass));
+            /* if update success set success message and redirect to */
+            if ($resPass[SUCCESS]) {
+                $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][SUCCESS];
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+            /* else set fail message */
+            } else $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][FAIL];
         }
         
         /* result data */
@@ -243,13 +247,14 @@ class UMSController extends UMSBaseController {
         $id = $_POST[USER_ID];
 
         /* get verifier instance, and check reset wrong user locks request */
-        $verifier = UMSVerifier::getInstance($this->conn);
+        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resReset = $verifier->verifyLockCounterReset($id, $tokens);
         if ($resReset[SUCCESS]) {
             /* if success init user model, and reset count user locks */
             $user = new User($this->conn);
             /* reset user locks and set results */
             $resReset = array_merge($resReset, $user->lockUserReset($id));
+            $resReset[MESSAGE] = $resReset[SUCCESS] ? $this->lang[MESSAGE][LOCK_USER_RESET][SUCCESS] : $this->lang[MESSAGE][LOCK_USER_RESET][FAIL];
         }
         
         /* result data */
@@ -283,7 +288,6 @@ class UMSController extends UMSBaseController {
         $username = $_POST[USERNAME] ?? '';
         $name = $_POST[NAME] ?? '';
         $pass = $_POST[PASSWORD] ?? '';
-        if (empty($pass)) $this->switchFailResponse('Insert a password', '/'.NEW_USER_ROUTE);
         $cpass =$_POST[CONFIRM_PASS] ?? '';
         $roletype = $this->isAdminUser() ? $_POST[ROLE_ID_FRGN] ?? DEFAULT_ROLE : DEFAULT_ROLE;
         $pending = isset($_POST[PENDING]);
@@ -296,7 +300,7 @@ class UMSController extends UMSBaseController {
         $redirectTo = '/'.NEW_USER_ROUTE;
         
         /* get verifier instance, and check new user request */
-        $verifier = UMSVerifier::getInstance($this->conn);
+        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resSignup = $verifier->verifyNewUser($name, $email, $username, $pass, $cpass, $roletype, $tokens);
         /* if success */
         if($resSignup[SUCCESS]) {
@@ -325,8 +329,8 @@ class UMSController extends UMSBaseController {
                 $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$resUser[USER_ID];
             }
             /* set result */
-            $resSignup[MESSAGE] = $resUser[MESSAGE];
-            $resSignup[SUCCESS] = $resUser[SUCCESS];
+            $resSignup = array_merge($resSignup, $resUser);
+            $resSignup[MESSAGE] = $resSignup[SUCCESS] ? $this->lang[MESSAGE][SAVE_USER][SUCCESS] : $this->lang[MESSAGE][SAVE_USER][FAIL];
         }
         
         /* result data */
@@ -362,14 +366,15 @@ class UMSController extends UMSBaseController {
         /* ser redirect to */
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
         /* get verifier instance, and check delete user request */
-        $verifier = Verifier::getInstance($this->conn);
+        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resDelete = $verifier->verifyDelete($id, $tokens);
         if ($resDelete[SUCCESS]) {
             /* init user model and delete user */
             $user = new User($this->conn);
-            $resUser = $user->deleteUser($id);
+            $resDelete = array_merge($resDelete, $user->deleteUser($id));
             /* if delete success, then save delete user */
-            if ($resUser[SUCCESS]) {
+            if ($resDelete[SUCCESS]) {
+                $resDelete[MESSAGE] = $this->lang[MESSAGE][USER_DELETE][SUCCESS];
                 /* init deleted model and save deleted user */
                 $delModel = new DeletedUser($this->conn);
                 $delModel->saveDeletedUser($resDelete[USER]);
@@ -383,10 +388,8 @@ class UMSController extends UMSBaseController {
                 $sessionModel = new Session($this->conn);
                 $sessionModel->removeAllLoginSessionTokens($id);
                 $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
-            }
-            /* set result */
-            $resDelete[MESSAGE] = $resUser[MESSAGE];
-            $resDelete[SUCCESS] = $resUser[SUCCESS];
+            /* else set fail message */
+            } else $resDelete[MESSAGE] = $this->lang[MESSAGE][USER_DELETE][FAIL];
         }
         
         /* result data */
@@ -418,14 +421,15 @@ class UMSController extends UMSBaseController {
         /* get tokens ad user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESTORE_USER);
         $id = $_POST[USER_ID];
+
         /* get verifier instance, and check reset wrong user locks request */
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
-        $verifier = UMSVerifier::getInstance($this->conn);
+        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resRestore = $verifier->verifyRestoreUser($id, $tokens);
         if ($resRestore[SUCCESS]) {
             /* if success init user model, and set user data */
             $userModel = new User($this->conn);
-            $password = mb_strcut(getSecureRandomString(), 0, 8);
+            $password = getSecureRandomString(8);
             $userData = [
                 NAME => $resRestore[USER]->{NAME},
                 USERNAME => $resRestore[USER]->{USERNAME},
@@ -444,7 +448,7 @@ class UMSController extends UMSBaseController {
                 /* if change id success */
                 if ($resRestore[SUCCESS]) {
                     /* set success messege */
-                    $resRestore[MESSAGE] = 'User successfully restored';
+                    $resRestore[MESSAGE] = $this->lang[MESSAGE][RESTORE_USER][SUCCESS];
                     /* send email with new random password */
                     $this->sendEmailNewRandomPassword($resRestore[USER]->{EMAIL}, $password);
                     /* set redirect to user */
@@ -455,7 +459,7 @@ class UMSController extends UMSBaseController {
                 /* else delete created user */
                 } else {
                     /* set fail messege */
-                    $resRestore[MESSAGE] = 'Restor user failed';
+                    $resRestore[MESSAGE] = $this->lang[MESSAGE][RESTORE_USER][FAIL];
                     $userModel->deleteUser($resRestore[USER_ID]);
                 }
             }
@@ -490,13 +494,13 @@ class UMSController extends UMSBaseController {
         $tokens = $this->getPostSessionTokens(CSRF_REMOVE_SESSION);
         $id = $_POST[SESSION_ID] ?? '';
         /* get verifier instance, and check remove session request */
-        $verifier = UMSVerifier::getInstance($this->conn);
+        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resRemove = $verifier->verifyRemoveSession($id, $tokens);
         if ($resRemove[SUCCESS]) {
             /* if success init session model and remove session */
             $sessionModel = new Session($this->conn);
-            if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = 'Session removed successfully'; 
-            else $resRemove[MESSAGE] = 'Remove session failed';
+            if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][SUCCESS]; 
+            else $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
         }
         
         /* result data */
@@ -521,7 +525,7 @@ class UMSController extends UMSBaseController {
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
-    
+
     /* function to redirect if user can not change password */
     private function redirectOrFailIfCanNotChangePassword() {
         if (!$this->canChangePassword()) $this->switchFailResponse();
@@ -539,6 +543,6 @@ class UMSController extends UMSBaseController {
 
     /* function to redirect if user can not remove session */
     private function redirectOrFailIfCanNotRemoveSession() {
-        if (!$this->canRestoreUser()) $this->switchFailResponse();
+        if (!$this->canRemoveSession()) $this->switchFailResponse();
     }
 }

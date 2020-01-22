@@ -4,13 +4,12 @@ namespace app\controllers;
 use app\controllers\verifiers\AccountVerifier;
 use app\controllers\data\AccountDataFactory;
 use app\controllers\verifiers\Verifier;
+use app\models\PasswordResetRequest;
 use app\models\PendingEmail;
 use app\models\DeletedUser;
-use app\models\User;
-use \DateTime;
-use \PDO;
-use app\models\PasswordResetRequest;
 use app\models\Session;
+use app\models\User;
+use \PDO;
 
 /**
  * Class controller to manage the account requests
@@ -37,12 +36,6 @@ class AccountController extends Controller {
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/account/delete.js']
         );
-
-//         /* calc expire time */
-//         $expireDatetime = new DateTime();
-//         $expireDatetime->modify(DELETE_SESSION_EXPIRE_TIME);
-//         /* create a delete session */
-//         $_SESSION[DELETE_SESSION] = [EXPIRE_DATETIME => $expireDatetime];
 
         /* generate token and show page */
         $this->content = view(getPath('account','delete'), [TOKEN => generateToken(CSRF_DELETE_ACCOUNT)]);
@@ -109,7 +102,6 @@ class AccountController extends Controller {
     public function deleteAccount() {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
-//         $this->redirectOrFailIfNotDeleteSession();
         $this->handlerDoubleLogin();
 
         /* get tokens and user id */
@@ -117,15 +109,16 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete account request */
-        $verifier = Verifier::getInstance($this->conn);
+        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resDelete = $verifier->verifyDelete($id, $tokens);
         /* if success */
         if($resDelete[SUCCESS]) {
             /* init user model and delete user */
             $userModel = new User($this->conn);
-            $resUser = $userModel->deleteUser($id);
+            $resDelete = array_merge($resDelete, $userModel->deleteUser($id));
             /* if delete success */
-            if ($resUser[SUCCESS]) {
+            if ($resDelete[SUCCESS]) {
+                $resDelete[MESSAGE] = $this->lang[MESSAGE][USER_DELETE][SUCCESS];
                 /* init delete model and save user deleted */
                 $delModel = new DeletedUser($this->conn);
                 $delModel->saveDeletedUser($resDelete[USER]);
@@ -138,10 +131,8 @@ class AccountController extends Controller {
                 /* init session model and remove all user tokens */
                 $sessionModel = new Session($this->conn);
                 $sessionModel->removeAllLoginSessionTokens($id);
-            }
-            /* set result */
-            $resDelete[MESSAGE] = $resUser[MESSAGE];
-            $resDelete[SUCCESS] = $resUser[SUCCESS];
+            /* else set fail message */
+            } else $resDelete[MESSAGE] = $this->lang[MESSAGE][USER_DELETE][FAIL];
         }
 
         /* result data */
@@ -170,16 +161,16 @@ class AccountController extends Controller {
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_ACCOUNT);
-        $email = $_POST[EMAIL] ?? '';
-        $username = $_POST[USERNAME] ?? '';
         $name = $_POST[NAME] ?? '';
+        $username = $_POST[USERNAME] ?? '';
+        $email = $_POST[EMAIL] ?? '';
         $id = $this->loginSession->{USER_ID};
 
         /* set redirect to */
         $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE;
 
         /* get verifier instance, and check update user request */
-        $verifier = Verifier::getInstance($this->conn);
+        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resUpdate = $verifier->verifyUpdate($id, $name, $email, $username, $tokens);
         /* if success */
         if($resUpdate[SUCCESS]) {
@@ -188,7 +179,7 @@ class AccountController extends Controller {
                 NAME => $name,
                 USERNAME => $username
             ];
-            /* if confirm email is not require, then set new email on user table */
+            /* if confirm email is not require, then set new email on user data */
             if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $userData[EMAIL] = $email;
             /* else if is change email, then add email on pending and send enabler link */
             elseif ($resUpdate[CHANGED_EMAIL]) {
@@ -206,14 +197,14 @@ class AccountController extends Controller {
                 /* init user model */
                 $userModel = new User($this->conn);
                 /* update user */
-                $resUser = $userModel->updateUser($id, $userData);
+                $resUpdate = array_merge($resUpdate, $userModel->updateUser($id, $userData));
 
                 /* if success set redirecy to account info */
-                if ($resUser[SUCCESS]) $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
-
-                /* set result */
-                $resUpdate[MESSAGE] = $resUser[MESSAGE];
-                $resUpdate[SUCCESS] = $resUser[SUCCESS];
+                if ($resUpdate[SUCCESS]) {
+                    $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][SUCCESS];
+                    $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+                /* else set fail message */
+                } else $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][FAIL];
             }
         }
 
@@ -258,7 +249,7 @@ class AccountController extends Controller {
         $cpass = $this->decryptData($cpass);
 
         /* get verifier instance, and check change password request */
-        $verifier = AccountVerifier::getInstance($this->conn);
+        $verifier = AccountVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resPass = $verifier->verifyChangePass($id, $oldPass, $pass, $cpass, $tokens);
 
 
@@ -269,15 +260,16 @@ class AccountController extends Controller {
             $user->resetLockCounts($id);
 
             /* update user password */
-            $resUser = $user->updatePassword($id, $pass);
+            $resPass = array_merge($resPass, $user->updatePassword($id, $pass));
 
             /* if success set redirecy to account info */
-            if ($resUser[SUCCESS]) $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+            if ($resPass[SUCCESS]) {
+                $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][SUCCESS];
+                $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+                /* else set fail message */
+            } else $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][FAIL];
 
-            /* set result */
-            $resPass[MESSAGE] = $resUser[MESSAGE];
-            $resPass[SUCCESS] = $resUser[SUCCESS];
-        /* else set error message */
+        /* else if wrong pass, call handler */
         } else if ($resPass[WRONG_PASSWORD]) $this->handlerWrongPassword($id);
 
         /* result data */
@@ -311,16 +303,16 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete new email request */
-        $verifier = AccountVerifier::getInstance($this->conn);
+        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
         $resDeleteEmail = $verifier->verifyDeleteNewEmail($id, $tokens);
         /* if success */
         if ($resDeleteEmail[SUCCESS]) {
             /* init pending mail model */
             $pendMail = new PendingEmail($this->conn);
             /* remove new email with token and if success set success messagge */
-            if (($resDeleteEmail[SUCCESS] = $pendMail->removeAllEmailEnablerToken($id))) $resDeleteEmail[MESSAGE] =  'Email successfully deleted';
+            if (($resDeleteEmail[SUCCESS] = $pendMail->removeAllEmailEnablerToken($id))) $resDeleteEmail[MESSAGE] = $this->lang[MESSAGE][NEW_EMAIL_DELETE][SUCCESS];
             /* else set error message */
-            else $resDeleteEmail[MESSAGE] = 'Delete email failed';
+            else $resDeleteEmail[MESSAGE] = $this->lang[MESSAGE][NEW_EMAIL_DELETE][FAIL];
         }
 
         /* result data */
@@ -349,7 +341,7 @@ class AccountController extends Controller {
         $this->redirectOrFailIfConfirmEmailNotRequire();
 
         /* check resend lock */
-        if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request');
+        $this->handlerResendLock();
         
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_EMAIL);
@@ -362,10 +354,14 @@ class AccountController extends Controller {
         if ($resResendEmail[SUCCESS]) {
             /* send email validation and set result */
             if ($resResendEmail[SUCCESS] = $this->sendEnablerEmail($resResendEmail[TO], $resResendEmail[TOKEN], 'ENABLE YOUR EMAIL', TRUE)) {
-                $_SESSION[RESEND_LOCK_EXPIRE] = new DateTime();
-                $_SESSION[RESEND_LOCK_EXPIRE]->modify(RESEND_LOCK_EXPIRE_TIME);
-                $resResendEmail[MESSAGE] = 'Email sent successfully';
-            } else $resResendEmail[MESSAGE] = 'Sending email failed';
+                $resResendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS];
+                /* set resend lock */
+                $this->setResendLock();
+                /* init pending mail model and update expire time */
+                $pendMailModel = new PendingEmail($this->conn);
+                $expTime = getExpireDatetime(ENABLER_LINK_EXPIRE_TIME);
+                $pendMailModel->updateExpireDatetime($resResendEmail[TOKEN], $expTime);
+            } else $resResendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
         }
 
         /* result data */

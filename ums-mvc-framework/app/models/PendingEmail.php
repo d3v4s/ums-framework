@@ -94,9 +94,7 @@ class PendingEmail {
         $stmt->execute(['id' => $userId]);
 
         /* if find pending mail return it */
-        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) {
-            return $pendMail;
-        }
+        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }
@@ -130,6 +128,21 @@ class PendingEmail {
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
         }
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to get pending mail and user by pending email id */
+    public function getPendingEmailLeftUser(string $pendMailId) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.PENDING_EMAIL_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $pendMailId]);
+        
+        /* if find pending mail return it */
+        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }
@@ -169,7 +182,7 @@ class PendingEmail {
 
     /* ############# UPDATE FUNCTIONS ############# */
 
-    /* function to remove email enabler token on pending emails table */
+    /* function to remove email enabler token */
     public function removeEmailEnablerToken(string $token): bool {
         /* prepare sql query and execute it */
         $stmt = $this->conn->prepare('UPDATE '.PENDING_EMAILS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.ENABLER_TOKEN.'=:token');
@@ -181,7 +194,7 @@ class PendingEmail {
         return FALSE;
     }
 
-    /* function to remove email enabler token on pending emails table */
+    /* function to remove all email enabler tokens for user*/
     public function removeAllEmailEnablerToken(string $userId): bool {
         /* prepare sql query and execute it */
         $stmt = $this->conn->prepare('UPDATE '.PENDING_EMAILS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.USER_ID_FRGN.'=:id');
@@ -193,21 +206,20 @@ class PendingEmail {
         return FALSE;
     }
 
-//     /* function to reassign pending emails at new user id */
-//     public function reassignPendingEmailsAtNewUserId(int $oldId, int $newId): bool {
-//         /* prepare sql query and execute it */
-//         $sql = 'UPDATE '.PENDING_EMAILS_TABLE.' SET '.USER_ID_FRGN.'=:new_id WHERE '.USER_ID_FRGN.'=:old_id';
-//         $stmt = $this->conn->prepare($sql);
-//         $stmt->execute([
-//             'old_id' => $oldId,
-//             'new_id' => $newId
-//         ]);
+    /* function to update expire datetime */
+    public function updateExpireDatetime(string $token, string $datetime): bool {
+        /* prepare sql query and execute it */
+        $stmt = $this->conn->prepare('UPDATE '.PENDING_EMAILS_TABLE.' SET '.EXPIRE_DATETIME.'=:datetime WHERE '.ENABLER_TOKEN.'=:token');
+        $stmt->execute([
+            'datetime' => $datetime,
+            'token' => $token
+        ]);
         
-//         /* if sql query success return true */
-//         if ($stmt && $stmt->rowCount()) return TRUE;
-//         /* else return false */
-//         return FALSE;
-//     }
+        /* if sql success return true */
+        if($stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
 
     /* ##################################### */
     /* PRIVATE FUNCTIONS */

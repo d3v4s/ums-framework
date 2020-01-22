@@ -244,7 +244,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
     /* ########## ROWS FUNCTIONS ########## */
 
     /* function to get data of user */
-    public function getUserData(string $username, string $datetimeFormat, bool $canUpdateUser, bool $canDeleteUser, bool $canViewRole, bool $canSendEmail, $canUnlockUser): array {
+    public function getUserData(string $username, string $datetimeFormat, bool $canUpdateUser, bool $canDeleteUser, bool $canViewRole, bool $canSendEmail, bool $canUnlockUser): array {
         /* init user model and get user */
         $userModel = new User($this->conn);
         /* if is numeric get user by id */
@@ -313,7 +313,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
     }
 
     /* function to get data of session */
-    public function getSessionData(string $sessionId, string $datetimeFormat, bool $canSendEmail, $canRemoveSession): array {
+    public function getSessionData(string $sessionId, string $datetimeFormat, bool $canSendEmail, bool $canRemoveSession): array {
         /* init user model and get user */
         $sessionModel = new Session($this->conn);
         /* init var */
@@ -323,14 +323,12 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* if is numeric get session by id */
         if (is_numeric($sessionId) && ($session = $sessionModel->getSessionLeftUser($sessionId))) {
             /* if found session check if is expired and format the date*/
-            /* init user model */
-            $userModel = new User($this->conn);
             /* if is not set token */
             if (!isset($session->{SESSION_TOKEN})) $messageExpire = 'No token';
             /* else if is expired */
             elseif (new DateTime($session->{EXPIRE_DATETIME}) < new DateTime()) $messageExpire = 'Expired';
-            /* else if is valid */
-            elseif ($userModel->getUser($session->{USER_ID_FRGN})) {
+            /* else if is valid user */
+            elseif (isset($session->{ENABLED}) && $session->{ENABLED}) {
                 $rmvSsnTkn = generateToken(CSRF_REMOVE_SESSION);
                 $messageExpire = 'Valid';
                 $isExpired = FALSE;
@@ -389,6 +387,77 @@ class UMSTablesDataFactory extends PaginationDataFactory {
             MESSAGE_ENABLE_ACC => $messageEnable,
             MESSAGE_LOCK_ACC => $messageLockUser,
             CAN_UNLOCK_USER => $canUnlockUser,
+        ];
+    }
+
+    /* function to get data of pending email */
+    public function getPendingEmailData(string $pendMailId, string $datetimeFormat, bool $canSendEmail): array {
+        /* init user model and get user */
+        $pendMailModel = new PendingEmail($this->conn);
+        /* init var */
+        $resndMailTkn = '';
+        $isExpired = TRUE;
+        $messageExpire = '';
+        /* if is numeric get pending email by id */
+        if (is_numeric($pendMailId) && ($pendMail = $pendMailModel->getPendingEmailLeftUser($pendMailId))) {
+            /* if found pending email check if is expired and format the date*/
+            /* if is not set token */
+            if (!isset($pendMail->{ENABLER_TOKEN})) $messageExpire = 'No token';
+            /* else if is expired */
+            elseif (new DateTime($pendMail->{EXPIRE_DATETIME}) < new DateTime()) $messageExpire = 'Expired';
+            /* else if is valid */
+            elseif (isset($pendMail->{ENABLED}) && $pendMail->{ENABLED}) {
+                $resndMailTkn = generateToken(CSRF_RESEND_ENABLER_EMAIL);
+                $messageExpire = 'Valid';
+                $isExpired = FALSE;
+            }
+            $pendMail->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($pendMail->{EXPIRE_DATETIME}));
+            /* else set false */
+        } else $pendMail = FALSE;
+        /* return data */
+        return [
+            PENDING => $pendMail,
+            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
+            IS_EXPIRED => $isExpired,
+            MESSAGE_EXPIRE => $messageExpire,
+            CAN_SEND_EMAIL => $canSendEmail,
+            RESEND_ENABLER_EMAIL_TOKEN => $resndMailTkn
+        ];
+    }
+
+    /* function to get data of pending user */
+    public function getPendingUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail): array {
+        /* init user model and get user */
+        $pendUserModel = new PendingUser($this->conn);
+        /* init var */
+        $messageExpire = '';
+        $isExpire = TRUE;
+        if (is_numeric($userId) && ($user = $pendUserModel->getPendingUserAndRole($userId))) {
+            /* init message */
+            $messageExpire = 'Valid';
+            /* check lock */
+            if (isset($user->{EXPIRE_DATETIME})) {
+                /* check if is active user */
+                if (isset($user->{USER_ID_FRGN})) $messageExpire = 'Active user'; 
+                /* if link is expire set message */
+                elseif (($isExpire = new DateTime($user->{EXPIRE_DATETIME}) > new DateTime())) $messageExpire = 'Expired';
+                /* format the date */
+                $user->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($user->{EXPIRE_DATETIME}));
+            }
+
+            /* format the date */
+            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
+        }
+
+        /* return data */
+        return [
+            USER => $user,
+            IS_EXPIRED => $isExpire,
+            RESEND_ENABLER_EMAIL_TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC),
+            MESSAGE_EXPIRE => $messageExpire,
+            VIEW_ROLE => $canViewRole,
+            CAN_SEND_EMAIL => $canSendEmail,
+            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail)
         ];
     }
 

@@ -9,8 +9,8 @@ use app\models\Session;
 
 class UMSVerifier extends Verifier {
 
-    protected function __construct(PDO $conn) {
-        parent::__construct($conn);
+    protected function __construct(PDO $conn, array $langMessage) {
+        parent::__construct($conn, $langMessage);
     }
 
     /* ##################################### */
@@ -26,14 +26,14 @@ class UMSVerifier extends Verifier {
         /* if success */
         if ($result[SUCCESS]) {
             $result[SUCCESS] = FALSE;
-            $result[MESSAGE] = 'Add new user failed';
+            $result[MESSAGE] = $this->langMessage[SAVE_USER][FAIL];
             /* init role model and validate role type */
             $roleModel = new Role($this->conn);
             if (in_array($role, $roleModel->getRoleIdList())) {
                 $result[SUCCESS] = TRUE;
                 unset($result[MESSAGE]);
             } else {
-                $result[MESSAGE] = 'Invalid roletype';
+                $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ROLETYPE];
                 $result[ERROR] = ROLE_ID_FRGN;
             }
         }
@@ -52,12 +52,12 @@ class UMSVerifier extends Verifier {
         /* validate role type */
         if ($result[SUCCESS]) {
             $result[SUCCESS] = FALSE;
-            $result[MESSAGE] = 'Update user failed';
+            $result[MESSAGE] = $this->langMessage[USER_UPDATE][FAIL];
             if (in_array($role, $roleModel->getRoleIdList())) {
                 $result[SUCCESS] = TRUE;
                 unset($result[MESSAGE]);
             } else {
-                $result[MESSAGE] = 'Invalid roletype';
+                $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ROLETYPE];
                 $result[ERROR] = ROLE_ID_FRGN;
             }
         }
@@ -70,7 +70,7 @@ class UMSVerifier extends Verifier {
     public function verifyLockCounterReset(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Lock counter reset failed',
+            MESSAGE => $this->langMessage[LOCK_USER_RESET][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -95,7 +95,7 @@ class UMSVerifier extends Verifier {
     public function verifyRestoreUser(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'User restore failed',
+            MESSAGE => $this->langMessage[RESTORE_USER][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -111,11 +111,11 @@ class UMSVerifier extends Verifier {
         /* init user model and check if username or email already exists */
         $userModel = new User($this->conn);
         if ($userModel->getUserByUsername($user->{USERNAME})) {
-            $result[MESSAGE] = 'User already exists with this username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][USERNAME_ALREADY_EXISTS];
             return $result;
         }
         if ($userModel->getUserByEmail($user->{EMAIL})) {
-            $result[MESSAGE] = 'User already exists with this email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][EMAIL_ALREADY_EXISTS];
             return $result;
         }
 
@@ -131,7 +131,7 @@ class UMSVerifier extends Verifier {
     public function verifyRemoveSession(string $sessionId, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Remove session failed',
+            MESSAGE => $this->langMessage[REMOVE_SESSION][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -143,7 +143,7 @@ class UMSVerifier extends Verifier {
         /* init session model validate sessionm id */
         $sessionModel = new Session($this->conn);
         if (!$sessionModel->getSessionAndUser($sessionId)) {
-            $result[MESSAGE] = 'Invalid session';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ID];
             return $result;
         }
         /* set successs result and return it */
@@ -156,7 +156,7 @@ class UMSVerifier extends Verifier {
     public function verifyUpdatePass(int $id, string $pass, string $cpass, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Password update failed',
+            MESSAGE => $this->langMessage[CHANGE_PASS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -171,7 +171,7 @@ class UMSVerifier extends Verifier {
 
         /* confirm password */
         if ($pass !== $cpass) {
-            $result[MESSAGE] = 'Passwords mismatch';
+            $result[MESSAGE] = $this->langMessage[GENERIC][PASS_MISMATCH];
             $result[ERROR] = CONFIRM_PASS;
             return $result;
         }
