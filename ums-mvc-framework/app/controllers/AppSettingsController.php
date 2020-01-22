@@ -14,6 +14,7 @@ class AppSettingsController extends SettingsBaseController {
 
     public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
+        $this->lang = array_merge_recursive($this->lang, $this->getLanguageArray('settings'));
     }
 
     /* ##################################### */
@@ -28,7 +29,7 @@ class AppSettingsController extends SettingsBaseController {
         $this->isSettings = TRUE;
         /* show message error if not valid app section */
         if (!in_array($section, $this->appSectionsList)) {
-            $this->showMessage('Invalid settings section', TRUE);
+            $this->showMessage($this->lang[MESSAGE][INVALID_SETTING], TRUE);
             return;
         }
 
@@ -59,7 +60,7 @@ class AppSettingsController extends SettingsBaseController {
         $data = $_POST;
 
         /* get instance of verifier and switch by section */
-        $verifier = AppSettingsVerifier::getInstance();
+        $verifier = AppSettingsVerifier::getInstance($this->lang[MESSAGE]);
         
         switch ($section) {
             case APP:
@@ -79,7 +80,7 @@ class AppSettingsController extends SettingsBaseController {
                 break;
             default:
                 $resUpdate =[
-                    MESSAGE => 'Invalid settings section',
+                    MESSAGE => $this->lang[MESSAGE][INVALID_SETTING],
                     SUCCESS => FALSE,
                     GENERATE_TOKEN => FALSE
                 ];
@@ -123,7 +124,7 @@ class AppSettingsController extends SettingsBaseController {
     private function saveSettingsIni(array $data, string $section): array {
         /* fail result */
         $res = [
-            MESSAGE => 'Save settings failed',
+            MESSAGE => $this->lang[MESSAGE][SAVE_SETTINGS][FAIL],
             SUCCESS => FALSE
         ];
 
@@ -133,7 +134,7 @@ class AppSettingsController extends SettingsBaseController {
         /* set update section config and save it */
         $appConfig = $this->appConfig;
         $appConfig[$section] = $data;
-        if ($res[SUCCESS] = writeFileIni($appConfig, getPath(getcwd(), 'config', 'config.ini'))) $res[MESSAGE] = 'Settings succesfully saved';
+        if ($res[SUCCESS] = writeFileIni($appConfig, getPath(getcwd(), 'config', 'config.ini'))) $res[MESSAGE] = $this->lang[MESSAGE][SAVE_SETTINGS][SUCCESS];
         /* return result */
         return $res;
     }

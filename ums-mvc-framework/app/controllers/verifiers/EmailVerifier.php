@@ -6,8 +6,14 @@ namespace app\controllers\verifiers;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class EmailVerifier extends Verifier {
-    protected function __construct() {
-        parent::__construct();
+    protected function __construct(array $langMessage) {
+        parent::__construct(NULL, $langMessage);
+    }
+
+    /* singleton */
+    static public function getInstance(array $langMessage=[]): EmailVerifier {
+        if (!isset(static::$instance)) static::$instance = new static($langMessage);
+        return static::$instance;
     }
 
     /* ##################################### */
@@ -18,7 +24,7 @@ class EmailVerifier extends Verifier {
     public function verifySendEmail(string $from, string $to, array $tokens): array {
         /* set fail result */
         $res = [
-            MESSAGE => 'Send email failed',
+            MESSAGE => $this->langMessage[SEND_EMAIL][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -29,13 +35,13 @@ class EmailVerifier extends Verifier {
 
         /* validate from email */
         if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-            $res[MESSAGE] = 'From email wrong';
+            $res[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL].': "from"';
             return $res;
         }
 
         /* validate to email */
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            $res[MESSAGE] = 'To email wrong';
+            $res[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL];
             $res[ERROR] = TO;
             return $res;
         }

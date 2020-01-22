@@ -10,13 +10,13 @@ use app\models\PendingUser;
  * Class controller for manage creation of fake users
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class FakeUsersController extends UMSBaseController {
+class FakeUsersController extends UMSTablesBaseController {
     /* arrays for names, lastname and domains random */
     protected $names = ['Andrea', 'Francesco', 'Giuseppe', 'John', 'Elena', 'Kayle', 'Stan', 'Erik', 'Kenny', 'Butters', 'Roger', 'David'];
     protected $lastnames = ['Serra', 'Rossi', 'da Vinci', 'Smith', 'Cruz', 'Waters', 'Gilmour', 'Marsh', 'Cartman', 'Stoch'];
     protected $domains = ['protonmail.com', 'gmail.com', 'yahoo.com', 'mail.com', 'hotmail.it', 'libero.it', 'devas.info'];
 
-    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
+    public function __construct(PDO $conn, array $appConfig, string $layout=UMS_TABLES_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }
 

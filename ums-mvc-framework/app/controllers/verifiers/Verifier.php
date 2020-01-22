@@ -1,10 +1,10 @@
 <?php
 namespace app\controllers\verifiers;
 
-use app\models\PendingEmail;
 use app\models\User;
 use \DateTime;
 use \PDO;
+use app\models\PendingEmail;
 
 /**
  * Class verifier, to validate a requests
@@ -12,16 +12,18 @@ use \PDO;
  */
 class Verifier {
     protected $conn;
+    protected $langMessage;
     static protected $instance;
 
     /* singleton */
-    static public function getInstance(PDO $conn = NULL): Verifier {
-        if (!isset(static::$instance)) static::$instance = new static($conn);
+    static public function getInstance(PDO $conn = NULL, array $langMessage=[]): Verifier {
+        if (!isset(static::$instance)) static::$instance = new static($conn, $langMessage);
         return static::$instance;
     }
 
-    protected function __construct(PDO $conn = NULL) {
+    protected function __construct(PDO $conn = NULL, array $langMessage=[]) {
         $this->conn = $conn;
+        $this->langMessage = $langMessage;
     }
 
     /* ##################################### */
@@ -56,7 +58,7 @@ class Verifier {
     public function verifySignup(string $name, string $email, string $username, string $pass, string $cpass, array $tokens): array {
         /* set fail function */
         $result = [
-            MESSAGE => 'Signup failed',
+            MESSAGE => $this->langMessage[SIGNUP][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -65,19 +67,16 @@ class Verifier {
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
 
-//         /* get app configurations */
-//         $umsConf = $this->appConfig[UMS];
-
         /* validate name */
         if (!$this->isValidInput($name, MIN_LENGTH_NAME, MAX_LENGTH_NAME, USE_REGEX_NAME, REGEX_NAME)) {
-            $result[MESSAGE] = 'Invalid name';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_NAME];
             $result[ERROR] = NAME;
             return $result;
         }
 
         /* validate username */
         if (!$this->isValidInput($username, MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, USE_REGEX_USERNAME, REGEX_USERNAME)) {
-            $result[MESSAGE] = 'Invalid username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_USERNAME];
             $result[ERROR] = USERNAME;
             return $result;
         }
@@ -87,7 +86,7 @@ class Verifier {
 
         /* check if username already exists or is on pending */
         if ($user->getUserByUsername($username)) {
-            $result[MESSAGE] = 'User already exist with this username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][USERNAME_ALREADY_EXISTS];
             $result[ERROR] = USERNAME;
             return $result;
         }
@@ -95,28 +94,28 @@ class Verifier {
 
         /* validate email */
         if (!$this->isValidEmail($email, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
-            $result[MESSAGE] = 'Invalid email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL];
             $result[ERROR] = EMAIL;
             return $result;
         }
 
         /* check if email already exists */
         if ($user->getUserByEmail($email)) {
-            $result[MESSAGE] = 'User already exist with this email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][EMAIL_ALREADY_EXISTS];
             $result[ERROR] = EMAIL;
             return $result;
         }
 
         /* validate password */
         if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX_PASSWORD, REGEX_PASSWORD)) {
-            $result[MESSAGE] = 'Invalid password';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_PASSWORD];
             $result[ERROR] = PASSWORD;
             return $result;
         }
 
         /* confirm password */
         if ($pass !== $cpass) {
-            $result[MESSAGE] = 'Passwords mismatch';
+            $result[MESSAGE] = $this->langMessage[GENERIC][PASS_MISMATCH];
             $result[ERROR] = CONFIRM_PASS;
             return $result;
         }
@@ -134,7 +133,7 @@ class Verifier {
         /* set fail result */
         $result = [
             CHANGED_EMAIL => FALSE,
-            MESSAGE => 'User update failed',
+            MESSAGE => $this->langMessage[USER_UPDATE][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -147,33 +146,30 @@ class Verifier {
         $userModel = new User($this->conn);
         if (!($user = $userModel->getUser($id))) return $result;
 
-        /* get configuration of app */
-//         $umsConf = $this->appConfig[UMS];
-
         /* validate name */
         if (!$this->isValidInput($name, MIN_LENGTH_NAME, MAX_LENGTH_NAME, USE_REGEX_NAME, REGEX_NAME)) {
-            $result[MESSAGE] = 'Invalid name';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_NAME];
             $result[ERROR] = NAME;
             return $result;
         }
 
         /* validate username */
         if (!$this->isValidInput($username, MIN_LENGTH_USERNAME, MAX_LENGTH_USERNAME, USE_REGEX_USERNAME, REGEX_USERNAME)) {
-            $result[MESSAGE] = 'Invalid username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_USERNAME];
             $result[ERROR] = USERNAME;
             return $result;
         }
 
         /* if username is chsnaged, then check if it already exists */
         if ($user->{USERNAME} !== $username && $userModel->getUserByUsername($username)) {
-            $result[MESSAGE] = 'User already exist with this username';
+            $result[MESSAGE] = $this->langMessage[GENERIC][USERNAME_ALREADY_EXISTS];
             $result[ERROR] = USERNAME;
             return $result;
         }
 
         /* validate email */
         if (!$this->isValidEmail($email, MIN_LENGTH_EMAIL, MAX_LENGTH_EMAIL, USE_REGEX_EMAIL, REGEX_EMAIL)) {
-            $result[MESSAGE] = 'Invalid email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL];
             $result[ERROR] = EMAIL;
             return $result;
         }
@@ -181,7 +177,7 @@ class Verifier {
         /* if email is changed, then check if it already exists */
         if ($user->{EMAIL} !== $email) {
             if ($userModel->getUserByEmail($email)) {
-                $result[MESSAGE] = 'User already exist with this email';
+                $result[MESSAGE] = $this->langMessage[GENERIC][EMAIL_ALREADY_EXISTS];
                 $result[ERROR] = EMAIL;
                 return $result;
             }
@@ -200,7 +196,7 @@ class Verifier {
     public  function verifyDelete(int $id, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Delete user failed',
+            MESSAGE => $this->langMessage[USER_DELETE][FAIL],
             SUCCESS =>  FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -223,29 +219,30 @@ class Verifier {
         return $result;
     }
 
+    
     /* function to verifu delete new email requests */
     public function verifyDeleteNewEmail(int $id, array $tokens): array {
         /* set fail results */
         $result = [
-            MESSAGE => 'Delete email failed',
+            MESSAGE => $this->langMessage[NEW_EMAIL_DELETE][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
-
+        
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
-
+        
         /* init pending mail model */
         $pendMail = new PendingEmail($this->conn);
-
+        
         /* get pending emails by id and check if they have a new email */
         if (!$pendMail->getPendingEmailByUserId($id)) return $result;
-
+        
         /* unset error message and set success */
         unset($result[MESSAGE]);
         $result[SUCCESS] = TRUE;
-
+        
         /* return result */
         return $result;
     }
@@ -270,11 +267,6 @@ class Verifier {
         return strlen($email) >= $minLength && strlen($email) <= $maxLength && ($email = filter_var($email, FILTER_VALIDATE_EMAIL)) && (!$useRegex || preg_match($regex, $email));
     }
 
-//     /* fuinction to validate a password */
-//     protected function isValidPassword(string $password, int $minLength, int $maxLength, bool $useRegex, string $regex = ''): bool {
-//         return strlen($password) > $minLength && strlen($password) < $maxLength && (!$useRegex || preg_match($regex, $password));
-//     }
-
     /* fuinction to validate a domain */
     protected function isValidDomain(string $domain): bool {
         return (bool) filter_var($domain, FILTER_VALIDATE_DOMAIN);
@@ -298,25 +290,4 @@ class Verifier {
     protected function isUserTempLocked($user): bool {
         return isset($user->{EXPIRE_LOCK}) && new DateTime($user->{EXPIRE_LOCK}) > new DateTime();
     }
-
-//     /* funciton to check if username already exists */
-//     protected function usernameAlreadyExists(string $username): bool {
-//         /* init user and pending user model */
-//         $user = new User($this->conn);
-//         $pendUser = new PendingUser($this->conn);
-//         /* calc min valid datetime */
-//         $minDatetime = getExpireDatetime('-'.$this->appConfig[UMS][ENABLER_LINK_EXPIRE_TIME]);
-//         /* check if username is on users or pending tables */
-//         return $user->getUserByUsername($username) || $pendUser->isPendingUsername($username, $minDatetime);
-//     }
-
-//     /* funciton to check if email already exists */
-//     protected function emailAlreadyExists(string $email): bool {
-//         /* init user and pending user model */
-//         $user = new User($this->conn);
-//         $pendUser = new PendingUser($this->conn);
-//         /* calc min valid datetime */
-//         $minDatetime = getExpireDatetime('-'.$this->appConfig[UMS][ENABLER_LINK_EXPIRE_TIME]);
-//         return $user->getUserByEmail($email) || $pendUser->isPendingEmail($email, $minDatetime);
-//     }
 }

@@ -114,6 +114,25 @@ class PendingUser {
         return FALSE;
     }
 
+    /* function to get pending user by id with role */
+    public function getPendingUserAndRole(int $id, bool $unsetPassword = TRUE) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID.'='.ROLE_ID_FRGN;
+        $sql .= ' WHERE '.PENDING_USER_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $id]);
+
+        /* if find user return it */
+        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+            /* if require unset password */
+            if ($unsetPassword) unset($user->{PASSWORD});
+            return $user;
+        }
+        /* else return false */
+        return FALSE;
+    }
+
     /* function to get pending user by id where token is not null*/
     public function getPendingUserTokenNotNull(int $id, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */

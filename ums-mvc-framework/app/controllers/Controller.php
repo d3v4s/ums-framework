@@ -75,7 +75,7 @@ class Controller {
         $this->conn = $conn;
         $this->appConfig = $appConfig ?? getConfig();
         $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
-        $this->lang = $this->getLang();
+        $this->lang = $this->getLanguageArray();
         /* if require redirect on https */
         if ($this->appConfig[SECURITY][ONLY_HTTPS]) $this->redirectOnSecureConnection();
         /* get login session */
@@ -358,7 +358,7 @@ class Controller {
         $userModel->setCountWrongPass($id, ++$usrLock[COUNT_WRONG_PASSWORDS]);
 
         /* init verifier and verify user lock */
-        $verifier = Verifier::getInstance($this->conn);
+        $verifier = Verifier::getInstance([], $this->conn);
         $res = $verifier->verifyWrongPassword($usrLock[COUNT_WRONG_PASSWORDS], $usrLock[COUNT_LOCKS]);
 
         /* if require lock */
@@ -433,6 +433,17 @@ class Controller {
     protected function isDoubleLoginSession(): bool {
         /* check login and, if is setted, double login session expire time */
         return $this->loginSession && isset($_SESSION[DOUBLE_LOGIN_SESSION]) && $_SESSION[DOUBLE_LOGIN_SESSION] > new DateTime();
+    }
+
+    /* function to set resend email lock */
+    protected function setResendLock() {
+        $_SESSION[RESEND_LOCK_EXPIRE] = new DateTime();
+        $_SESSION[RESEND_LOCK_EXPIRE]->modify(RESEND_LOCK_EXPIRE_TIME);;
+    }
+
+    /* function to manage the resend lock */
+    protected function handlerResendLock() {
+        if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse();
     }
 
     /* USER ROLETYPE FUNCTIONS */
@@ -632,14 +643,8 @@ class Controller {
 
     /* function to send email with random password */
     protected function sendEmailNewRandomPassword(string $to, string $password): bool {
-//         /* get domain url from configuration, next append source path and token */
-//         $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
-//         $link .= '/'.PASS_RESET_ROUTE.'/'.$token;
-        
-        /* insert link on session if on DEV mode */
-        if (DEV) {
-            $_SESSION[MESSAGE] = "New password: $password";
-        }
+        /* view password on message session if on DEV mode */
+        if (DEV) $_SESSION[MESSAGE] = "New password: $password";
 
         /* init email model and set headers */
         $email = new Email($to, $this->appConfig[UMS][ENABLER_EMAIL_FROM]);
@@ -721,21 +726,15 @@ class Controller {
         return $str;
     }
 
-    /* ##################################### */
-    /* PRIVATE FUNCTIONS */
-    /* ##################################### */
-
     /* function to get language select by client */
-    private function getLang() {
+    protected function getLang() {
         /* if is set langugage cookie, then return it */
-        if (isset($_COOKIE[CK_LANG])) return $_COOKIE[CK_LANG];
+        if (isset($_COOKIE[CK_LANG]) &&  in_array($_COOKIE[CK_LANG], ACCEPT_LANG_LIST)) return $_COOKIE[CK_LANG];
 
         /* set default result */
         $langRes = DEFAULT_LANG;
 
-        /* get langs accepted on server */
-        $serverLangs = ACCEPT_LANG_LIST;
-        /* else get accept lang from header request */
+        /* get accept lang from header request */
         $accLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
         /* get only language */
         $accLangs = explode(';', $accLangs)[0];
@@ -746,7 +745,7 @@ class Controller {
             /* get first specification of lang */
             $lang = explode('-', $lang)[0];
             /* if lang is accepted by server, then set a result languafe and break loop*/
-            if (in_array($lang, $serverLangs)) {
+            if (in_array($lang, ACCEPT_LANG_LIST)) {
                 $langRes = $lang;
                 break;
             }
@@ -755,6 +754,21 @@ class Controller {
         setcookie(CK_LANG, $langRes, 0, '/', null, $this->appConfig[SECURITY][ONLY_HTTPS],TRUE);
         return $langRes;
     }
+
+    /* function to get laguage array */
+    protected function getLanguageArray(string $section='gen'): array {
+        /* get lang array default */
+        $langArray[MESSAGE] = require_once getPath('lang', DEFAULT_LANG, MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
+        /* merge with the lang require of client */
+        $langCli[MESSAGE] = require_once getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
+        $langArray = array_merge_recursive($langArray, $langCli);
+        /* return array */
+        return $langArray;
+    }
+
+    /* ##################################### */
+    /* PRIVATE FUNCTIONS */
+    /* ##################################### */
 
     /* function to get a loggin session */
     private function getLoginSession() {

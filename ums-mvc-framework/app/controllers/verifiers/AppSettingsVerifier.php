@@ -8,8 +8,14 @@ namespace app\controllers\verifiers;
 class AppSettingsVerifier extends Verifier {
 //     private $timeUnitList = [];
 
-    protected function __construct() {
-        parent::__construct();
+    protected function __construct(array $langMessage) {
+        parent::__construct(NULL, $langMessage);
+    }
+
+    /* singleton */
+    static public function getInstance(array $langMessage=[]): AppSettingsVerifier {
+        if (!isset(static::$instance)) static::$instance = new static($langMessage);
+        return static::$instance;
     }
 
     /* ##################################### */
@@ -25,7 +31,7 @@ class AppSettingsVerifier extends Verifier {
     public function verifyAppSettingsUpdate(array $data, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Settings update failed',
+            MESSAGE => $this->langMessage[SAVE_SETTINGS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -37,21 +43,21 @@ class AppSettingsVerifier extends Verifier {
         /* validate date format */
         $regexDateFormat = '/^[dDjlLNSwzFMmntLoyYcruaABgGhHisuv\-\\/_: ]+$/';
         if (!$this->isValidInput($data[DATE_FORMAT], 1, 255, TRUE, $regexDateFormat)) {
-            $result[MESSAGE] = 'Invalid date format';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_DATE];
             $result[ERROR] = DATE_FORMAT;
             return $result;
         }
 
         /* validate datetime format */
         if (!$this->isValidInput($data[DATETIME_FORMAT], 1, 255, TRUE, $regexDateFormat)) {
-            $result[MESSAGE] = 'Invalid datetime format';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_DATETIME];
             $result[ERROR] = DATETIME_FORMAT;
             return $result;
         }
 
         /* validate email from */
         if (!$this->isValidEmail($data[SEND_EMAIL_FROM], 3, 255, FALSE)) {
-            $result[MESSAGE] = 'Invalid send email from';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL];
             $result[ERROR] = SEND_EMAIL_FROM;
             return $result;
         }
@@ -72,7 +78,7 @@ class AppSettingsVerifier extends Verifier {
     public function verifyLayoutSettingsUpdate(array $data, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Settings update failed',
+            MESSAGE => $this->langMessage[SAVE_SETTINGS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -87,13 +93,13 @@ class AppSettingsVerifier extends Verifier {
         foreach ($dataRes as $nameLayout => $valueLayout) {
             /* validate name */
             if (!preg_match('/^[a-zA-Z\d_\-]+$/', $nameLayout)) {
-                $result[MESSAGE] = 'Invalid layut name: '.$nameLayout;
+                $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_LAYOUT].': '.$nameLayout;
                 $result[ERROR] = array_search($nameLayout, $data);
                 return $result;
             }
             /* validate value */
             if (!preg_match('/^[a-zA-Z\d_\-.]+$/', $valueLayout)) {
-                $result[MESSAGE] = 'Invalid layut value: '.$valueLayout;
+                $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_LAYOUT].': '.$valueLayout;
                 $result[ERROR] = array_search($valueLayout, $data);
                 return $result;
             }
@@ -112,7 +118,7 @@ class AppSettingsVerifier extends Verifier {
     public function verifyRsaSettingsUpdate(array $data, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Settings update failed',
+            MESSAGE => $this->langMessage[SAVE_SETTINGS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -123,7 +129,7 @@ class AppSettingsVerifier extends Verifier {
 
         /* validate filename of rsa private key */
         if (strpos($data[RSA_PRIV_KEY_FILE], '/') !== FALSE) {
-            $result[MESSAGE] = 'Invalid private key filename';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_FILEPATH];
             $result[ERROR] = RSA_PRIV_KEY_FILE;
             return $result;
         }
@@ -144,7 +150,7 @@ class AppSettingsVerifier extends Verifier {
     public function verifySecuritySettingsUpdate(array $data, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Settings update failed',
+            MESSAGE => $this->langMessage[SAVE_SETTINGS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -153,62 +159,6 @@ class AppSettingsVerifier extends Verifier {
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
         
-//         /* validate max unconnected time on login session */
-//         if (!$this->isValidNumber($data[MAX_TIME_UNCONNECTED_LOGIN_SESSION], -1, 9999)) {
-//             $result[MESSAGE] = 'Invalid value of max time unconneted loggedin session';
-//             $result[ERROR] = MAX_TIME_UNCONNECTED_LOGIN_SESSION;
-//             return $result;
-//         }
-        
-// //         /* validate max unconnected unit time on login session */
-// //         if (!in_array($data[TIME_UNIT.MAX_TIME_UNCONNECTED_LOGIN_SESSION], $this->timeUnitList)) {
-// //             $result[MESSAGE] = 'Invalid unit time of max unconneted loggedin session';
-// //             $result[ERROR] = TIME_UNIT.MAX_TIME_UNCONNECTED_LOGIN_SESSION;
-// //             return $result;
-// //         }
-        
-//         /* validate max wrong passwords */
-//         if (!$this->isValidNumber($data[MAX_WRONG_PASSWORDS], 0, 999)) {
-//             $result[MESSAGE] = 'Invalid max wrong password';
-//             $result[ERROR] = MAX_WRONG_PASSWORDS;
-//             return $result;
-//         }
-        
-//         /* validate password try time */
-//         if (!$this->isValidNumber($data[PASS_TRY_TIME], 0, 9999)) {
-//             $result[MESSAGE] = 'Invalid value of time try password';
-//             $result[ERROR] = PASS_TRY_TIME;
-//             return $result;
-//         }
-        
-// //         /* validate pasword try unit time */
-// //         if (!in_array($data[TIME_UNIT.PASS_TRY_TIME], TIME_UNIT_)) {
-// //             $result[MESSAGE] = 'Invalid unit time of password try';
-// //             $result[ERROR] = TIME_UNIT.PASS_TRY_TIME;
-// //             return $result;
-// //         }
-        
-//         /* validate user lock time */
-//         if (!$this->isValidNumber($data[USER_LOCK_TIME], 0, 9999)) {
-//             $result[MESSAGE] = 'Invalid value of user lock time';
-//             $result[ERROR] = USER_LOCK_TIME;
-//             return $result;
-//         }
-        
-// //         /* validate user lock unit time */
-// //         if (!in_array($data[TIME_UNIT.USER_LOCK_TIME], $this->timeUnitList)) {
-// //             $result[MESSAGE] = 'Invalid unit time of user lock';
-// //             $result[ERROR] = TIME_UNIT.USER_LOCK_TIME;
-// //             return $result;
-// //         }
-        
-//         /* validate n. max locks */
-//         if (!$this->isValidNumber($data[MAX_LOCKS], 0, 9999)) {
-//             $result[MESSAGE] = 'Invalid value of max locks';
-//             $result[ERROR] = MAX_LOCKS;
-//             return $result;
-//         }
-
         /* get result data */
         $this->hanlderSecuritySettingsData($data);
 
@@ -224,7 +174,7 @@ class AppSettingsVerifier extends Verifier {
     public function verifyUmsSettingsUpdate(array $data, array $tokens): array {
         /* set fail result */
         $result = [
-            MESSAGE => 'Settings update failed',
+            MESSAGE => $this->langMessage[SAVE_SETTINGS][FAIL],
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
@@ -235,14 +185,14 @@ class AppSettingsVerifier extends Verifier {
 
         /* validate domain url for links to be create */
         if (!$this->isValidDomain($data[DOMAIN_URL_LINK])) {
-            $result[MESSAGE] = 'Inavlid domain URL for links';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_DOMAIN];
             $result[ERROR] = DOMAIN_URL_LINK;
             return $result;
         }
 
         /* validate enabler email from */
         if (!$this->isValidEmail($data[ENABLER_EMAIL_FROM], 3, 255, FALSE)) {
-            $result[MESSAGE] = 'Invalid email for enabler email';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL];
             $result[ERROR] = ENABLER_EMAIL_FROM;
             return $result;
         }
@@ -250,7 +200,7 @@ class AppSettingsVerifier extends Verifier {
         
         /* validate reset password email from */
         if (!$this->isValidEmail($data[PASS_RESET_EMAIL_FROM], 3, 255, FALSE)) {
-            $result[MESSAGE] = 'Invalid reset password email from';
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_EMAIL];
             $result[ERROR] = PASS_RESET_EMAIL_FROM;
             return $result;
         }
