@@ -56,11 +56,15 @@
         	   foreach (${EMAILS} as $email):
             	    ?>
             	        <tr>
-            	        	<td class="align-middle"><?=$email->{PENDING_EMAIL_ID}?></td>
+            	        	<td class="align-middle">
+            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.$email->{PENDING_EMAIL_ID}?>">
+            	        			<?=$email->{PENDING_EMAIL_ID}?>
+            	        		</a>
+        	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($email->{USERNAME})): ?>
                 	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$email->{USER_ID}?>">
-        		        	        	<?= $email->{USERNAME}?>
+        		        	        	<?=$email->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
             	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$email->{USER_ID_FRGN}?>" class="text-danger">
