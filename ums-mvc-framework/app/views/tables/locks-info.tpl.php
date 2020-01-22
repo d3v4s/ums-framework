@@ -3,7 +3,7 @@
         <table class="table table-striped" id="users-table">
         	<tbody>
         		<tr>
-        			<th class="align-middle" colspan="2">ID Locks: <?=${USER}->{USER_LOCK_ID}?></th>
+        			<th class="align-middle" colspan="2">Locks ID: <?=${USER}->{USER_LOCK_ID}?></th>
         		</tr>
         		<tr>
         			<td class="text-primary align-middle">User ID</td>
