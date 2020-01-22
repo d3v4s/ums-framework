@@ -141,22 +141,6 @@ class PasswordResetRequest {
         return FALSE;
     }
 
-//     /* function to reassign password reset requests at new user id */
-//     public function reassignPasswordResetReqAtNewUserId(int $oldId, int $newId): bool {
-//         /* prepare sql query and execute it */
-//         $sql = 'UPDATE '.PASSWORD_RESET_REQ_TABLE.' SET '.USER_ID_FRGN.'=:new_id WHERE '.USER_ID_FRGN.'=:old_id';
-//         $stmt = $this->conn->prepare($sql);
-//         $stmt->execute([
-//             'old_id' => $oldId,
-//             'new_id' => $newId
-//         ]);
-        
-//         /* if sql query success return true */
-//         if ($stmt && $stmt->rowCount()) return TRUE;
-//         /* else return false */
-//         return FALSE;
-//     }
-
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */

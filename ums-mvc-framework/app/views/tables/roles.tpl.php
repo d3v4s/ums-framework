@@ -49,6 +49,10 @@
         				<i class="<?=${CLASS_HEAD.CAN_REMOVE_SESSION}?>"></i>
         			</th>
         			<th>
+        				<a href="<?=${LINK_HEAD.CAN_REMOVE_ENABLER_TOKEN}?>">REMOVE ENABLER TOKEN</a>
+        				<i class="<?=${CLASS_HEAD.CAN_REMOVE_ENABLER_TOKEN}?>"></i>
+        			</th>
+        			<th>
         				<a href="<?=${LINK_HEAD.CAN_GENERATE_RSA}?>">GENERATE RSA</a>
         				<i class="<?=${CLASS_HEAD.CAN_GENERATE_RSA}?>"></i>
         			</th>
@@ -122,6 +126,13 @@
             	        	</td>
             	        	<td class="align-middle">
             	        		<?php if ($role->{CAN_REMOVE_SESSION}): ?>
+                	        		<i class="fas fa-check-circle"></i>
+            	        		<?php else: ?>
+            	        			<i class="far fa-circle"></i>
+            	        		<?php endif; ?>
+            	        	</td>
+            	        	<td class="align-middle">
+            	        		<?php if ($role->{CAN_REMOVE_ENABLER_TOKEN}): ?>
                 	        		<i class="fas fa-check-circle"></i>
             	        		<?php else: ?>
             	        			<i class="far fa-circle"></i>

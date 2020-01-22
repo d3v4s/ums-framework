@@ -27,7 +27,7 @@ class AccountDataFactory extends DataFactory {
             RESEND_ENABLER_EMAIL_TOKEN => generateToken(CSRF_RESEND_ENABLER_EMAIL),
             ROLES => $roleModel->getNameAndIdRoles(),
             USER => $userModel->getUser($userId),
-            WAIT_EMAIL_CONFIRM => $pendMailModel->getPendingEmailByUserId($userId)
+            WAIT_EMAIL_CONFIRM => $pendMailModel->getValidPendingEmailByUserId($userId)
         ];
     }
 

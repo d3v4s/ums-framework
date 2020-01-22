@@ -62,13 +62,13 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
     		<?php if (${CAN_REMOVE_SESSION} && !${IS_EXPIRED}): ?>
-    	    	<form id="remove-session-form" action="/<?=SESSION_ROUTE.'/'.REMOVE_ROUTE?>" method="post">
-    	    		<button id="btn-remove-session" class="btn btn-danger mx-3 my-1" type="submit">
+    	    	<form id="invalidate-form" action="/<?=SESSION_ROUTE.'/'.INVALIDATE_ROUTE?>" method="post">
+    	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fa fa-user-times"></i>
 	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
   						<span id="text-btn">Invalidate Session</span>
 	    			</button>
-    		    	<input id="<?=REMOVE_SESSION_TOKEN?>" name="<?=CSRF_REMOVE_SESSION?>" value="<?=${REMOVE_SESSION_TOKEN}?>" type="hidden">
+    		    	<input id="<?=INVALIDATE_TOKEN?>" name="<?=CSRF_INVALIDATE_SESSION?>" value="<?=${INVALIDATE_TOKEN}?>" type="hidden">
     		    	<input name="<?=SESSION_ID?>" value="<?=${SESSION}->{SESSION_ID}?>" class="send-ajax" type="hidden">
     	    	</form>
     	    <?php endif; ?>

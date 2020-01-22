@@ -1,7 +1,7 @@
 <?php
 return [
     SEND_EMAIL => [
-        SUCCESS => 'Email successfully sended at ',
+        SUCCESS => 'Email successfully sended at: ',
         FAIL => 'Send email failed'
     ],
 

@@ -17,7 +17,17 @@ return [
     ],
 
     REMOVE_SESSION => [
-        SUCCESS => 'Remove session succesfully',
+        SUCCESS => 'Session removed succesfully',
         FAIL => 'Remove session failed'
+    ],
+
+    INVALIDATE_PENDING_EMAIL => [
+        SUCCESS => 'Pending email removed succesfully',
+        FAIL => 'Remove pending email failed'
+    ],
+
+    INVALIDATE_PENDING_USER => [
+        SUCCESS => 'Pending user removed succesfully',
+        FAIL => 'Remove pending user failed'
     ]
 ];

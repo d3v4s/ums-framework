@@ -61,7 +61,18 @@
     </div>
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
-    		<?php if (${CAN_SEND_EMAIL} && !${IS_EXPIRED}): ?>
+    		<?php if (${CAN_REMOVE_ENABLER_TOKEN} && ${IS_VALID}): ?>
+    	    	<form id="invalidate-form" action="/<?=PENDING_EMAIL_ROUTE.'/'.INVALIDATE_ROUTE?>" method="post">
+    	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
+    	    			<i id="ico-btn" class="fa fa-user-times"></i>
+	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  						<span id="text-btn">Invalidate Pending Email</span>
+	    			</button>
+    		    	<input id="<?=INVALIDATE_TOKEN?>" name="<?=CSRF_INVALIDATE_PENDING_EMAIL?>" value="<?=${INVALIDATE_TOKEN}?>" type="hidden">
+    		    	<input name="<?=PENDING_EMAIL_ID?>" value="<?=${PENDING}->{PENDING_EMAIL_ID}?>" class="send-ajax" type="hidden">
+    	    	</form>
+    	    <?php endif; ?>
+    		<?php if (${CAN_SEND_EMAIL} && ${IS_VALID}): ?>
     	    	<form id="resend-email-form" action="/<?=PENDING_EMAIL_ROUTE.'/'.RESEND_ROUTE?>" method="post">
     	    		<button id="btn-resend-email" class="btn btn-primary mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fa fa-paper-plane"></i>

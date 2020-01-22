@@ -277,7 +277,7 @@ class UMSTablesController extends UMSTablesBaseController {
         
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/remove-session.js']
+            [SOURCE => '/js/utils/ums/invalidate.js']
         );
         
         /* show page */
@@ -311,14 +311,15 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->redirectOrFailIfCanNotViewTables();
         
         /* get data by data factory  */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingEmailData($pendingMailId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails());
+        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingEmailData($pendingMailId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveEnablerToken());
         
         /* if user not found, show error message */
         if (!$data[PENDING]) $this->showMessageAndExit('Pending email not found', TRUE);
         
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/resend-enabler-email.js']
+            [SOURCE => '/js/utils/ums/resend-enabler-email.js'],
+            [SOURCE => '/js/utils/ums/invalidate.js']
         );
         
         /* show page */
@@ -332,14 +333,15 @@ class UMSTablesController extends UMSTablesBaseController {
         
         
         /* get data by data factory */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingUserData($userId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails());
+        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingUserData($userId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails(), $this->canRemoveEnablerToken());
         
         /* if user not found, show error message */
         if (!$data[USER]) $this->showMessageAndExit('User not found', TRUE);
         
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/resend-enabler-email.js']
+            [SOURCE => '/js/utils/ums/resend-enabler-email.js'],
+            [SOURCE => '/js/utils/ums/invalidate.js']
         );
         
         /* show page */

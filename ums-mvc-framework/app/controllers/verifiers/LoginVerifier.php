@@ -122,7 +122,7 @@ class LoginVerifier extends Verifier {
         $pendUser = new PendingUser($this->conn);
         
         /* validate user id */
-        if (!(is_numeric($id) && ($usr = $pendUser->getPendingUserTokenNotNull($id)))) return $result;
+        if (!(is_numeric($id) && ($usr = $pendUser->getValidPendingUser($id)))) return $result;
         
         /* unset error message */
         unset($result[MESSAGE]);

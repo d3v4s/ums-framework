@@ -28,12 +28,8 @@ class PendingUser {
             SUCCESS => FALSE
         ];
         
-        /* set default password if it is not set */
-//         $data[PASSWORD] = $data[PASSWORD] ?? $this->appConfig[UMS][PASS_DEFAULT];
         /* get hash of password */
         $password = password_hash($data[PASSWORD], PASSWORD_DEFAULT);
-//         /* set user role type if it is not set */
-//         $roletype =  ?? $this->appConfig[UMS][DEFAULT_USER_ROLE];
         $token = $this->getNewAccountEnablerToken();
         /* prepare sql query and execute it */
         $sql = 'INSERT INTO '.PENDING_USERS_TABLE.' ('.NAME.', '.USERNAME.', '.EMAIL.', '.PASSWORD.', '.ROLE_ID_FRGN.', '.ENABLER_TOKEN.', '.EXPIRE_DATETIME.') VALUES ';
@@ -134,11 +130,11 @@ class PendingUser {
     }
 
     /* function to get pending user by id where token is not null*/
-    public function getPendingUserTokenNotNull(int $id, bool $unsetPassword = TRUE) {
+    public function getValidPendingUser(int $pendUserId, bool $unsetPassword = TRUE) {
         /* prepare sql query, then execute */
         $sql ='SELECT * FROM '.PENDING_USERS_TABLE.' WHERE '.PENDING_USER_ID.'=:id AND '.ENABLER_TOKEN.' IS NOT NULL';
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['id' => $id]);
+        $stmt->execute(['id' => $pendUserId]);
         
         /* if find user return it */
         if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
@@ -216,6 +212,18 @@ class PendingUser {
     }
 
     /* function to remove account enabler token on pending users table */
+    public function removeAccountEnablerTokenById(int $id): bool {
+        /* prepare sql query and execute it */
+        $stmt = $this->conn->prepare('UPDATE '.PENDING_USERS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.PENDING_USER_ID.'=:id');
+        $stmt->execute(['id' => $id]);
+        
+        /* if sql success return true */
+        if($stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to remove account enabler token on pending users table */
     public function setUserIdAndRemoveToken(string $token, int $userId): bool {
         /* prepare sql query and execute it */
         $sql = 'UPDATE '.PENDING_USERS_TABLE;
@@ -226,6 +234,21 @@ class PendingUser {
             'token' => $token
         ]);
         
+        /* if sql success return true */
+        if($stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to update expire datetime */
+    public function updateExpireDatetime(string $token, string $datetime): bool {
+        /* prepare sql query and execute it */
+        $stmt = $this->conn->prepare('UPDATE '.PENDING_USERS_TABLE.' SET '.EXPIRE_DATETIME.'=:datetime WHERE '.ENABLER_TOKEN.'=:token');
+        $stmt->execute([
+            'datetime' => $datetime,
+            'token' => $token
+        ]);
+
         /* if sql success return true */
         if($stmt->rowCount()) return TRUE;
         /* else return false */

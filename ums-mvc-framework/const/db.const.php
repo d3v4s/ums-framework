@@ -32,6 +32,7 @@ define('CAN_UNLOCK_USER', 'unlock_user');
 define('CAN_RESTORE_USER', 'restore_user');
 define('CAN_CHANGE_PASSWORD', 'change_pass');
 define('CAN_REMOVE_SESSION', 'remove_session');
+define('CAN_REMOVE_ENABLER_TOKEN', 'remove_enabler_token');
 define('CAN_GENERATE_RSA', 'gen_rsa');
 define('CAN_GENERATE_SITEMAP', 'gen_sitemap');
 define('CAN_CHANGE_SETTINGS', 'change_settings');

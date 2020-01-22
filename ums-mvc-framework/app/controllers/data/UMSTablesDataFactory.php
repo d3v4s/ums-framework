@@ -329,7 +329,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
             elseif (new DateTime($session->{EXPIRE_DATETIME}) < new DateTime()) $messageExpire = 'Expired';
             /* else if is valid user */
             elseif (isset($session->{ENABLED}) && $session->{ENABLED}) {
-                $rmvSsnTkn = generateToken(CSRF_REMOVE_SESSION);
+                $rmvSsnTkn = generateToken(CSRF_INVALIDATE_SESSION);
                 $messageExpire = 'Valid';
                 $isExpired = FALSE;
             }
@@ -342,7 +342,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
             SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
             IS_EXPIRED => $isExpired,
             MESSAGE_EXPIRE => $messageExpire,
-            REMOVE_SESSION_TOKEN => $rmvSsnTkn,
+            INVALIDATE_TOKEN => $rmvSsnTkn,
             CAN_REMOVE_SESSION => $canRemoveSession
         ];
     }
@@ -391,26 +391,34 @@ class UMSTablesDataFactory extends PaginationDataFactory {
     }
 
     /* function to get data of pending email */
-    public function getPendingEmailData(string $pendMailId, string $datetimeFormat, bool $canSendEmail): array {
+    public function getPendingEmailData(string $pendMailId, string $datetimeFormat, bool $canSendEmail, bool $canRemoveToken): array {
         /* init user model and get user */
         $pendMailModel = new PendingEmail($this->conn);
         /* init var */
-        $resndMailTkn = '';
+        $isValid = FALSE;
         $isExpired = TRUE;
+        $resendToken = '';
         $messageExpire = '';
-        /* if is numeric get pending email by id */
+        $invalidateToken = '';
+        /* if is numeric get pending email by id nad if found it check if is expired and format the date*/
         if (is_numeric($pendMailId) && ($pendMail = $pendMailModel->getPendingEmailLeftUser($pendMailId))) {
-            /* if found pending email check if is expired and format the date*/
             /* if is not set token */
             if (!isset($pendMail->{ENABLER_TOKEN})) $messageExpire = 'No token';
             /* else if is expired */
-            elseif (new DateTime($pendMail->{EXPIRE_DATETIME}) < new DateTime()) $messageExpire = 'Expired';
+            elseif (new DateTime($pendMail->{EXPIRE_DATETIME}) < new DateTime()) {
+                $messageExpire = 'Expired';
+                $isValid = TRUE;
+            }
             /* else if is valid */
             elseif (isset($pendMail->{ENABLED}) && $pendMail->{ENABLED}) {
-                $resndMailTkn = generateToken(CSRF_RESEND_ENABLER_EMAIL);
                 $messageExpire = 'Valid';
                 $isExpired = FALSE;
+                $isValid = TRUE;
             }
+            /* set tokens */
+            $invalidateToken = $isValid && $canRemoveToken ? generateToken(CSRF_INVALIDATE_PENDING_EMAIL) : '';
+            $resendToken = $isValid && $canSendEmail ? generateToken(CSRF_RESEND_ENABLER_EMAIL) : '';
+            /* format datetime */
             $pendMail->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($pendMail->{EXPIRE_DATETIME}));
             /* else set false */
         } else $pendMail = FALSE;
@@ -418,33 +426,47 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         return [
             PENDING => $pendMail,
             SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
+            IS_VALID => $isValid,
             IS_EXPIRED => $isExpired,
             MESSAGE_EXPIRE => $messageExpire,
             CAN_SEND_EMAIL => $canSendEmail,
-            RESEND_ENABLER_EMAIL_TOKEN => $resndMailTkn
+            CAN_REMOVE_ENABLER_TOKEN => $canRemoveToken,
+            RESEND_ENABLER_EMAIL_TOKEN => $resendToken,
+            INVALIDATE_TOKEN => $invalidateToken
         ];
     }
 
     /* function to get data of pending user */
-    public function getPendingUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail): array {
+    public function getPendingUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail, bool $canRemoveToken): array {
         /* init user model and get user */
         $pendUserModel = new PendingUser($this->conn);
         /* init var */
         $messageExpire = '';
         $isExpire = TRUE;
+        $isValid = FALSE;
+        $resendToken = '';
+        $inavalidateToken = '';
         if (is_numeric($userId) && ($user = $pendUserModel->getPendingUserAndRole($userId))) {
-            /* init message */
+            /* set vars */
             $messageExpire = 'Valid';
+            $isValid = TRUE;
             /* check lock */
             if (isset($user->{EXPIRE_DATETIME})) {
                 /* check if is active user */
-                if (isset($user->{USER_ID_FRGN})) $messageExpire = 'Active user'; 
+                if (isset($user->{USER_ID_FRGN})) {
+                    $messageExpire = 'Active user';
+                    $isValid = FALSE;
                 /* if link is expire set message */
-                elseif (($isExpire = new DateTime($user->{EXPIRE_DATETIME}) > new DateTime())) $messageExpire = 'Expired';
+                } elseif (!isset($user->{ENABLER_TOKEN})) {
+                    $messageExpire = 'No token';
+                    $isValid = FALSE;
+                } elseif (($isExpire = new DateTime($user->{EXPIRE_DATETIME}) < new DateTime())) $messageExpire = 'Expired';
                 /* format the date */
                 $user->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($user->{EXPIRE_DATETIME}));
             }
-
+            /* set tokens */
+            $inavalidateToken = $isValid && $canRemoveToken ? generateToken(CSRF_INVALIDATE_PENDING_USER) : '';
+            $resendToken = $isValid && $canSendEmail ? generateToken(CSRF_RESEND_ENABLER_ACC) : '';
             /* format the date */
             $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
         }
@@ -452,11 +474,14 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* return data */
         return [
             USER => $user,
+            IS_VALID => $isValid,
             IS_EXPIRED => $isExpire,
-            RESEND_ENABLER_EMAIL_TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC),
+            RESEND_ENABLER_EMAIL_TOKEN => $resendToken,
+            INVALIDATE_TOKEN => $inavalidateToken,
             MESSAGE_EXPIRE => $messageExpire,
             VIEW_ROLE => $canViewRole,
             CAN_SEND_EMAIL => $canSendEmail,
+            CAN_REMOVE_ENABLER_TOKEN => $canRemoveToken,
             SEND_EMAIL_LINK => getSendEmailLink($canSendEmail)
         ];
     }
@@ -480,5 +505,4 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         }
         return $data;
     }
-
 }

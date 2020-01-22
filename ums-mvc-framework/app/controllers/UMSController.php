@@ -484,28 +484,149 @@ class UMSController extends UMSBaseController {
         $this->switchResponse($dataOut, (!$resRestore[SUCCESS] && $resRestore[GENERATE_TOKEN]), $funcDefault, CSRF_RESTORE_USER);
     }
 
-    /* function to remove session */
-    public function removeSession() {
+    /* function to invalidate session */
+    public function invalidateSession() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveSession();
         $this->handlerDoubleLogin();
-        
+
         /* get tokens ad session id */
-        $tokens = $this->getPostSessionTokens(CSRF_REMOVE_SESSION);
+        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_SESSION);
         $id = $_POST[SESSION_ID] ?? '';
         /* get verifier instance, and check remove session request */
         $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resRemove = $verifier->verifyRemoveSession($id, $tokens);
+        $resRemove = $verifier->verifyInvalidateSession($id, $tokens);
         if ($resRemove[SUCCESS]) {
             /* if success init session model and remove session */
             $sessionModel = new Session($this->conn);
             if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][SUCCESS]; 
             else $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
         }
-        
+
         /* result data */
         $dataOut = [
             REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$id,
+            SUCCESS => $resRemove[SUCCESS],
+            MESSAGE => $resRemove[MESSAGE] ?? NULL,
+        ];
+
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+
+        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);
+    }
+
+    /* function to resend enabler email */
+    public function resendEnablerEmail() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotSendEmail();
+
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_EMAIL);
+        $id = $_POST[PENDING_EMAIL_ID] ?? '';
+        /* get verifier instance, and check remove session request */
+        $resResend = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyResendEnablerEmail($id, $tokens);
+        if ($resResend[SUCCESS]) {
+            /* if success resend email and if success set new expire date time */
+            if (($resResend[SUCCESS] = $this->sendEnablerEmail($resResend[PENDING]->{NEW_EMAIL}, $resResend[PENDING]->{ENABLER_TOKEN}, 'ENABLE YOUR EMAIL', TRUE))) {
+                /* init pending model and set new expire datetime */
+                $penMailModel = new PendingEmail($this->conn);
+                $expDatetime = getExpireDatetime(ENABLER_LINK_EXPIRE_TIME);
+                $penMailModel->updateExpireDatetime($resResend[PENDING]->{ENABLER_TOKEN}, $expDatetime);
+                /* set success message */
+                $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$resResend[PENDING]->{NEW_EMAIL};
+            /* set fail message */
+            } else $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
+        }
+
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.$id,
+            SUCCESS => $resResend[SUCCESS],
+            MESSAGE => $resResend[MESSAGE] ?? NULL,
+        ];
+
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+
+        $this->switchResponse($dataOut, (!$resResend[SUCCESS] && $resResend[GENERATE_TOKEN]), $funcDefault, CSRF_RESEND_ENABLER_EMAIL);
+    }
+
+    /* function to resend enabler email */
+    public function resendEnablerAccount() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotSendEmail();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_ACC);
+        $id = $_POST[PENDING_USER_ID] ?? '';
+        /* get verifier instance, and check remove session request */
+        $resResend = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyResendEnablerAccount($id, $tokens);
+        if ($resResend[SUCCESS]) {
+            /* if success resend email and if success set new expire date time */
+            if (($resResend[SUCCESS] = $this->sendEnablerEmail($resResend[PENDING]->{EMAIL}, $resResend[PENDING]->{ENABLER_TOKEN}))) {
+                /* init pending model and set new expire datetime */
+                $penMailModel = new PendingUser($this->conn);
+                $expDatetime = getExpireDatetime(ENABLER_LINK_EXPIRE_TIME);
+                $penMailModel->updateExpireDatetime($resResend[PENDING]->{ENABLER_TOKEN}, $expDatetime);
+                /* set success message */
+                $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$resResend[PENDING]->{EMAIL};
+                /* set fail message */
+            } else $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$id,
+            SUCCESS => $resResend[SUCCESS],
+            MESSAGE => $resResend[MESSAGE] ?? NULL,
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+        
+        $this->switchResponse($dataOut, (!$resResend[SUCCESS] && $resResend[GENERATE_TOKEN]), $funcDefault, CSRF_RESEND_ENABLER_ACC);
+    }
+
+    /* function to invalidate pending email */
+    public function inavlidatePendingEmail() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotRemoveEnablerToken();
+        $this->handlerDoubleLogin();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PENDING_EMAIL);
+        $id = $_POST[PENDING_EMAIL_ID] ?? '';
+        /* get verifier instance, and check remove session request */
+        $resRemove = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyInvalidatePendingEmail($id, $tokens);
+        if ($resRemove[SUCCESS]) {
+            /* if success init pending model and remove token */
+            $pendMailModel = new PendingEmail($this->conn);
+            if (($resRemove[SUCCESS] = $pendMailModel->removeEmailEnablerTokenById($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_EMAIL][SUCCESS];
+            else $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_EMAIL][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.$id,
             SUCCESS => $resRemove[SUCCESS],
             MESSAGE => $resRemove[MESSAGE] ?? NULL,
         ];
@@ -519,9 +640,45 @@ class UMSController extends UMSBaseController {
             redirect($data[REDIRECT_TO]);
         };
         
-        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_REMOVE_SESSION);
+        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_PENDING_EMAIL);
     }
 
+    /* function to invalidate pending email */
+    public function inavlidatePendingUser() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotRemoveEnablerToken();
+        $this->handlerDoubleLogin();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PENDING_USER);
+        $id = $_POST[PENDING_USER_ID] ?? '';
+        /* get verifier instance, and check remove session request */
+        $resRemove = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyInvalidatePendingUser($id, $tokens);
+        if ($resRemove[SUCCESS]) {
+            /* if success init pending model and remove token */
+            $pendUserModel = new PendingUser($this->conn);
+            if (($resRemove[SUCCESS] = $pendUserModel->removeAccountEnablerTokenById($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_USER][SUCCESS];
+            else $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_USER][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$id,
+            SUCCESS => $resRemove[SUCCESS],
+            MESSAGE => $resRemove[MESSAGE] ?? NULL,
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+        
+        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_PENDING_USER);
+    }
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
@@ -544,5 +701,10 @@ class UMSController extends UMSBaseController {
     /* function to redirect if user can not remove session */
     private function redirectOrFailIfCanNotRemoveSession() {
         if (!$this->canRemoveSession()) $this->switchFailResponse();
+    }
+
+    /* function to redirect if user can not remove enabler token */
+    private function redirectOrFailIfCanNotRemoveEnablerToken() {
+        if (!$this->canRemoveEnablerToken()) $this->switchFailResponse();
     }
 }

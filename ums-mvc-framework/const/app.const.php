@@ -92,6 +92,7 @@ define('UPDATE_TOKEN', '_xf_upd');
 define('DELETE_NEW_EMAIL_TOKEN', '_xf_del_ml');
 define('REMOVE_SESSION_TOKEN', '_xf_rmv_ssn');
 define('RESEND_ENABLER_EMAIL_TOKEN', '_xf_res_ml');
+define('INVALIDATE_TOKEN', '_xf_invldt');
 define('LOCKS_USER_RESET_TOKEN', '_xf_lck_rst');
 define('LOGOUT_TOKEN', '_xf_out');
 define('GET_KEY_TOKEN', '_kxt');
@@ -142,6 +143,7 @@ define('UPDATE_ROUTE', 'update');
 define('DELETE_ROUTE', 'delete');
 define('REMOVE_ROUTE', 'remove');
 define('RESEND_ROUTE', 'resend');
+define('INVALIDATE_ROUTE', 'invalidate');
 define('SAVE_ROUTE', 'save');
 define('GET_ROUTE', 'get');
 define('RESTORE_ROUTE', 'restore');
@@ -200,6 +202,7 @@ define('ROLES_ORDER_BY_LIST', [
     CAN_RESTORE_USER,
     CAN_CHANGE_PASSWORD,
     CAN_REMOVE_SESSION,
+    CAN_REMOVE_ENABLER_TOKEN,
     CAN_GENERATE_RSA,
     CAN_GENERATE_SITEMAP,
     CAN_CHANGE_SETTINGS,
@@ -272,11 +275,12 @@ define('SAVE_USER', 'sv_usr');
 define('LOCK_USER_RESET', 'lck_rst');
 define('RESTORE_USER', 'rstr_usr');
 define('REMOVE_SESSION', 'rmv_ssn');
+define('INVALIDATE_PENDING_EMAIL', 'invl_pnd_eml');
+define('INVALIDATE_PENDING_USER', 'invl_pnd_usr');
 define('ALREADY_SET', 'alrd_set');
 define('USER_UPDATE', 'usr_updt');
 define('USER_DELETE', 'usr_dlt');
 define('DOUBLE_LOGIN', 'dbl_lgn');
-// define('WRONG_NAME', 'wrng_nm');
 define('WRONG_USERNAME', 'wrng_usrnm');
 define('WRONG_EMAIL', 'wrng_eml');
 define('WRONG_PASSWORD', 'wrng_pssd');
@@ -375,10 +379,10 @@ define('MESSAGE_ENABLE_ACC', 'msg_enbl');
 define('CLASS_ENABLE_ACC', 'clss_enbl');
 define('IS_LOCK', 'is_lock');
 define('IS_EXPIRED', 'is_expired');
+define('IS_VALID', 'is_valid');
 define('MESSAGE_LOCK_ACC', 'msg_lck_acc');
 define('MESSAGE_EXPIRE', 'msg_expr');
 define('WAIT_EMAIL_CONFIRM', 'wt_cnf_mail');
-// define('DELETE_SESSION', 'dlt_ssn');
 define('VIEW_ROLE', 'view_role');
 define('DOUBLE_LOGIN_SESSION', 'dbl_lgn_ssn');
 
@@ -414,7 +418,9 @@ define('CSRF_DELETE_USER', 'XS-TKN-DLTUSR');
 define('CSRF_UPDATE_PASS', 'XS-TKN-UPDPSS');
 define('CSRF_UPDATE_USER', 'XS-TKN-UPDUSR');
 define('CSRF_RESTORE_USER', 'XS-TKN-RSTRUSR');
-define('CSRF_REMOVE_SESSION', 'XS-TKN-RMVSSN');
+define('CSRF_INVALIDATE_SESSION', 'XS-TKN-RMVSSN');
+define('CSRF_INVALIDATE_PENDING_USER', 'XS-TKN-PNDUSR');
+define('CSRF_INVALIDATE_PENDING_EMAIL', 'XS-TKN-PNDEML');
 define('CSRF_NEW_USER', 'XS-TKN-NWUSR');
 define('CSRF_DELETE_ACCOUNT', 'XS-TKN-DLTACC');
 define('CSRF_UPDATE_ACCOUNT', 'XS-TKN-UPDACC');

@@ -40,4 +40,9 @@ class UMSBaseController extends Controller {
     protected function canViewRole() {
         return $this->isAdminUser();
     }
+
+    /* function to redirect if user can not send email */
+    protected function redirectOrFailIfCanNotSendEmail() {
+        if (!$this->canSendEmails()) $this->switchFailResponse();
+    }
 }

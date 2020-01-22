@@ -6,6 +6,8 @@ use \PDO;
 use app\models\Role;
 use app\models\DeletedUser;
 use app\models\Session;
+use app\models\PendingEmail;
+use app\models\PendingUser;
 
 class UMSVerifier extends Verifier {
 
@@ -127,8 +129,8 @@ class UMSVerifier extends Verifier {
         return $result;
     }
 
-    /* function to verify a update user request */
-    public function verifyRemoveSession(string $sessionId, array $tokens): array {
+    /* function to verify a remove session request */
+    public function verifyInvalidateSession(string $sessionId, array $tokens): array {
         /* set fail result */
         $result = [
             MESSAGE => $this->langMessage[REMOVE_SESSION][FAIL],
@@ -143,6 +145,56 @@ class UMSVerifier extends Verifier {
         /* init session model validate sessionm id */
         $sessionModel = new Session($this->conn);
         if (!$sessionModel->getSessionAndUser($sessionId)) {
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ID];
+            return $result;
+        }
+        /* set successs result and return it */
+        $result[SUCCESS] = TRUE;
+        unset($result[MESSAGE]);
+        return $result;
+    }
+
+    /* function to verify a inavlidate pending email request */
+    public function verifyInvalidatePendingEmail(string $penMailId, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => $this->langMessage[INVALIDATE_PENDING_EMAIL][FAIL],
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init session model validate sessionm id */
+        $pendMailModel = new PendingEmail($this->conn);
+        if (!$pendMailModel->getValidPendingEmailAndUser($penMailId)) {
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ID];
+            return $result;
+        }
+        /* set successs result and return it */
+        $result[SUCCESS] = TRUE;
+        unset($result[MESSAGE]);
+        return $result;
+    }
+
+    /* function to verify a invalidate pending user request */
+    public function verifyInvalidatePendingUser(string $penUserId, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => $this->langMessage[INVALIDATE_PENDING_USER][FAIL],
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init session model validate sessionm id */
+        $pendModel = new PendingUser($this->conn);
+        if (!$pendModel->getValidPendingUser($penUserId)) {
             $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ID];
             return $result;
         }
@@ -181,6 +233,60 @@ class UMSVerifier extends Verifier {
 
         /* set success and return result */
         $result[SUCCESS] = TRUE;
+        return $result;
+    }
+
+    /* function to verify a resend enabler email request */
+    public function verifyResendEnablerEmail(string $pendMailId, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => $this->langMessage[SEND_EMAIL][FAIL],
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+
+        /* init session model validate sessionm id */
+        $pendMailModel = new PendingEmail($this->conn);
+        if (!($pendMail =$pendMailModel->getValidPendingEmailAndUser($pendMailId))) {
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ID];
+            return $result;
+        }
+
+        /* set successs result and return it */
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
+        $result[PENDING] = $pendMail;
+        return $result;
+    }
+
+    /* function to verify a resend enabler email request */
+    public function verifyResendEnablerAccount(string $pendUserId, array $tokens): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => $this->langMessage[SEND_EMAIL][FAIL],
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+        
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+        
+        /* init session model validate sessionm id */
+        $pendUserModel = new PendingUser($this->conn);
+        if (!($pendUser =$pendUserModel->getValidPendingUser($pendUserId))) {
+            $result[MESSAGE] = $this->langMessage[GENERIC][INVALID_ID];
+            return $result;
+        }
+        
+        /* set successs result and return it */
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
+        $result[PENDING] = $pendUser;
         return $result;
     }
 }
