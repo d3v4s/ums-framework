@@ -29,5 +29,10 @@ return [
     INVALIDATE_PENDING_USER => [
         SUCCESS => 'Pending user removed succesfully',
         FAIL => 'Remove pending user failed'
+    ],
+
+    INVALIDATE_PASS_RES_REQ => [
+        SUCCESS => 'Password reset request removed succesfully',
+        FAIL => 'Remove password reset request failed'
     ]
 ];

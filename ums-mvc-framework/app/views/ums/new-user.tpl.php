@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>New User</h1>
-    <form id="new-user-form" action="/<?=NEW_USER_ROUTE?>" method="post">
+    <form id="new-user-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>">Full Name</label>
     		<input id="<?=NAME?>" name="<?=NAME?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">

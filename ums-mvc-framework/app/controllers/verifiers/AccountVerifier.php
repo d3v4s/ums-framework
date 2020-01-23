@@ -6,8 +6,8 @@ use \PDO;
 use app\models\PendingEmail;
 
 class AccountVerifier extends Verifier {
-    protected function __construct(PDO $conn, array $langMessage) {
-        parent::__construct($conn, $langMessage);
+    protected function __construct(array $langMessage, PDO $conn) {
+        parent::__construct($langMessage, $conn);
     }
 
     /* ##################################### */

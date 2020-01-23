@@ -57,7 +57,9 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-            	        		<?=$req->{PASSWORD_RESET_REQ_ID}?>
+                	        	<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.$req->{PASSWORD_RESET_REQ_ID}?>">
+                	        		<?=$req->{PASSWORD_RESET_REQ_ID}?>
+                	        	</a>
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($req->{USERNAME})): ?>

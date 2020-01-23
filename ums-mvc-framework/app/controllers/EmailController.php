@@ -74,7 +74,7 @@ class EmailController extends UMSBaseController {
 
         /* get verifier instance, and che send email request */
         $verifier = EmailVerifier::getInstance($this->lang[MESSAGE]);
-        $resSendEmail = $verifier->verifySendEmail($from, $to, $tokens);
+        $resSendEmail = $verifier->verifySendEmail($from, $to, $content, $tokens);
         /* if success */
         if ($resSendEmail[SUCCESS]) {
             /* if is set add subject */
@@ -90,9 +90,9 @@ class EmailController extends UMSBaseController {
             $email->generateContentWithLayout();
             /* send email and set result */
             if ($resSendEmail[SUCCESS] = $email->send()) {
-                $resSendEmail[MESSAGE] = $this->langMessage[MESSAGE][SEND_EMAIL][SUCCESS];
+                $resSendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$to;
                 $redirectTo = '/'.UMS_HOME_ROUTE;
-            } else  $resSendEmail[MESSAGE] = $this->langMessage[MESSAGE][SEND_EMAIL][FAIL];
+            } else  $resSendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
         }
 
         /* result data */

@@ -2,7 +2,8 @@
 return [
     SEND_EMAIL => [
         SUCCESS => 'Email successfully sended at: ',
-        FAIL => 'Send email failed'
+        FAIL => 'Send email failed',
+        EMPTY_CONTENT => 'Insert content' 
     ],
 
     CHANGE_PASS => [
@@ -20,10 +21,12 @@ return [
         INVALID_DATETIME => 'Invalid datetime',
         INVALID_FILEPATH => 'Invalid file path',
         INVALID_SECTION => 'Invalid section',
+        INVALID_TABLE => 'Invalid table',
         INVALID_LAYOUT => 'Invalid layout',
         INVALID_DOMAIN => 'Invalid domain',
         INVALID_ROLETYPE => 'Invalid role type',
         INVALID_NUMBER => 'Invalid number',
+        INVALID_ACTION => 'Invalid action',
         OPERATION_FAILED => 'Failed',
         OPERATION_SUCCESS => 'Success',
         WRONG_USERNAME => 'Wrong username',

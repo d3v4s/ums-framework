@@ -486,6 +486,54 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         ];
     }
 
+    /* function to get data of pending email */
+    public function getPassResReqData(string $passResReqId, string $datetimeFormat, bool $canSendEmail, bool $canRemoveToken): array {
+        /* init user model and get user */
+        $passResReqModel = new PasswordResetRequest($this->conn);
+        /* init var */
+        $isValid = FALSE;
+        $isExpired = TRUE;
+        $resendToken = '';
+        $messageExpire = '';
+        $invalidateToken = '';
+        /* if is numeric get pending email by id nad if found it check if is expired and format the date*/
+        if (is_numeric($passResReqId) && ($passResReq = $passResReqModel->getPassResReqLeftUser($passResReqId))) {
+            /* if is not set token */
+            if (!isset($passResReq->{PASSWORD_RESET_TOKEN})) $messageExpire = 'No token';
+            /* else if is expired */
+            elseif (new DateTime($passResReq->{EXPIRE_DATETIME}) < new DateTime()) {
+                $messageExpire = 'Expired';
+                $isValid = TRUE;
+            }
+
+            /* else if is valid */
+            elseif (isset($passResReq->{ENABLED}) && $passResReq->{ENABLED}) {
+                $messageExpire = 'Valid';
+                $isExpired = FALSE;
+                $isValid = TRUE;
+            }
+
+            /* set tokens */
+            $invalidateToken = $isValid && $canRemoveToken ? generateToken(CSRF_INVALIDATE_PASS_RES_REQ) : '';
+            $resendToken = $isValid && $canSendEmail ? generateToken(CSRF_RESEND_PASS_RES_REQ) : '';
+            /* format datetime */
+            $passResReq->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($passResReq->{EXPIRE_DATETIME}));
+
+            /* else set false */
+        } else $passResReq = FALSE;
+        /* return data */
+        return [
+            REQUEST => $passResReq,
+            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
+            IS_VALID => $isValid,
+            IS_EXPIRED => $isExpired,
+            MESSAGE_EXPIRE => $messageExpire,
+            CAN_SEND_EMAIL => $canSendEmail,
+            CAN_REMOVE_ENABLER_TOKEN => $canRemoveToken,
+            RESEND_ENABLER_EMAIL_TOKEN => $resendToken,
+            INVALIDATE_TOKEN => $invalidateToken
+        ];
+    }
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */

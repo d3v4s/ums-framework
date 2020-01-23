@@ -86,7 +86,7 @@ class PendingEmail {
     }
 
     /* function to get user by login session token */
-    public function getValidPendingEmailByUserId(string $userId) {
+    public function getValidPendingEmailByUserId(int $userId) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE;
         $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND ';
@@ -134,7 +134,7 @@ class PendingEmail {
     }
 
     /* function to get pending mail and user by pending email id */
-    public function getPendingEmailLeftUser(string $pendMailId) {
+    public function getPendingEmailLeftUser(int $pendMailId) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE.' LEFT JOIN ';
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
@@ -149,7 +149,7 @@ class PendingEmail {
     }
 
     /* function to get pending mail and user by pending email id */
-    public function getValidPendingEmailAndUser(string $pendMailId) {
+    public function getValidPendingEmailAndUser(int $pendMailId) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE.' JOIN ';
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
@@ -186,9 +186,11 @@ class PendingEmail {
     }
 
     /* function to count the pending mails on table */
-    public function countPendingEmails(): int {
+    public function countValidPendingEmails(): int {
         /* create sql query */
-        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_EMAILS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL AND '.EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_EMAILS_TABLE;
+        $sql .= ' WHERE '.ENABLER_TOKEN.' IS NOT NULL AND ';
+        $sql .= EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -223,7 +225,7 @@ class PendingEmail {
     }
 
     /* function to remove all email enabler tokens for user*/
-    public function removeAllEmailEnablerToken(string $userId): bool {
+    public function removeAllEmailEnablerToken(int $userId): bool {
         /* prepare sql query and execute it */
         $stmt = $this->conn->prepare('UPDATE '.PENDING_EMAILS_TABLE.' SET '.ENABLER_TOKEN.'=NULL WHERE '.USER_ID_FRGN.'=:id');
         $stmt->execute(['id' => $userId]);

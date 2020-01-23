@@ -1,5 +1,6 @@
 <div class="container col-md-7 text-center">
-    <h1>Insert your password</h1>
+	<h3>Double login require</h3>
+    <h4>Insert your password</h4>
     <form id="double-login-form" action="/<?=DOUBLE_LOGIN_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=PASSWORD?>">Password</label>

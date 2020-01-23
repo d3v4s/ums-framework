@@ -9,6 +9,7 @@ use app\controllers\verifiers\RSAVerifier;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class RSAKeyGeneratorController extends SettingsBaseController {
+
     public function __construct(PDO $conn, array $appConfig, string $layout=SETTINGS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
     }

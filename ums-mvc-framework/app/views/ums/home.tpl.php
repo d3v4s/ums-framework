@@ -3,7 +3,7 @@
         <table class="table table-striped" id="users-table">
         	<tbody>
         		<tr>
-        			<th class="align-middle" colspan="2">UMS Info</th>
+        			<th class="align-middle" colspan="2"><h4>UMS Info</h4></th>
         		</tr>
         		<tr>
         			<td class="text-primary align-middle col-5">

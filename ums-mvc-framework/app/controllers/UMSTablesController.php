@@ -81,6 +81,9 @@ class UMSTablesController extends UMSTablesBaseController {
             case PENDING_USERS_TABLE:
                 $this->showPendingUser($id);
                 break;
+            case PASSWORD_RESET_REQ_TABLE:
+                $this->showPassResReq($id);
+                break;
             default:
                 $this->showMessageAndExit('INVALID TABLE', TRUE);
                 break;
@@ -326,7 +329,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->content = view(getPath('tables','pending-email-info'), $data);
     }
 
-    /* function to view a user page */
+    /* function to view a pending user page */
     public function showPendingUser($userId) {
         //* redirect */
         $this->redirectOrFailIfCanNotViewTables();
@@ -346,5 +349,27 @@ class UMSTablesController extends UMSTablesBaseController {
         
         /* show page */
         $this->content = view(getPath('tables','pending-user-info'), $data);
+    }
+
+    /* function to view a user page */
+    public function showPassResReq($passResReqId) {
+        //* redirect */
+        $this->redirectOrFailIfCanNotViewTables();
+        
+        
+        /* get data by data factory */
+        $data = UMSTablesDataFactory::getInstance($this->conn)->getPassResReqData($passResReqId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails(), $this->canRemoveEnablerToken());
+        
+        /* if user not found, show error message */
+        if (!$data[REQUEST]) $this->showMessageAndExit('Password reset request not found', TRUE);
+        
+        /* add javascript sources */
+        array_push($this->jsSrcs,
+            [SOURCE => '/js/utils/ums/resend-enabler-email.js'],
+            [SOURCE => '/js/utils/ums/invalidate.js']
+        );
+        
+        /* show page */
+        $this->content = view(getPath('tables','pass-res-req-info'), $data);
     }
 }

@@ -15,12 +15,12 @@ class Verifier {
     static protected $instance;
 
     /* singleton */
-    static public function getInstance(PDO $conn = NULL, array $langMessage=[]): Verifier {
-        if (!isset(static::$instance)) static::$instance = new static($conn, $langMessage);
+    static public function getInstance(array $langMessage=[], PDO $conn=NULL): Verifier {
+        if (!isset(static::$instance)) static::$instance = new static($langMessage, $conn);
         return static::$instance;
     }
 
-    protected function __construct(PDO $conn = NULL, array $langMessage=[]) {
+    protected function __construct(array $langMessage=[], PDO $conn=NULL) {
         $this->conn = $conn;
         $this->langMessage = $langMessage;
     }
@@ -143,7 +143,7 @@ class Verifier {
 
         /* init user model and validate user id */
         $userModel = new User($this->conn);
-        if (!($user = $userModel->getUser($id))) return $result;
+        if (!(is_numeric($id) && ($user = $userModel->getUser($id)))) return $result;
 
         /* validate name */
         if (!$this->isValidInput($name, MIN_LENGTH_NAME, MAX_LENGTH_NAME, USE_REGEX_NAME, REGEX_NAME)) {
@@ -207,7 +207,7 @@ class Verifier {
 
         /* init user model and validate user id */
         $userModel = new User($this->conn);
-        if (!($user = $userModel->getUser($id))) return $result;
+        if (!(is_numeric($id) && ($user = $userModel->getUser($id)))) return $result;
 
         /* unset error message and set success */
         unset($result[MESSAGE]);

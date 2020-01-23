@@ -104,6 +104,50 @@ class PasswordResetRequest {
         return FALSE;
     }
 
+    /* function to get password reset request and user by password reset request id */
+    public function getPassResReqLeftUser(int $passResReqId) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.PASSWORD_RESET_REQ_TABLE.' LEFT JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.PASSWORD_RESET_REQ_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $passResReqId]);
+        
+        /* if find password reset request return it */
+        if ($stmt && ($passResReq = $stmt->fetch(PDO::FETCH_OBJ))) return $passResReq;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to get pending mail and user by pending email id */
+    public function getValidPassResReqAndUser(int $passResReqId) {
+        /* prepare sql query, then execute */
+        $sql = 'SELECT * FROM '.PASSWORD_RESET_REQ_TABLE.' JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.PASSWORD_RESET_REQ_ID.'=:id AND '.PASSWORD_RESET_TOKEN.' IS NOT NULL';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $passResReqId]);
+
+        /* if find password reset request return it */
+        if ($stmt && ($passResReq = $stmt->fetch(PDO::FETCH_OBJ))) return $passResReq;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to count all password reset requests on table */
+    public function countValidPasswordResetReq(): int {
+        /* create sql query */
+        $sql = 'SELECT COUNT(*) AS total FROM '.PASSWORD_RESET_REQ_TABLE;
+        $sql .= ' WHERE '.PASSWORD_RESET_TOKEN.' IS NOT NULL AND ';
+        $sql .= EXPIRE_DATETIME.' > CURRENT_TIMESTAMP';
+
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
     /* function to count all password reset requests on table */
     public function countAllPasswordResetReq(string $search): int {
         /* create sql query */
@@ -119,6 +163,7 @@ class PasswordResetRequest {
                 'search' => "%$search%"
             ];
         }
+        
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
@@ -137,6 +182,34 @@ class PasswordResetRequest {
 
         /* if sql query success return true */
         if ($stmt && $stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to remove token of password reset request */
+    public function removePasswordResetReqTokenById(int $passResId) {
+        /* prepare sql query and execute it */
+        $sql = 'UPDATE '.PASSWORD_RESET_REQ_TABLE.' SET '.PASSWORD_RESET_TOKEN.'=NULL WHERE '.PASSWORD_RESET_REQ_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $passResId]);
+        
+        /* if sql query success return true */
+        if ($stmt && $stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
+
+    /* function to update expire datetime */
+    public function updateExpireDatetime(string $token, string $datetime): bool {
+        /* prepare sql query and execute it */
+        $stmt = $this->conn->prepare('UPDATE '.PASSWORD_RESET_REQ_TABLE.' SET '.EXPIRE_DATETIME.'=:datetime WHERE '.PASSWORD_RESET_TOKEN.'=:token');
+        $stmt->execute([
+            'datetime' => $datetime,
+            'token' => $token
+        ]);
+        
+        /* if sql success return true */
+        if($stmt->rowCount()) return TRUE;
         /* else return false */
         return FALSE;
     }
