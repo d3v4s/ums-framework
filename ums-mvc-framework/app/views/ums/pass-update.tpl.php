@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>User: <?=${USER}->{USERNAME}?></h1>
-    <form id="update-pass-form" action="/<?=USER_ROUTE.'/'.PASS_UPDATE_ROUTE?>" method="POST">
+    <form id="update-pass-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE?>" method="POST">
 		<div class="form-group text-md-left">
     		<label for="<?=PASSWORD?>">Password</label>
     		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>"  placeholder="Password" class="form-control confirm-password-1 send-ajax-crypt" type="password" required="required" autofocus="autofocus">

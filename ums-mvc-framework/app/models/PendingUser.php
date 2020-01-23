@@ -187,9 +187,12 @@ class PendingUser {
     }
 
     /* function to count only the valid pending users on table */
-    public function countPendingUsers(): int {
+    public function countValidPendingUsers(): int {
         /* create sql query */
-        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE '.ENABLER_TOKEN.' IS NOT NULL AND '.EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE;
+        $sql .= ' WHERE '.ENABLER_TOKEN.' IS NOT NULL AND ';
+        $sql .= EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
+
         /* execute sql query */
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();

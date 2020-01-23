@@ -9,13 +9,7 @@ class AppSettingsVerifier extends Verifier {
 //     private $timeUnitList = [];
 
     protected function __construct(array $langMessage) {
-        parent::__construct(NULL, $langMessage);
-    }
-
-    /* singleton */
-    static public function getInstance(array $langMessage=[]): AppSettingsVerifier {
-        if (!isset(static::$instance)) static::$instance = new static($langMessage);
-        return static::$instance;
+        parent::__construct($langMessage);
     }
 
     /* ##################################### */

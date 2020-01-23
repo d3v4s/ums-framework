@@ -13,8 +13,8 @@ use \PDO;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class LoginVerifier extends Verifier {
-    protected function __construct(PDO $conn, array $langMessage) {
-        parent::__construct($conn, $langMessage);
+    protected function __construct(array $langMessage, PDO $conn) {
+        parent::__construct($langMessage, $conn);
     }
 
     /* ##################################### */

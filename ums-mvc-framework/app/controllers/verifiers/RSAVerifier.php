@@ -6,6 +6,7 @@ namespace app\controllers\verifiers;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class RSAVerifier extends Verifier {
+
     protected function __construct() {
         parent::__construct();
     }

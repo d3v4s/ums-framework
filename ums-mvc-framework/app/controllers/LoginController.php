@@ -182,8 +182,11 @@ class LoginController extends Controller {
         $pass = $this->decryptData($pass);
         
         /* verify request and if success create double login session */
-        $resDoubleLogin = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyDoubleLogin($userId, $pass, $tokens);
+        $resDoubleLogin = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyDoubleLogin($userId, $pass, $tokens);
         if ($resDoubleLogin[SUCCESS]) {
+            /* init user model and create a double login session */
+            $user = new User($this->conn);
+            $user->lockCountsReset($this->loginSession->{USER_ID});
             $this->createDoubleLoginSession();
             $resDoubleLogin[MESSAGE] = $this->lang[MESSAGE][DOUBLE_LOGIN][SUCCESS];
         } elseif ($resDoubleLogin[WRONG_PASSWORD]) $this->handlerWrongPassword($userId);
@@ -221,8 +224,7 @@ class LoginController extends Controller {
         $pass = $this->decryptData($pass);
         
         /* get verifier instance, and check the login request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resLogin = $verifier->verifyLogin($username, $pass, $tokens);
+        $resLogin = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyLogin($username, $pass, $tokens);
 
         /* set url to redirect */
         $redirectTo = '/'.LOGIN_ROUTE;
@@ -230,7 +232,7 @@ class LoginController extends Controller {
         if($resLogin[SUCCESS]) {
             /* init user model and create a login session */
             $user = new User($this->conn);
-            $user->resetLockCounts($resLogin[USER]->{USER_ID});
+            $user->lockCountsReset($resLogin[USER]->{USER_ID});
             $this->createLoginSession($resLogin[USER]->{USER_ID});
             $resLogin[MESSAGE] = $this->lang[MESSAGE][LOGIN][SUCCESS];
             $redirectTo = '/';
@@ -275,8 +277,7 @@ class LoginController extends Controller {
         $cpass = $this->decryptData($cpass);
         
         /* get verifier instance, and check the signup request */
-        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resSignup = $verifier->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
+        $resSignup = Verifier::getInstance($this->lang[MESSAGE], $this->conn)->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
 
         /* set url to redirect */
         $redirectTo = '/'.SIGNUP_ROUTE;
@@ -353,15 +354,13 @@ class LoginController extends Controller {
         $redirectTo = '/'.SIGNUP_ROUTE.'/'.CONFIRM_ROUTE;
         /* check last request */
         $this->handlerResendLock();
-//         if (isset($_SESSION[RESEND_LOCK_EXPIRE]) && $_SESSION[RESEND_LOCK_EXPIRE] > new DateTime()) $this->switchFailResponse('Wait a few minutes before another request', $redirectTo);
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_ACC);
         $userId = $_SESSION[USER_ID];
 
         /* get verifier instance, and check the resend validator email request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resResendEmail = $verifier->verifySignupResendEmail($userId, $tokens);
+        $resResendEmail = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifySignupResendEmail($userId, $tokens);
 
         /* if verifier succes */
         if ($resResendEmail[SUCCESS]) {
@@ -405,8 +404,7 @@ class LoginController extends Controller {
         $redirectTo = '/'.HOME_ROUTE;
 
         /* get verifier instance, and check the logout request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resLogout = $verifier->verifyLogout($this->loginSession->{USER_ID}, $tokens);
+        $resLogout = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyLogout($this->loginSession->{USER_ID}, $tokens);
         if ($resLogout[SUCCESS]) $resLogout[SUCCESS] = $this->resetLoginSession();
 
         /* set message */
@@ -443,8 +441,7 @@ class LoginController extends Controller {
         $email = $_POST[EMAIL] ?? '';
 
         /* get verifier instance, and check the reset password request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resPassResetReq = $verifier->verifyPassResetReq($email, $tokens);
+        $resPassResetReq = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyPassResetReq($email, $tokens);
 
         /* set url to redirect */
         $redirectTo = '/'.PASS_RESET_REQ_ROUTE;
@@ -460,7 +457,7 @@ class LoginController extends Controller {
             /* if success send email and set result, and if it success */
             if ($res[SUCCESS] && $res[SUCCESS] = $this->sendEmailResetPassword($email, $res[TOKEN])) {
                 /* set success message and the redirect */
-                $res[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS];
+                $res[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$email;
                 $redirectTo = '/'.LOGIN_ROUTE;
                 /*  set resebd lock */
                 $this->setResendLock();
@@ -510,8 +507,7 @@ class LoginController extends Controller {
         $cpass = $this->decryptData($cpass);
 
         /* get verifier instance, and check the reset password request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resResetPass = $verifier->verifyPassReset($tokenReset, $pass, $cpass, $tokens);
+        $resResetPass = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyPassReset($tokenReset, $pass, $cpass, $tokens);
 
         /* init pass reset req model */
         $passResReq = new PasswordResetRequest($this->conn);
@@ -557,7 +553,7 @@ class LoginController extends Controller {
         $this->redirectOrFailIfConfirmEmailNotRequire();
         
         /* get verifier instance, and check the enable account request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
+        $verifier = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resEnable = $verifier->verifyEnableAccount($token);
         
         /* set url to redirect */
@@ -608,8 +604,7 @@ class LoginController extends Controller {
         $this->redirectOrFailIfConfirmEmailNotRequire();
         
         /* get verifier instance, and check the validate a new email request */
-        $verifier = LoginVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resEnable = $verifier->verifyEnableNewEmail($token);
+        $resEnable = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyEnableNewEmail($token);
         
         /* set url to redirect */
         $redirectTo = '/'.($this->loginSession ? HOME_ROUTE : SIGNUP_ROUTE);

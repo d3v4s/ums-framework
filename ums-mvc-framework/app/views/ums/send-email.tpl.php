@@ -12,7 +12,7 @@
     	<div class="form-group text-md-left">
     		<label for="<?=CONTENT?>">Text</label>
     		<span class="text-left text-dark">
-	    		<textarea id="<?=CONTENT?>" name="<?=CONTENT?>" class="form-control send-ajax-crypt" rows="10"></textarea>
+	    		<textarea id="<?=CONTENT?>" name="<?=CONTENT?>" class="form-control evidence-error send-ajax-crypt" rows="10" required="required"></textarea>
     		</span>
     	</div>
     	<noscript>

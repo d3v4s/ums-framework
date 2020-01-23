@@ -45,7 +45,7 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
     		<?php if (${CAN_RESTORE_USER}): ?>
-    	    	<form id="restore-user-form" action="/<?=USER_ROUTE.'/'.RESTORE_ROUTE?>" method="post">
+    	    	<form id="restore-user-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.DELETED_USER_TABLE.'/'.RESTORE_ROUTE?>" method="post">
     	    		<button id="btn-restore-user" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fa fa-trash-restore-alt fa-xs"></i>
 	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>

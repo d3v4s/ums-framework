@@ -424,132 +424,7 @@ class User {
         
         return $result;
     }
-    
 
-    /* function to lock a user */
-    public function lockUser(int $id, string $expireLock): array {
-        /* set fail result */
-        $result = [
-            MESSAGE => 'Lock user failed',
-            SUCCESS => FALSE
-        ];
-        
-        /* prepare sql query and execute */
-        $stmt = $this->conn->prepare('UPDATE '.USERS_TABLE.' SET '.EXPIRE_LOCK.'=:expireLock WHERE '.USER_ID.'=:id');
-        $stmt->execute(compact('expireLock', 'id'));
-        
-        /* if query success set success result */
-        if($stmt->rowCount()) {
-            $result[MESSAGE] = 'User successfully locked';
-            $result[SUCCESS] = TRUE;
-        /* else set error info */
-        } else $result['errorInfo'] = $stmt->errorInfo();
-        
-        /* return result */
-        return $result;
-    }
-
-    /* function to unlock the user */
-    public function lockUserReset(int $id): array {
-        /* set fail result */
-        $result = [
-            MESSAGE => 'Locks user failed',
-            SUCCESS => FALSE
-        ];
-
-        /* prepare sql query and execute it */
-        $sql = 'UPDATE '.USERS_TABLE.' JOIN ';
-        $sql .= USER_LOCK_TABLE.' ON '.USER_ID.'='.USER_ID_FRGN;
-        $sql .= ' SET '.EXPIRE_LOCK.'=NULL, '.EXPIRE_TIME_WRONG_PASSWORD.'=0, '.COUNT_WRONG_PASSWORDS.'=0, '.COUNT_LOCKS.'=0';
-        $sql .= ' WHERE '.USER_ID.'=:id';
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['id' => $id]);
-
-        if($stmt->errorCode() == 0) {
-            $result[MESSAGE] = 'User locks successfully resetted';
-            $result[SUCCESS] = TRUE;
-        } else $result[ERROR_INFO] = $stmt->errorInfo();
-
-        return $result;
-    }
-
-    /* function to set the count wrong password */
-    public function setCountWrongPass(int $id, int $countWrongPass): array {
-        /* set fail result */
-        $result = [
-            MESSAGE => 'Set wrong password counter failed',
-            SUCCESS => FALSE
-        ];
-        
-        /* prepare sql query and execute it */
-        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORDS.'=:countWrongPass WHERE '.USER_ID_FRGN.'=:id';
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute(compact('countWrongPass', 'id'));
-        
-        /* if query success */
-        if($stmt->rowCount()) {
-            /* set success result */
-            $result[MESSAGE] = 'Wrong password counter successfully setted';
-            $result[SUCCESS] = TRUE;
-        /* else set error info */
-        } else $result[ERROR_INFO] = $stmt->errorInfo();
-        
-        /* return result */
-        return $result;
-    }
-    
-    /* function to set count user locks */
-    public function setCountUserLocks(int $id, int $countLocks): array {
-        /* set fail result */
-        $result = [
-            MESSAGE => 'Set locks counter failed',
-            SUCCESS => FALSE
-        ];
-        
-        /* prepare sql query and execute it */
-        $stmt = $this->conn->prepare('UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_LOCKS.'=:countLocks WHERE '.USER_ID_FRGN.'=:id');
-        $stmt->execute(compact('countLocks', 'id'));
-        
-        /* if query success */
-        if($stmt->rowCount()) {
-            /* set success result */
-            $result[MESSAGE] = 'User locks counter successfully setted';
-            $result[SUCCESS] = TRUE;
-        /* else set error info */
-        } else $result[ERROR_INFO] = $stmt->errorInfo();
-        
-        /* return result */
-        return $result;
-    }
-    
-    /* function to reset wrong passowrds of user */
-    public function resetWrongPasswords(int $userId, string $expireDatetime=NULL): array {
-        /* set fail result */
-        $result = [
-            MESSAGE => 'Reset wrong password failed',
-            SUCCESS => FALSE
-        ];
-        
-        /* prepare sql query and execute it */
-        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORDS.'=0, '.EXPIRE_TIME_WRONG_PASSWORD.'=:datetime ';
-        $sql .= 'WHERE '.USER_ID_FRGN.'=:id';
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([
-            'datetime' => $expireDatetime,
-            'id' => $userId
-        ]);
-        
-        /* if sql query success set success result */
-        if($stmt->rowCount()) {
-            $result[MESSAGE] = 'Datetime reset wrong password successfully setted';
-            $result[SUCCESS] = TRUE;
-        /* else append error info on result */
-        } else $result[ERROR_INFO] = $stmt->errorInfo();
-        
-        /* return result */
-        return $result;
-    }
-    
     /* function to enable a new email */
     public function updateEmail(int $userId, string $email): array {
         /* set fail result */
@@ -601,8 +476,139 @@ class User {
         return $result;
     }
 
+    /* ###### LOCKS ###### */
+
+
+    /* function to lock a user */
+    public function lockUser(int $id, string $expireLock): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Lock user failed',
+            SUCCESS => FALSE
+        ];
+        
+        /* prepare sql query and execute */
+        $stmt = $this->conn->prepare('UPDATE '.USERS_TABLE.' SET '.EXPIRE_LOCK.'=:expireLock WHERE '.USER_ID.'=:id');
+        $stmt->execute(compact('expireLock', 'id'));
+        
+        /* if query success set success result */
+        if($stmt->rowCount()) {
+            $result[MESSAGE] = 'User successfully locked';
+            $result[SUCCESS] = TRUE;
+            /* else set error info */
+        } else $result['errorInfo'] = $stmt->errorInfo();
+        
+        /* return result */
+        return $result;
+    }
+
+    /* ### SET ### */
+
+    /* function to set the count wrong password */
+    public function setCountWrongPass(int $id, int $countWrongPass): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Set wrong password counter failed',
+            SUCCESS => FALSE
+        ];
+        
+        /* prepare sql query and execute it */
+        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORDS.'=:countWrongPass WHERE '.USER_ID_FRGN.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(compact('countWrongPass', 'id'));
+        
+        /* if query success */
+        if($stmt->rowCount()) {
+            /* set success result */
+            $result[MESSAGE] = 'Wrong password counter successfully setted';
+            $result[SUCCESS] = TRUE;
+            /* else set error info */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        /* return result */
+        return $result;
+    }
+
+    /* function to set count user locks */
+    public function setCountUserLocks(int $id, int $countLocks): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Set locks counter failed',
+            SUCCESS => FALSE
+        ];
+        
+        /* prepare sql query and execute it */
+        $stmt = $this->conn->prepare('UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_LOCKS.'=:countLocks WHERE '.USER_ID_FRGN.'=:id');
+        $stmt->execute(compact('countLocks', 'id'));
+        
+        /* if query success */
+        if($stmt->rowCount()) {
+            /* set success result */
+            $result[MESSAGE] = 'User locks counter successfully setted';
+            $result[SUCCESS] = TRUE;
+            /* else set error info */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        /* return result */
+        return $result;
+    }
+
+    /* ### RESET ### */
+
+    /* function to reset wrong passowrds of user */
+    public function wrongPasswordsReset(int $userId, string $expireDatetime='NULL'): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Reset wrong password failed',
+            SUCCESS => FALSE
+        ];
+
+        /* prepare sql query and execute it */
+        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORDS.'=0, '.EXPIRE_TIME_WRONG_PASSWORD.'=:datetime ';
+        $sql .= 'WHERE '.USER_ID_FRGN.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'datetime' => $expireDatetime,
+            'id' => $userId
+        ]);
+        
+        /* if sql query success set success result */
+        if($stmt->rowCount()) {
+            $result[MESSAGE] = 'Datetime reset wrong password successfully setted';
+            $result[SUCCESS] = TRUE;
+            /* else append error info on result */
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        /* return result */
+        return $result;
+    }
+
+    /* function to unlock the user */
+    public function lockUserReset(int $id): array {
+        /* set fail result */
+        $result = [
+            MESSAGE => 'Locks user failed',
+            SUCCESS => FALSE
+        ];
+        
+        /* prepare sql query and execute it */
+        $sql = 'UPDATE '.USERS_TABLE.' JOIN ';
+        $sql .= USER_LOCK_TABLE.' ON '.USER_ID.'='.USER_ID_FRGN;
+        $sql .= ' SET '.EXPIRE_LOCK.'=NULL, '.EXPIRE_TIME_WRONG_PASSWORD.'=NULL, '.COUNT_WRONG_PASSWORDS.'=0, '.COUNT_LOCKS.'=0';
+        $sql .= ' WHERE '.USER_ID.'=:id';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(['id' => $id]);
+        
+        if($stmt->errorCode() == 0) {
+            $result[MESSAGE] = 'User locks successfully resetted';
+            $result[SUCCESS] = TRUE;
+        } else $result[ERROR_INFO] = $stmt->errorInfo();
+        
+        return $result;
+    }
+
     /* function to reset user locks */
-    public function resetLockCounts(int $id): array {
+    public function lockCountsReset(int $id): array {
         /* set fail result */
         $result = [
             MESSAGE => 'Reset locks failed',
@@ -610,10 +616,10 @@ class User {
         ];
 
         /* prepare sql query and execute it */
-        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.COUNT_WRONG_PASSWORDS.'=0, '.COUNT_LOCKS.'=0 WHERE '.USER_ID_FRGN.'=:id';
+        $sql = 'UPDATE '.USER_LOCK_TABLE.' SET '.EXPIRE_TIME_WRONG_PASSWORD.'=NULL, '.COUNT_WRONG_PASSWORDS.'=0, '.COUNT_LOCKS.'=0 WHERE '.USER_ID_FRGN.'=:id';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['id' => $id]);
-    
+
         if($stmt->rowCount()) {
             $result[MESSAGE] = 'Wrong password lock successfully reset';
             $result[SUCCESS] = TRUE;
@@ -651,184 +657,4 @@ class User {
         
         return $result;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-//     /* function to enable a user */
-//     public function enableUser(int $id): array {
-//         $result = [
-//             'message' => 'Fail enable user',
-//             'success' => FALSE
-//         ];
-        
-//         $stmt = $this->conn->prepare('UPDATE users SET enabled=1 WHERE id=:id');
-//         $stmt->execute(['id' => $id]);
-        
-//         if($stmt->rowCount()) {
-//             $result['success'] = TRUE;
-//             $result['message'] = 'User enabled';
-//         } else $result['errorInfo'] = $stmt->errorInfo();
-        
-//         return $result;
-//     }
-    
-    
-    
-    
-    
-    
-    
-    
-//     public function resetDatetimeAndNWrongPassword(int $id): array {
-//         $result = [
-//             'message' => 'Reset datetime and n. wrong password failed',
-//             'success' => FALSE
-//         ];
-
-//         $stmt = $this->conn->prepare('UPDATE users SET n_wrong_password=0, datetime_reset_wrong_password=NULL WHERE id=:id');
-//         $stmt->execute(compact('id'));
-        
-//         if($stmt->rowCount()) {
-//             $result['message'] = 'Datetime and n. wrong password successfully reset';
-//             $result['success'] = TRUE;
-//         } else $result['errorInfo'] = $stmt->errorInfo();
-        
-//         return $result;
-//     }
-
-//     public function resetLockUser(int $id): array {
-//         $result = [
-//             'message' => 'Reset lock user failed',
-//             'success' => FALSE
-//         ];
-        
-//         $stmt = $this->conn->prepare('UPDATE users SET n_locks=0, datetime_unlock_user=NULL WHERE id=:id');
-//         $stmt->execute(compact('id'));
-        
-//         if($stmt->rowCount()) {
-//             $result['message'] = 'Lock user successfully reset';
-//             $result['success'] = TRUE;
-//         } else $result['errorInfo'] = $stmt->errorInfo();
-        
-//         return $result;
-//     }
-
-//     public function resetWrongPasswordLock(int $id): array {
-//         $result = [
-//             'message' => 'Reset lock wrong password failed',
-//             'success' => FALSE
-//         ];
-        
-//         $stmt = $this->conn->prepare('UPDATE users SET n_wrong_password=0, datetime_reset_wrong_password=NULL, n_locks=0, datetime_unlock_user=NULL WHERE id=:id');
-//         $stmt->execute(compact('id'));
-        
-//         if($stmt->rowCount()) {
-//             $result['message'] = 'Wrong password lock successfully reset';
-//             $result['success'] = TRUE;
-//         } else $result['errorInfo'] = $stmt->errorInfo();
-        
-//         return $result;
-//     }
-
-//     public function getUserByTokenResetPassword(string $token, bool $unsetPassword = TRUE) {
-//         $stmt = $this->conn->prepare('SELECT * FROM users WHERE token_reset_pass = :token');
-//         $stmt->execute(['token' => $token]);
-        
-//         if ($stmt) {
-//             $user = $stmt->fetch(PDO::FETCH_OBJ);
-//             if ($unsetPassword) unset($user->password);
-//             return $user;
-//         }
-//         return FALSE;
-//     }
-
-
-//     /*function to remove password reset token */
-//     public function removePasswordResetToken(int $id): bool {
-//         /* prepare sql query, then execute */
-//         $stmt = $this->conn->prepare('UPDATE users SET token_reset_pass = NULL WHERE id=:id');
-//         $stmt->execute(['id' => $id]);
-        
-//         if($stmt->rowCount()) return TRUE;
-        
-//         return FALSE;
-//     }
-
-//     public function removeNewEmailAndToken(int $id): bool {
-//         $stmt = $this->conn->prepare('UPDATE users SET new_email = NULL, token_confirm_email = NULL WHERE id=:id');
-//         $stmt->execute(['id' => $id]);
-        
-//         if($stmt->rowCount()) return TRUE;
-        
-//         return FALSE;
-//     }
-
-    
-//     public function createTokenResetPassword(int $id): array {
-//         $result = [
-//             'message' => 'Reset passwor failed',
-//             'success' => FALSE
-//         ];
-//         $datetime = new DateTime();
-//         $datetime->modify($this->appConfig['app']['expirationTimeResetPassword']);
-//         $datetimeExpire = $datetime->format('Y-m-d H:i:s');
-
-//         $stmt = $this->conn->prepare('UPDATE users SET token_reset_pass=:token, datetime_req_reset_pass_expire=:datetimeExpire WHERE id=:id');
-//         $stmt->execute([
-//             'id' => $id,
-//             'token' => $this->getNewResetPasswordToken(),
-//             'datetimeExpire' => $datetimeExpire 
-//         ]);
-
-//         if($stmt->rowCount()) {
-//             $result['success'] = TRUE;
-//             $result['message'] = 'Link for password reset was generated';
-//         } else $result['errorInfo'] = $stmt->errorInfo();
-
-//         return $result;
-//     }
-
-//     public function getUserByNewEmail(string $newEmail, bool $unsetPassword = TRUE) {
-//         $email = filter_var($newEmail, FILTER_VALIDATE_EMAIL);
-//         if (!$email) return FALSE;
-//         $stmt = $this->conn->prepare('SELECT * FROM users WHERE new_email = :email');
-//         $stmt->execute(['email' => $newEmail]);
-//         if ($stmt) {
-//             $user = $stmt->fetch(PDO::FETCH_OBJ);
-//             if ($unsetPassword) unset($user->password);
-//             return $user;
-//         }
-//         return FALSE;
-//     }
-
-
-//     private function getNewResetPasswordToken(): string {
-//         /* generates a random string until it's not unique */
-//         do $token = getSecureRandomString();
-//         while ($this->getUserByTokenResetPassword($token));
-
-//         /* return unique token */
-//         return $token;
-//     }
-
-//     private function getNewConfirmEmailToken(): string {
-//         /* generates a random string until it's not unique */
-//         do $token = getSecureRandomString();
-//         while ($this->getUserByEmailEnablerToken($token));
-
-//         /* return unique token */
-//         return $token;
-//     }
 }
-

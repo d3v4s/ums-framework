@@ -343,14 +343,16 @@ class Controller {
 
     /* function to manage wrong passwords */
     protected function handlerWrongPassword(int $id) {
-        /* init user model, and get user id */
+        /* init user model, and get user LOCK */
         $userModel = new User($this->conn);
+        /* if not found and not create user lock, than send fail */
         if (!(($usrLock = $userModel->getUserLock($id)) || ($usrLock = $userModel->createUserLock($id)))) $this->switchFailResponse();
         /* if wrong password expire datetime is not set or is expire */
         if (!isset($usrLock[EXPIRE_TIME_WRONG_PASSWORD]) || new DateTime($usrLock[EXPIRE_TIME_WRONG_PASSWORD]) < new DateTime()){
-            /* set expire time and reset wrong passwords*/
+            /* set expire time and reset wrong passwords */
             $expireDatetime = getExpireDatetime(PASS_TRY_TIME);
-            $userModel->resetWrongPasswords($id, $expireDatetime);
+            $userModel->wrongPasswordsReset($id, $expireDatetime);
+            /* get user lock */
             $usrLock = $userModel->getUserLock($id);
         }
 
@@ -364,7 +366,7 @@ class Controller {
         /* if require lock */
         if ($res[LOCK]) {
             /* reset wrong password */
-            $userModel->resetWrongPasswords($id);
+            $userModel->wrongPasswordsReset($id);
             /* get lock expire time */
             $expireLock = getExpireDatetime(USER_LOCK_TIME);
             $userModel->lockUser($id, $expireLock);

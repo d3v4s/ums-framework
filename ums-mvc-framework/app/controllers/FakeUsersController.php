@@ -67,10 +67,12 @@ class FakeUsersController extends UMSTablesBaseController {
                 /* init pending user model and set function name */
                 $model = new PendingUser($this->conn);
                 $funcAdder = 'savePendingUser';
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE;
             } else {
                 /* init user model and set function name */
                 $model = new User($this->conn);
                 $funcAdder = 'saveUser';
+                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             }
             /* start loop fake user creator */
             while ($nFakeUsers-- > 0) {
@@ -90,7 +92,6 @@ class FakeUsersController extends UMSTablesBaseController {
                 ];
                 /* add fake user */
                 if ($model->{$funcAdder}($dataUsr)[SUCCESS]) $usersAdded++;
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
             }
             /* set result */
             $resAddFakeUsers[MESSAGE] = "$usersAdded fake users added successfully";

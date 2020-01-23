@@ -62,7 +62,7 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
     		<?php if (${CAN_REMOVE_SESSION} && !${IS_EXPIRED}): ?>
-    	    	<form id="invalidate-form" action="/<?=SESSION_ROUTE.'/'.INVALIDATE_ROUTE?>" method="post">
+    	    	<form id="invalidate-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.SESSIONS_TABLE.'/'.INVALIDATE_ROUTE?>" method="post">
     	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fa fa-user-times"></i>
 	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>

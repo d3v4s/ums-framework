@@ -7,7 +7,7 @@
         <table class="table table-striped" id="roles-table">
         	<thead>
         		<tr>
-        			<th colspan="14" class="text-center">
+        			<th colspan="15" class="text-center">
         				<span>TOTAL ROLES <?=${TOT_ROLES}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>

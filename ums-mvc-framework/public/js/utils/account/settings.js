@@ -8,7 +8,7 @@ $(document).ready(function(){
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBttn = showLoading($btn);
 
 		/* show messagebox */
 		$.MessageBox({
@@ -21,7 +21,7 @@ $(document).ready(function(){
 			redirect(actionUrl);
 		}).fail(function(){
 			/* fail function*/
-			removeLoading($btn, 'Delete');
+			removeLoading($btn, txtBttn);
 		});
 	});
 
@@ -35,11 +35,11 @@ $(document).ready(function(){
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBttn = showLoading($btn);
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Update');
+			removeLoading($btn, txtBttn);
 
 			try {
 				showMessage(response.message, !response.success);
@@ -55,35 +55,10 @@ $(document).ready(function(){
 
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Update');
+			removeLoading($btn, txtBttn);
 			showMessage('Problem to contact server', true);
 		};
 
-		console.log($xf);
 		sendAjaxReq(actionUrl, data, $xf, funcSuccess, funcFail);
-//		$.ajax({
-//			method: 'post',
-//			data: data,
-//			url: '/user/settings/update',
-//			success: function(response) {
-//    			removeLoading($btn, 'Update');
-//
-//    			try {
-//    				const userRes = JSON.parse(response);
-//    				
-//    				showMessage(userRes.message, !userRes.success);
-//    				if (userRes.success) setTimeout(redirect, 2000, '/');
-//    				else {
-//    					focusError(userRes);
-//    					$xf.val(userRes.ntk);
-//    				}
-//				} catch (e) {
-//					showMessage('User update failed', true);
-//				}
-//			},
-//			failure: function() {
-//				
-//			}
-//		});
 	});
 });

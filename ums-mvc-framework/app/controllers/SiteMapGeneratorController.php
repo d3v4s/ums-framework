@@ -78,8 +78,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
         $redirectTo = '/'.SITE_MAP_GENERATOR_ROUTE;
 
         /* get verifier instance, and check site map generation request */
-        $verifier = SiteMapVerifier::getInstance();
-        $resSiteMapGen = $verifier->verifyGenerateSiteMap($urlServer, $data, $tokens);
+        $resSiteMapGen = SiteMapVerifier::getInstance()->verifyGenerateSiteMap($urlServer, $data, $tokens);
         if ($resSiteMapGen[SUCCESS]) {
             /* if succcess save site map and save new result */
             if ($resSiteMapGen[SUCCESS] = $this->saveSiteMap($resSiteMapGen[ROUTES])) {

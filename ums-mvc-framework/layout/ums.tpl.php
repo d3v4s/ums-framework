@@ -52,84 +52,10 @@
         <?php endforeach; ?>
 	</head>
 	<body>
-		<?php require_once MESSAGE_BOX_TEMPLATE?>
-		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-			<a class="navbar-brand" href="/">DevAS</a>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-ums" aria-controls="navbar-ums" aria-expanded="false" aria-label="Toggle navigation">
-				<i class="fas fa-bars"></i>
-			</button>
-			<div id="navbar-ums" class="collapse navbar-collapse">
-				<ul class="navbar-nav mr-auto">
-					<li class="nav-item <?=$this->isHome ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=HOME_ROUTE?>">Home</a>
-					</li>
-					<?php if ($this->loginSession): ?>
-						<?php if (!$this->isSimpleUser()): ?>
-							<li class="nav-item <?=$this->isUmsHome ? 'active' : ''?>">
-								<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>">UMS</a>
-							</li>
-						<?php endif; ?>
-						<?php if ($this->canUpdateUser()): ?>
-							<li class="nav-item <?=$this->isUsersList ? 'active' : ''?>">
-								<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE?>">Tables</a>
-							</li>
-						<?php endif; ?>
-						<?php if ($this->canCreateUser()): ?>
-    						<li class="nav-item <?=$this->isNewUser ? 'active' : ''?>">
-        						<a class="nav-link" href="/<?=NEW_USER_ROUTE?>">New User</a>
-        					</li>
-    					<?php endif; ?>
-    					<?php if ($this->canSendEmails()): ?>
-    						<li class="nav-item <?=$this->isNewEmail ? 'active' : ''?>">
-        						<a class="nav-link" href="/<?=NEW_EMAIL_ROUTE?>">Send Email</a>
-        					</li>
-    					<?php endif; ?>
-    					<?php if ($this->canChangeSettings()): ?>
-        					<li class="nav-item <?=$this->isSettings ? 'active' : ''?>">
-        						<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE?>">App Settings</a>
-        					</li>
-    					<?php endif; ?>
-    					<li class="nav-item dropdown">
-    						<a id="account" class="nav-link dropdown-toggle" href="/<?=ACCOUNT_SETTINGS_ROUTE?>" data-toggle="dropdown" data-target="#dropdown-account" aria-controls="#dropdown-account" aria-haspopup="true" aria-expanded="false">Account</a>
-    						<div id="dropdown-account" class="dropdown-menu mx-auto">
-    							<h4 class="text-center"><a href="/<?=ACCOUNT_INFO_ROUTE?>"><?=$this->loginSession->{USERNAME}?></a></h4>
-    							<div class="justify-content-center text-left p-4 mx-auto">
-        							<p>
-        								Full name: <span class="text-primary"><?=$this->loginSession->{NAME}?></span><br>
-        								Email: <span class="text-primary"><?=$this->loginSession->{EMAIL}?></span>
-        								<?php if ($this->loginSession->{ROLE_ID_FRGN} !== DEFAULT_ROLE): ?>
-        									<br>
-        									Role: <span class="text-primary"><?=$this->userRole[ROLE]?></span>
-        								<?php endif;?>
-        							</p>
-    							</div>
-    							<div class="container justify-content-center text-center p-2 row mx-auto">
-    								<a href="/<?=ACCOUNT_SETTINGS_ROUTE?>" class="btn btn-warning m-2"><i class="fas fa-cog"></i> Settings</a>
-    								<form id="logout-form" action="/<?=LOGOUT_ROUTE?>" method="post">
-    									<input id="<?=LOGOUT_TOKEN?>" type="hidden" name="<?=CSRF_LOGOUT?>" value="<?=$this->{LOGOUT_TOKEN}?>">
-    	    							<button id="btn-logout" class="btn btn-danger m-2" type="submit"><i id="ico-btn" class="fas fa-sign-out-alt"></i> Logout</button>
-    								</form>
-    							</div>
-    						</div>
-    					</li>
-					<?php endif; ?>
-				</ul>
-			</div>
-		</nav>
-		<?php if ($this->isSettings): ?>
-    		<nav class="navbar navbar-expand navbar-dark bg-dark">
-    			<div id="navbar-settings" class="collapse navbar-collapse">
-    				<label class="text-white p-2 my-auto">Settings</label>
-    				<ul class="navbar-nav mr-auto">
-    					<?php foreach ($this->appSectionsList as $key => $appSection): ?>
-    						<li class="nav-item <?=$appSection === $this->section ? 'active' : ''?>">
-        						<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE.'/'.$appSection?>"><?=$key?></a>
-        					</li>
-    					<?php endforeach; ?>
-					</ul>
-    			</div>
-    		</nav>
-		<?php endif; ?>
+		<?php
+		require_once MESSAGE_BOX_TEMPLATE;
+		require_once UMS_NAVBAR_TEMPLATE;
+		?>
 		<main role="main">
 			<div class="container-fluid p-3 my-2 justify-content-center text-center">
 				<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE?>

@@ -16,7 +16,7 @@ use app\models\PasswordResetRequest;
  * Class controller for users admin manage
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class UMSController extends UMSBaseController {
+class UMSActionsController extends UMSBaseController {
     public function __construct(PDO $conn, array $appConfig, string $layout=UMS_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
         $this->lang = array_merge_recursive($this->lang, $this->getLanguageArray('ums'));
@@ -25,6 +25,18 @@ class UMSController extends UMSBaseController {
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* fuction to switch request */
+    public function switchShowAction(string $table, string $action, string $id='') {
+        switch ($table) {
+            case USERS_TABLE:
+                $this->switchShowUserAction($action, $id);
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_TABLE]);
+                break;
+        }
+    }
 
     /* ########## SHOW FUNCTIONS ########## */
 
@@ -110,11 +122,40 @@ class UMSController extends UMSBaseController {
 
     /* ########## ACTION FUNCTIONS ########## */
 
+    /* fuction to switch request */
+    public function switchAction(string $table, string $action) {
+        switch ($table) {
+            case USERS_TABLE:
+                $this->switchUserAction($action);
+                break;
+            case USER_LOCK_TABLE:
+                $this->switchUserLockAction($action);
+                break;
+            case DELETED_USER_TABLE:
+                $this->switchDeletedUserAction($action);
+                break;
+            case PENDING_USERS_TABLE:
+                $this->switchPendingUserAction($action);
+                break;
+            case PENDING_EMAILS_TABLE:
+                $this->switchPendingEmailAction($action);
+                break;
+            case PASSWORD_RESET_REQ_TABLE:
+                $this->switchPasResReqAction($action);
+                break;
+            case SESSIONS_TABLE:
+                $this->switchSessionAction($action);
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_TABLE]);
+                break;
+        }
+    }
+
     /* function to update a user info */
     public function userUpdate() {
         /* redirect */
         $this->redirectOrFailIfCanNotUpdateUser();
-        
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_USER);
@@ -136,10 +177,9 @@ class UMSController extends UMSBaseController {
         }
 
         /* set redirect to */
-        $redirectTo = '/'.USER_ROUTE.'/'.$id.'/'.UPDATE_ROUTE;
+        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.UPDATE_ROUTE.'/'.$id;
         /* get verifier instance, and check update user request */
-        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resUpdate = $verifier->verifyUpdateUser($id, $name, $email, $username, $roletype, $tokens);
+        $resUpdate = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyUpdateUser($id, $name, $email, $username, $roletype, $tokens);
         /* if success */
         if($resUpdate[SUCCESS]) {
             /* set user data and update user */
@@ -178,14 +218,16 @@ class UMSController extends UMSBaseController {
         };
 
         $this->switchResponse($dataOut, (!$resUpdate[SUCCESS] && $resUpdate[GENERATE_TOKEN]), $funcDefault, CSRF_UPDATE_USER);
-        }
+    }
 
     /* function to update password user */
     public function passwordUpdate() {
         /* redirects */
         $this->redirectOrFailIfCanNotChangePassword();
+        /* set redirect to */
         $id = $_POST[USER_ID] ?? '';
-        $this->redirectIfNotXMLHTTPRequest('/'.USER_ROUTE."/$id/".PASS_UPDATE_ROUTE);
+        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE.'/'.$id;
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
         $this->handlerDoubleLogin();
         
         /* get tokens and post data */
@@ -197,11 +239,8 @@ class UMSController extends UMSBaseController {
         $pass = $this->decryptData($pass);
         $cpass = $this->decryptData($cpass);
 
-        /* set redirect to */
-        $redirectTo = '/'.USER_ROUTE.'/'.$id.'/'.PASS_UPDATE_ROUTE;
         /* get instance of verifier and check password update request */
-        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resPass = $verifier->verifyUpdatePass($id, $pass, $cpass, $tokens);
+        $resPass = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyUpdatePass($id, $pass, $cpass, $tokens);
         /* if success */
         if($resPass[SUCCESS]) {
             /* init user model */
@@ -247,8 +286,7 @@ class UMSController extends UMSBaseController {
         $id = $_POST[USER_ID];
 
         /* get verifier instance, and check reset wrong user locks request */
-        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resReset = $verifier->verifyLockCounterReset($id, $tokens);
+        $resReset = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyLockCounterReset($id, $tokens);
         if ($resReset[SUCCESS]) {
             /* if success init user model, and reset count user locks */
             $user = new User($this->conn);
@@ -280,7 +318,9 @@ class UMSController extends UMSBaseController {
     public function newUser() {
         /* redirects */
         $this->redirectOrFailIfCanNotCreateUser();
-        $this->redirectIfNotXMLHTTPRequest('/'.NEW_USER_ROUTE);
+        /* set redirect */
+        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE;
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_NEW_USER);
@@ -289,19 +329,16 @@ class UMSController extends UMSBaseController {
         $name = $_POST[NAME] ?? '';
         $pass = $_POST[PASSWORD] ?? '';
         $cpass =$_POST[CONFIRM_PASS] ?? '';
-        $roletype = $this->isAdminUser() ? $_POST[ROLE_ID_FRGN] ?? DEFAULT_ROLE : DEFAULT_ROLE;
+        $roletype = $this->isAdminUser() ? ($_POST[ROLE_ID_FRGN] ?? DEFAULT_ROLE) : DEFAULT_ROLE;
         $pending = isset($_POST[PENDING]);
         
         /* decrypt passwords */
         $pass = $this->decryptData($pass);
         $cpass = $this->decryptData($cpass);
 
-        /* set redirect */
-        $redirectTo = '/'.NEW_USER_ROUTE;
         
         /* get verifier instance, and check new user request */
-        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resSignup = $verifier->verifyNewUser($name, $email, $username, $pass, $cpass, $roletype, $tokens);
+        $resSignup = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyNewUser($name, $email, $username, $pass, $cpass, $roletype, $tokens);
         /* if success */
         if($resSignup[SUCCESS]) {
             /* create data to save user */
@@ -361,13 +398,12 @@ class UMSController extends UMSBaseController {
         
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_USER);
-        $id = $_POST[USER_ID];
+        $id = $_POST[USER_ID] ?? '';
 
         /* ser redirect to */
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
         /* get verifier instance, and check delete user request */
-        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resDelete = $verifier->verifyDelete($id, $tokens);
+        $resDelete = Verifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyDelete($id, $tokens);
         if ($resDelete[SUCCESS]) {
             /* init user model and delete user */
             $user = new User($this->conn);
@@ -420,12 +456,11 @@ class UMSController extends UMSBaseController {
 
         /* get tokens ad user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESTORE_USER);
-        $id = $_POST[USER_ID];
+        $id = $_POST[USER_ID] ?? '';
 
         /* get verifier instance, and check reset wrong user locks request */
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
-        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resRestore = $verifier->verifyRestoreUser($id, $tokens);
+        $resRestore = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyRestoreUser($id, $tokens);
         if ($resRestore[SUCCESS]) {
             /* if success init user model, and set user data */
             $userModel = new User($this->conn);
@@ -484,43 +519,7 @@ class UMSController extends UMSBaseController {
         $this->switchResponse($dataOut, (!$resRestore[SUCCESS] && $resRestore[GENERATE_TOKEN]), $funcDefault, CSRF_RESTORE_USER);
     }
 
-    /* function to invalidate session */
-    public function invalidateSession() {
-        /* redirect */
-        $this->redirectOrFailIfCanNotRemoveSession();
-        $this->handlerDoubleLogin();
-
-        /* get tokens ad session id */
-        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_SESSION);
-        $id = $_POST[SESSION_ID] ?? '';
-        /* get verifier instance, and check remove session request */
-        $verifier = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
-        $resRemove = $verifier->verifyInvalidateSession($id, $tokens);
-        if ($resRemove[SUCCESS]) {
-            /* if success init session model and remove session */
-            $sessionModel = new Session($this->conn);
-            if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][SUCCESS]; 
-            else $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
-        }
-
-        /* result data */
-        $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$id,
-            SUCCESS => $resRemove[SUCCESS],
-            MESSAGE => $resRemove[MESSAGE] ?? NULL,
-        ];
-
-        /* function for default response */
-        $funcDefault = function($data) {
-            if (isset($data[MESSAGE])) {
-                $_SESSION[MESSAGE] = $data[MESSAGE];
-                $_SESSION[SUCCESS] = $data[SUCCESS];
-            }
-            redirect($data[REDIRECT_TO]);
-        };
-
-        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);
-    }
+    /* ##### EMAIL RESENDERS ##### */
 
     /* function to resend enabler email */
     public function resendEnablerEmail() {
@@ -530,8 +529,9 @@ class UMSController extends UMSBaseController {
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_EMAIL);
         $id = $_POST[PENDING_EMAIL_ID] ?? '';
+
         /* get verifier instance, and check remove session request */
-        $resResend = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyResendEnablerEmail($id, $tokens);
+        $resResend = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyResendEnablerEmail($id, $tokens);
         if ($resResend[SUCCESS]) {
             /* if success resend email and if success set new expire date time */
             if (($resResend[SUCCESS] = $this->sendEnablerEmail($resResend[PENDING]->{NEW_EMAIL}, $resResend[PENDING]->{ENABLER_TOKEN}, 'ENABLE YOUR EMAIL', TRUE))) {
@@ -572,15 +572,16 @@ class UMSController extends UMSBaseController {
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_ACC);
         $id = $_POST[PENDING_USER_ID] ?? '';
+
         /* get verifier instance, and check remove session request */
-        $resResend = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyResendEnablerAccount($id, $tokens);
+        $resResend = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyResendEnablerAccount($id, $tokens);
         if ($resResend[SUCCESS]) {
             /* if success resend email and if success set new expire date time */
             if (($resResend[SUCCESS] = $this->sendEnablerEmail($resResend[PENDING]->{EMAIL}, $resResend[PENDING]->{ENABLER_TOKEN}))) {
                 /* init pending model and set new expire datetime */
-                $penMailModel = new PendingUser($this->conn);
+                $pendUserModel = new PendingUser($this->conn);
                 $expDatetime = getExpireDatetime(ENABLER_LINK_EXPIRE_TIME);
-                $penMailModel->updateExpireDatetime($resResend[PENDING]->{ENABLER_TOKEN}, $expDatetime);
+                $pendUserModel->updateExpireDatetime($resResend[PENDING]->{ENABLER_TOKEN}, $expDatetime);
                 /* set success message */
                 $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$resResend[PENDING]->{EMAIL};
                 /* set fail message */
@@ -606,8 +607,53 @@ class UMSController extends UMSBaseController {
         $this->switchResponse($dataOut, (!$resResend[SUCCESS] && $resResend[GENERATE_TOKEN]), $funcDefault, CSRF_RESEND_ENABLER_ACC);
     }
 
+    /* function to resend password reset email */
+    public function resendPasswordReset() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotSendEmail();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_RESEND_PASS_RES_REQ);
+        $id = $_POST[PASSWORD_RESET_REQ_ID] ?? '';
+
+        /* get verifier instance, and check remove session request */
+        $resResend = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyResendPassRes($id, $tokens);
+        if ($resResend[SUCCESS]) {
+            /* if success resend email and if success set new expire date time */
+            if (($resResend[SUCCESS] = $this->sendEmailResetPassword($resResend[REQUEST]->{EMAIL}, $resResend[REQUEST]->{PASSWORD_RESET_TOKEN}))) {
+                /* init pending model and set new expire datetime */
+                $passResReqModel = new PasswordResetRequest($this->conn);
+                $expDatetime = getExpireDatetime(PASS_RESET_EXPIRE_TIME);
+                $passResReqModel->updateExpireDatetime($resResend[REQUEST]->{PASSWORD_RESET_TOKEN}, $expDatetime);
+                /* set success message */
+                $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$resResend[REQUEST]->{EMAIL};
+                /* set fail message */
+            } else $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.$id,
+            SUCCESS => $resResend[SUCCESS],
+            MESSAGE => $resResend[MESSAGE] ?? NULL,
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+        
+        $this->switchResponse($dataOut, (!$resResend[SUCCESS] && $resResend[GENERATE_TOKEN]), $funcDefault, CSRF_RESEND_PASS_RES_REQ);
+    }
+
+    /* ##### INVALIDATORS ##### */
+
     /* function to invalidate pending email */
-    public function inavlidatePendingEmail() {
+    public function invalidatePendingEmail() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveEnablerToken();
         $this->handlerDoubleLogin();
@@ -615,8 +661,9 @@ class UMSController extends UMSBaseController {
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PENDING_EMAIL);
         $id = $_POST[PENDING_EMAIL_ID] ?? '';
+
         /* get verifier instance, and check remove session request */
-        $resRemove = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyInvalidatePendingEmail($id, $tokens);
+        $resRemove = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyInvalidatePendingEmail($id, $tokens);
         if ($resRemove[SUCCESS]) {
             /* if success init pending model and remove token */
             $pendMailModel = new PendingEmail($this->conn);
@@ -644,7 +691,7 @@ class UMSController extends UMSBaseController {
     }
 
     /* function to invalidate pending email */
-    public function inavlidatePendingUser() {
+    public function invalidatePendingUser() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveEnablerToken();
         $this->handlerDoubleLogin();
@@ -652,8 +699,9 @@ class UMSController extends UMSBaseController {
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PENDING_USER);
         $id = $_POST[PENDING_USER_ID] ?? '';
+
         /* get verifier instance, and check remove session request */
-        $resRemove = UMSVerifier::getInstance($this->conn, $this->lang[MESSAGE])->verifyInvalidatePendingUser($id, $tokens);
+        $resRemove = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyInvalidatePendingUser($id, $tokens);
         if ($resRemove[SUCCESS]) {
             /* if success init pending model and remove token */
             $pendUserModel = new PendingUser($this->conn);
@@ -679,9 +727,212 @@ class UMSController extends UMSBaseController {
         
         $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_PENDING_USER);
     }
+
+    
+    /* function to invalidate session */
+    public function invalidateSession() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotRemoveSession();
+        $this->handlerDoubleLogin();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_SESSION);
+        $id = $_POST[SESSION_ID] ?? '';
+
+        /* get verifier instance, and check remove session request */
+        $resRemove = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyInvalidateSession($id, $tokens);
+        if ($resRemove[SUCCESS]) {
+            /* if success init session model and remove session */
+            $sessionModel = new Session($this->conn);
+            if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][SUCCESS];
+            else $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$id,
+            SUCCESS => $resRemove[SUCCESS],
+            MESSAGE => $resRemove[MESSAGE] ?? NULL,
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+        
+        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);
+    }
+
+    /* function to invalidate pending email */
+    public function invalidatePasswordResetRequest() {
+        /* redirect */
+        $this->redirectOrFailIfCanNotRemoveEnablerToken();
+        $this->handlerDoubleLogin();
+        
+        /* get tokens ad session id */
+        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PASS_RES_REQ);
+        $id = $_POST[PASSWORD_RESET_REQ_ID] ?? '';
+
+        /* get verifier instance, and check remove session request */
+        $resRemove = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyInvalidatePasswordResetReq($id, $tokens);
+        if ($resRemove[SUCCESS]) {
+            /* if success init password reset request model and remove token */
+            $passResetModel = new PasswordResetRequest($this->conn);
+            if (($resRemove[SUCCESS] = $passResetModel->removePasswordResetReqTokenById($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PASS_RES_REQ][SUCCESS];
+            else $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PASS_RES_REQ][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.$id,
+            SUCCESS => $resRemove[SUCCESS],
+            MESSAGE => $resRemove[MESSAGE] ?? NULL,
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect($data[REDIRECT_TO]);
+        };
+        
+        $this->switchResponse($dataOut, (!$resRemove[SUCCESS] && $resRemove[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_PASS_RES_REQ);
+    }
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
+
+    /* ######### SWITCHER ######### */
+
+    /* function to switch show action for user table */
+    private function switchShowUserAction(string $action, string $id='') {
+        switch ($action) {
+            case NEW_ROUTE:
+                $this->showNewUser();
+                break;
+            case UPDATE_ROUTE:
+                $this->showUserUpdate($id);
+                break;
+            case PASS_UPDATE_ROUTE:
+                $this->showPasswordUpdate($id);
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* function to switch action for user table */
+    private function switchUserAction(string $action) {
+        switch ($action) {
+            case NEW_ROUTE:
+                $this->newUser();
+                break;
+            case UPDATE_ROUTE:
+                $this->userUpdate();
+                break;
+            case DELETE_ROUTE:
+                $this->deleteUser();
+                break;
+            case PASS_UPDATE_ROUTE:
+                $this->passwordUpdate();
+                break;
+            case LOCK_COUNTERS_RESET_ROUTE:
+                $this->lockCountersReset();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* function to switch action for user table */
+    private function switchUserLockAction(string $action) {
+        switch ($action) {
+            case RESET_ROUTE:
+                $this->lockCountersReset();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* function to switch action for deleted user table */
+    private function switchDeletedUserAction(string $action) {
+        switch ($action) {
+            case RESTORE_ROUTE:
+                $this->restoreUser();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+    /* function to switch action for pending user table */
+    private function switchPendingUserAction(string $action) {
+        switch ($action) {
+            case RESEND_ROUTE:
+                $this->resendEnablerAccount();
+                break;
+            case INVALIDATE_ROUTE:
+                $this->invalidatePendingUser();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* function to switch action for pending email table */
+    private function switchPendingEmailAction(string $action) {
+        switch ($action) {
+            case RESEND_ROUTE:
+                $this->resendEnablerEmail();
+                break;
+            case INVALIDATE_ROUTE:
+                $this->invalidatePendingEmail();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* function to switch action for passwpord reset request table */
+    private function switchPasResReqAction(string $action) {
+        switch ($action) {
+            case RESEND_ROUTE:
+                $this->resendPasswordReset();
+                break;
+            case INVALIDATE_ROUTE:
+                $this->invalidatePasswordResetRequest();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* function to switch action for session table */
+    private function switchSessionAction(string $action) {
+        switch ($action) {
+            case INVALIDATE_ROUTE:
+                $this->invalidateSession();
+                break;
+            default:
+                $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
+                break;
+        }
+    }
+
+    /* ######### REDIRECTS ######### */
 
     /* function to redirect if user can not change password */
     private function redirectOrFailIfCanNotChangePassword() {

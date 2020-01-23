@@ -39,17 +39,17 @@ class UMSDataFactory extends DataFactory {
         /* init pending user model and count pending users */
         $pendingUserModel = new PendingUser($this->conn);
         $totPendUsers = $pendingUserModel->countAllPendingUsers();
-        $pendUsers = $pendingUserModel->countPendingUsers();
+        $pendUsers = $pendingUserModel->countValidPendingUsers();
 
         /* init pending mails modele and count all pending mails */
         $pendMailModel = new PendingEmail($this->conn);
         $totPendMails = $pendMailModel->countAllPendingEmails();
-        $pendMails = $pendMailModel->countPendingEmails();
+        $pendMails = $pendMailModel->countValidPendingEmails();
 
         /* init session model and count sessions */
         $sessionModel = new Session($this->conn);
         $totSessions = $sessionModel->countAllSessions();
-        $validSessions = $sessionModel->countActiveSessions();
+        $validSessions = $sessionModel->countValidSessions();
 
         /* return data */
         return [

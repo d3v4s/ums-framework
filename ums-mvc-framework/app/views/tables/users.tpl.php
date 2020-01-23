@@ -67,7 +67,7 @@
             	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
             	        	<td class="align-middle">
             	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$user->{USER_ID}?>">
-    		        	        	<?= $user->{USERNAME}?>
+    		        	        	<?=$user->{USERNAME}?>
             	        		</a>
             	        	</td>
             	        	<td class="align-middle"><?=$user->{NAME}?></td>
@@ -83,12 +83,12 @@
             	        			<i class="far fa-circle"></i>
             	        		<?php endif; ?>
             	        	<?php if (${VIEW_ROLE}): ?>
-            	        		<td class="align-middle"><?= $user->{ROLE}?></td>
+            	        		<td class="align-middle"><?=$user->{ROLE}?></td>
             	        	<?php endif;?>
             	        	<td class="align-middle">
             	        		<div class="row">
             	        			<div class="col-lg-6 col-md-6 col-sm-7 col-xs-8 my-1">
-            	        				<a class="btn btn-warning text-cente" href="/<?=USER_ROUTE.'/'.$user->{USER_ID}.'/'.UPDATE_ROUTE?>">Update</a>
+            	        				<a class="btn btn-warning text-cente" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.UPDATE_ROUTE.'/'.$user->{USER_ID}?>">Update</a>
             	        			</div>
             	        		</div>
             	        	</td>
@@ -100,7 +100,7 @@
         	</tbody>
         </table>
     </div>
-    <?php require PAGINATION_TEMPLATE;?>
+    <?php require PAGINATION_TEMPLATE; ?>
     <?php if (FAKE_USERS): ?>
 		<div class="container text-left p-5 ml-5">
     		<a class="btn btn-primary ml-5" href="/<?=FAKE_USERS_ROUTE?>">Add Fake Users</a>

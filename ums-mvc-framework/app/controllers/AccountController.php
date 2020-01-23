@@ -109,7 +109,7 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete account request */
-        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
+        $verifier = Verifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resDelete = $verifier->verifyDelete($id, $tokens);
         /* if success */
         if($resDelete[SUCCESS]) {
@@ -170,7 +170,7 @@ class AccountController extends Controller {
         $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE;
 
         /* get verifier instance, and check update user request */
-        $verifier = Verifier::getInstance($this->conn, $this->lang[MESSAGE]);
+        $verifier = Verifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resUpdate = $verifier->verifyUpdate($id, $name, $email, $username, $tokens);
         /* if success */
         if($resUpdate[SUCCESS]) {
@@ -249,7 +249,7 @@ class AccountController extends Controller {
         $cpass = $this->decryptData($cpass);
 
         /* get verifier instance, and check change password request */
-        $verifier = AccountVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
+        $verifier = AccountVerifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resPass = $verifier->verifyChangePass($id, $oldPass, $pass, $cpass, $tokens);
 
 
@@ -257,7 +257,7 @@ class AccountController extends Controller {
         if($resPass[SUCCESS]) {
             /* init user model and reset wrong passwords lock */
             $user = new User($this->conn);
-            $user->resetLockCounts($id);
+            $user->lockCountsReset($id);
 
             /* update user password */
             $resPass = array_merge($resPass, $user->updatePassword($id, $pass));
@@ -303,7 +303,7 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check delete new email request */
-        $verifier = AccountVerifier::getInstance($this->conn, $this->lang[MESSAGE]);
+        $verifier = AccountVerifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resDeleteEmail = $verifier->verifyDeleteNewEmail($id, $tokens);
         /* if success */
         if ($resDeleteEmail[SUCCESS]) {
@@ -348,13 +348,13 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* get verifier instance, and check resend new email validation request */
-        $verifier = AccountVerifier::getInstance($this->conn);
+        $verifier = AccountVerifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resResendEmail = $verifier->verifyResendNewEmailValidation($id, $tokens);
         /* if success */
         if ($resResendEmail[SUCCESS]) {
             /* send email validation and set result */
             if ($resResendEmail[SUCCESS] = $this->sendEnablerEmail($resResendEmail[TO], $resResendEmail[TOKEN], 'ENABLE YOUR EMAIL', TRUE)) {
-                $resResendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS];
+                $resResendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$resResendEmail[TO];
                 /* set resend lock */
                 $this->setResendLock();
                 /* init pending mail model and update expire time */
@@ -382,13 +382,4 @@ class AccountController extends Controller {
 
         $this->switchResponse($dataOut, $resResendEmail[GENERATE_TOKEN], $funcDefault, CSRF_RESEND_ENABLER_EMAIL);
     }
-
-    /* ##################################### */
-    /* PRIVATE FUNCTIONS */
-    /* ##################################### */
-
-//     /* function to redirect if is not valid delete session */
-//     private function redirectOrFailIfNotDeleteSession(){
-//         if (!(isset($_SESSION[DELETE_SESSION]) && $_SESSION[DELETE_SESSION][EXPIRE_DATETIME] > new DateTime())) $this->switchFailResponse();
-//     }
-} 
+}

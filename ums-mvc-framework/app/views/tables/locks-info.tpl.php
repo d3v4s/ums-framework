@@ -12,7 +12,7 @@
     			<tr>
         			<td class="text-primary align-middle">Username</td>
         			<td class="align-middle">
-        				<a href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE.'/'.GET_ROUTE.'/'.${USER}->{USER_ID}?>"><?=${USER}->{USERNAME}?></a>
+        				<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.${USER}->{USER_ID}?>"><?=${USER}->{USERNAME}?></a>
         			</td>
     			</tr>
     			<tr>
@@ -40,7 +40,7 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
 	    	<?php if (${CAN_UNLOCK_USER}): ?>
-	    		<form id="lock-user-reset-form" action="/<?=USER_ROUTE.'/'.LOCK_COUNTERS_RESET_ROUTE?>" method="post">
+	    		<form id="lock-user-reset-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USER_LOCK_TABLE.'/'.RESET_ROUTE?>" method="post">
     	    		<button id="btn-lock-user-reset" class="btn btn-warning mx-3 my-1" type="submit">
     	    			<i id="ico-btn" class="fas fa-undo"></i>
         				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
