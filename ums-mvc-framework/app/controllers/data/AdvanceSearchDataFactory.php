@@ -74,6 +74,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
             RESULT => [],
             TABLES_LIST => $this->getTablesList(),
             SEARCH_PARAMS => $this->getSearchParam(),
+            PARAM_VALUES => [],
             TABLE => ''
             
         ]);
@@ -81,23 +82,44 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
 
     /* function to get data of users list */
     public function getUsersData(string $orderBy=NULL, string $orderDir, int $page, int $usersForPage, array $searchParam): array {
+        /* get order by and order direction */
+        $usersOrderByList = [
+            USER_ID,
+            NAME,
+            USERNAME,
+            EMAIL,
+            ROLE,
+            ENABLED,
+            REGISTRATION_DATETIME,
+            EXPIRE_LOCK
+        ];
+        $orderDir = $this->getOrderDirection($orderDir);
+        $orderBy = $this->getOrderBy($orderBy, $usersOrderByList, USER_ID);
+
+        $searchData = [
+            USER_ID => $searchParam[USER_ID] ?? NULL,
+            NAME => $searchParam[NAME] ?? NULL,
+            USERNAME => $searchParam[USERNAME] ?? NULL,
+            EMAIL => $searchParam[EMAIL] ?? NULL,
+            ROLE => $searchParam[ROLE] ?? NULL,
+            ENABLED => $searchParam[ENABLED] ?? NULL,
+            REGISTRATION_DATETIME => $searchParam[REGISTRATION_DATETIME] ?? NULL,
+            EXPIRE_LOCK => $searchParam[EXPIRE_LOCK] ?? NULL
+        ];
+
         /* init user model and count users */
         $userModel = new User($this->conn);
-        $totUsers = $userModel->countAllUsers($search);
-
-        /* get order by and order direction */
-        $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, USERS_ORDER_BY_LIST, USER_ID);
+        $totUsers = $userModel->countAdvanceSearchUsers($searchData);
 
         /* get search query */
-        $searchQuery = $this->getSearchQuery($search);
+        $searchQuery = $this->getAdvanceSearchQuery($searchData);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], USERS_ORDER_BY_LIST, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $usersOrderByList, $searchQuery));
         /* get and merge search data */
-        $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
+        $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
         $start = $usersForPage * ($page - 1);
         $data[USERS] = $userModel->getUsers($orderBy, $orderDir, $search, $start, $usersForPage);
@@ -289,299 +311,19 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         return $data;
     }
 
-    /* ########## ROWS FUNCTIONS ########## */
+    /* ##################################### */
+    /* PROTECTED FUNCTIONS */
+    /* ##################################### */
 
-    /* function to get data of user */
-    public function getUserData(string $username, string $datetimeFormat, bool $canUpdateUser, bool $canDeleteUser, bool $canViewRole, bool $canSendEmail, bool $canUnlockUser): array {
-        /* init user model and get user */
-        $userModel = new User($this->conn);
-        /* if is numeric get user by id */
-        if (is_numeric($username)) $user = $userModel->getUserAndRole($username);
-        /* else get user by username */
-        else $user = $userModel->getUserAndRoleByUsername($username);
-        /* init var */
-        $messageEnable = '';
-        $messageLockUser = '';
-        $isLock = FALSE;
-        if ($user) {
-            /* set enabled message */
-            $messageEnable = $user->{ENABLED} ? 'ENABLED' : 'DISABLED';
-            
-            /* init message */
-            $messageLockUser = 'Unlocked';
-            /* check lock */
-            if (isset($user->{EXPIRE_LOCK})) {
-                /* if user has a lock, then set message */
-                if (($isLock = new DateTime($user->{EXPIRE_LOCK}) > new DateTime())) $messageLockUser = 'Temporarily locked';
-                /* format the date */
-                $user->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($user->{EXPIRE_LOCK}));
-            }
-
-            /* format the date */
-            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
-        }
-        
-        /* return data */
+    /* function to get advance search data */
+    protected function getSearchData(string $searchQuery, string $baseLinkPagin, string $closeUrl): array {
         return [
-            USER => $user,
-            IS_LOCK => $isLock,
-            TOKEN => generateToken(CSRF_DELETE_USER),
-            LOCKS_USER_RESET_TOKEN => generateToken(CSRF_LOCK_USER_RESET),
-            MESSAGE_ENABLE_ACC => $messageEnable,
-            MESSAGE_LOCK_ACC => $messageLockUser,
-            CAN_UPDATE_USER => $canUpdateUser,
-            CAN_DELETE_USER => $canDeleteUser,
-            CAN_UNLOCK_USER => $canUnlockUser,
-            VIEW_ROLE => $canViewRole,
-            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail)
+            SEARCH_QUERY => $searchQuery,
+            SEARCH_PARAMS => $searchQuery,
+            SEARCH_ACTION => "{$baseLinkPagin}1$closeUrl"
         ];
     }
 
-    /* function to get data of deleted user */
-    public function getDeletedUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail, bool $canRestoreUser): array {
-        /* init user model and get user */
-        $userModel = new DeletedUser($this->conn);
-        
-        /* if is numeric get session by id */
-        if (is_numeric($userId) && ($user = $userModel->getDeleteUserAndRole($userId))) {
-            /* if found user check if is expired and format the date*/
-            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
-            $user->{DELETE_DATETIME} = date($datetimeFormat, strtotime($user->{DELETE_DATETIME}));
-        /* else set false */
-        } else $user = FALSE;
-        
-        /* return data */
-        return [
-            USER => $user,
-            VIEW_ROLE => $canViewRole,
-            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
-            CAN_RESTORE_USER => $canRestoreUser,
-            RESTORE_TOKEN => generateToken(CSRF_RESTORE_USER),
-        ];
-    }
-
-    /* function to get data of session */
-    public function getSessionData(string $sessionId, string $datetimeFormat, bool $canSendEmail, bool $canRemoveSession): array {
-        /* init user model and get user */
-        $sessionModel = new Session($this->conn);
-        /* init var */
-        $rmvSsnTkn = '';
-        $isExpired = TRUE;
-        $messageExpire = '';
-        /* if is numeric get session by id */
-        if (is_numeric($sessionId) && ($session = $sessionModel->getSessionLeftUser($sessionId))) {
-            /* if found session check if is expired and format the date*/
-            /* if is not set token */
-            if (!isset($session->{SESSION_TOKEN})) $messageExpire = 'No token';
-            /* else if is expired */
-            elseif (new DateTime($session->{EXPIRE_DATETIME}) < new DateTime()) $messageExpire = 'Expired';
-            /* else if is valid user */
-            elseif (isset($session->{ENABLED}) && $session->{ENABLED}) {
-                $rmvSsnTkn = generateToken(CSRF_INVALIDATE_SESSION);
-                $messageExpire = 'Valid';
-                $isExpired = FALSE;
-            }
-            $session->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($session->{EXPIRE_DATETIME}));
-        /* else set false */
-        } else $session = FALSE;
-        /* return data */
-        return [
-            SESSION => $session,
-            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
-            IS_EXPIRED => $isExpired,
-            MESSAGE_EXPIRE => $messageExpire,
-            INVALIDATE_TOKEN => $rmvSsnTkn,
-            CAN_REMOVE_SESSION => $canRemoveSession
-        ];
-    }
-
-    /* function to get lock data of user */
-    public function getUserLocksData(int $userId, string $datetimeFormat, bool $canUnlockUser): array {
-        /* init user model and get user */
-        $userModel = new User($this->conn);
-        /* init var */
-        $messageEnable = '';
-        $messageLockUser = '';
-        $isLock = FALSE;
-        /* if is numeric get lock by user id */
-        if (is_numeric($userId) && ($userLocks = $userModel->getUserAndLock($userId))) {
-            /* set enabled message */
-            $messageEnable = $userLocks->{ENABLED} ? 'ENABLED' : 'DISABLED';
-            
-            /* init message */
-            $messageLockUser = 'Unlocked';
-            $isLock = FALSE;
-            /* check lock */
-            if (isset($userLocks->{EXPIRE_LOCK})) {
-                /* if user has a lock, then set message */
-                if (($isLock = new DateTime($userLocks->{EXPIRE_LOCK}) > new DateTime())) $messageLockUser = 'Temporarily locked';
-                /* format the date */
-                $userLocks->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($userLocks->{EXPIRE_LOCK}));
-            }
-
-            /* if is set time wrong password format the date */
-            if (isset($userLocks->{EXPIRE_TIME_WRONG_PASSWORD})) $userLocks->{EXPIRE_LOCK} = date($datetimeFormat, strtotime($userLocks->{EXPIRE_LOCK}));
-            
-            /* format the date */
-            $userLocks->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($userLocks->{REGISTRATION_DATETIME}));
-        /* else set user false */
-        } else $userLocks = FALSE;
-        
-        /* return data */
-        return [
-            USER => $userLocks,
-            IS_LOCK => $isLock,
-            LOCKS_USER_RESET_TOKEN => generateToken(CSRF_LOCK_USER_RESET),
-            MESSAGE_ENABLE_ACC => $messageEnable,
-            MESSAGE_LOCK_ACC => $messageLockUser,
-            CAN_UNLOCK_USER => $canUnlockUser,
-        ];
-    }
-
-    /* function to get data of pending email */
-    public function getPendingEmailData(string $pendMailId, string $datetimeFormat, bool $canSendEmail, bool $canRemoveToken): array {
-        /* init user model and get user */
-        $pendMailModel = new PendingEmail($this->conn);
-        /* init var */
-        $isValid = FALSE;
-        $isExpired = TRUE;
-        $resendToken = '';
-        $messageExpire = '';
-        $invalidateToken = '';
-        /* if is numeric get pending email by id nad if found it check if is expired and format the date*/
-        if (is_numeric($pendMailId) && ($pendMail = $pendMailModel->getPendingEmailLeftUser($pendMailId))) {
-            /* if is not set token */
-            if (!isset($pendMail->{ENABLER_TOKEN})) $messageExpire = 'No token';
-            /* else if is expired */
-            elseif (new DateTime($pendMail->{EXPIRE_DATETIME}) < new DateTime()) {
-                $messageExpire = 'Expired';
-                $isValid = TRUE;
-            }
-            /* else if is valid */
-            elseif (isset($pendMail->{ENABLED}) && $pendMail->{ENABLED}) {
-                $messageExpire = 'Valid';
-                $isExpired = FALSE;
-                $isValid = TRUE;
-            }
-            /* set tokens */
-            $invalidateToken = $isValid && $canRemoveToken ? generateToken(CSRF_INVALIDATE_PENDING_EMAIL) : '';
-            $resendToken = $isValid && $canSendEmail ? generateToken(CSRF_RESEND_ENABLER_EMAIL) : '';
-            /* format datetime */
-            $pendMail->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($pendMail->{EXPIRE_DATETIME}));
-            /* else set false */
-        } else $pendMail = FALSE;
-        /* return data */
-        return [
-            PENDING => $pendMail,
-            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
-            IS_VALID => $isValid,
-            IS_EXPIRED => $isExpired,
-            MESSAGE_EXPIRE => $messageExpire,
-            CAN_SEND_EMAIL => $canSendEmail,
-            CAN_REMOVE_ENABLER_TOKEN => $canRemoveToken,
-            RESEND_ENABLER_EMAIL_TOKEN => $resendToken,
-            INVALIDATE_TOKEN => $invalidateToken
-        ];
-    }
-
-    /* function to get data of pending user */
-    public function getPendingUserData(string $userId, string $datetimeFormat, bool $canViewRole, bool $canSendEmail, bool $canRemoveToken): array {
-        /* init user model and get user */
-        $pendUserModel = new PendingUser($this->conn);
-        /* init var */
-        $messageExpire = '';
-        $isExpire = TRUE;
-        $isValid = FALSE;
-        $resendToken = '';
-        $inavalidateToken = '';
-        if (is_numeric($userId) && ($user = $pendUserModel->getPendingUserAndRole($userId))) {
-            /* set vars */
-            $messageExpire = 'Valid';
-            $isValid = TRUE;
-            /* check lock */
-            if (isset($user->{EXPIRE_DATETIME})) {
-                /* check if is active user */
-                if (isset($user->{USER_ID_FRGN})) {
-                    $messageExpire = 'Active user';
-                    $isValid = FALSE;
-                /* if link is expire set message */
-                } elseif (!isset($user->{ENABLER_TOKEN})) {
-                    $messageExpire = 'No token';
-                    $isValid = FALSE;
-                } elseif (($isExpire = new DateTime($user->{EXPIRE_DATETIME}) < new DateTime())) $messageExpire = 'Expired';
-                /* format the date */
-                $user->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($user->{EXPIRE_DATETIME}));
-            }
-            /* set tokens */
-            $inavalidateToken = $isValid && $canRemoveToken ? generateToken(CSRF_INVALIDATE_PENDING_USER) : '';
-            $resendToken = $isValid && $canSendEmail ? generateToken(CSRF_RESEND_ENABLER_ACC) : '';
-            /* format the date */
-            $user->{REGISTRATION_DATETIME} = date($datetimeFormat, strtotime($user->{REGISTRATION_DATETIME}));
-        }
-
-        /* return data */
-        return [
-            USER => $user,
-            IS_VALID => $isValid,
-            IS_EXPIRED => $isExpire,
-            RESEND_ENABLER_EMAIL_TOKEN => $resendToken,
-            INVALIDATE_TOKEN => $inavalidateToken,
-            MESSAGE_EXPIRE => $messageExpire,
-            VIEW_ROLE => $canViewRole,
-            CAN_SEND_EMAIL => $canSendEmail,
-            CAN_REMOVE_ENABLER_TOKEN => $canRemoveToken,
-            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail)
-        ];
-    }
-
-    /* function to get data of pending email */
-    public function getPassResReqData(string $passResReqId, string $datetimeFormat, bool $canSendEmail, bool $canRemoveToken): array {
-        /* init user model and get user */
-        $passResReqModel = new PasswordResetRequest($this->conn);
-        /* init var */
-        $isValid = FALSE;
-        $isExpired = TRUE;
-        $resendToken = '';
-        $messageExpire = '';
-        $invalidateToken = '';
-        /* if is numeric get pending email by id nad if found it check if is expired and format the date*/
-        if (is_numeric($passResReqId) && ($passResReq = $passResReqModel->getPassResReqLeftUser($passResReqId))) {
-            /* if is not set token */
-            if (!isset($passResReq->{PASSWORD_RESET_TOKEN})) $messageExpire = 'No token';
-            /* else if is expired */
-            elseif (new DateTime($passResReq->{EXPIRE_DATETIME}) < new DateTime()) {
-                $messageExpire = 'Expired';
-                $isValid = TRUE;
-            }
-
-            /* else if is valid */
-            elseif (isset($passResReq->{ENABLED}) && $passResReq->{ENABLED}) {
-                $messageExpire = 'Valid';
-                $isExpired = FALSE;
-                $isValid = TRUE;
-            }
-
-            /* set tokens */
-            $invalidateToken = $isValid && $canRemoveToken ? generateToken(CSRF_INVALIDATE_PASS_RES_REQ) : '';
-            $resendToken = $isValid && $canSendEmail ? generateToken(CSRF_RESEND_PASS_RES_REQ) : '';
-            /* format datetime */
-            $passResReq->{EXPIRE_DATETIME} = date($datetimeFormat, strtotime($passResReq->{EXPIRE_DATETIME}));
-
-            /* else set false */
-        } else $passResReq = FALSE;
-        /* return data */
-        return [
-            REQUEST => $passResReq,
-            SEND_EMAIL_LINK => getSendEmailLink($canSendEmail),
-            IS_VALID => $isValid,
-            IS_EXPIRED => $isExpired,
-            MESSAGE_EXPIRE => $messageExpire,
-            CAN_SEND_EMAIL => $canSendEmail,
-            CAN_REMOVE_ENABLER_TOKEN => $canRemoveToken,
-            RESEND_ENABLER_EMAIL_TOKEN => $resendToken,
-            INVALIDATE_TOKEN => $invalidateToken
-        ];
-    }
     /* ##################################### */
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
@@ -594,12 +336,27 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $closeUrl = "/$page/$rowsForPage$searchQuery";
         $data = [];
         foreach ($columnList as $col) {
-            $data[LINK_HEAD.$col] = '/'.UMS_TABLES_ROUTE."/$table/$col/";
+            $data[LINK_HEAD.$col] = '/'.ADVANCE_SEARCH_ROUTE."/$col/";
             $data[LINK_HEAD.$col] .= $orderBy === $col ? $orderDirRev : DESC;
             $data[LINK_HEAD.$col] .= $closeUrl;
             $data[CLASS_HEAD.$col] = $orderBy === $col ? "fas fa-sort-$orderDirClass" : '';
         }
         return $data;
+    }
+
+    /* function to get a advance search query */
+    private function getAdvanceSearchQuery(array $searchData): string {
+        /* filter data and calc the needly ands */
+        $searchData = array_filter($searchData);
+        $and = count($searchData)-1;
+        /* init query string */
+        $query = empty($searchData) ? '' : '?';
+        /* iterate search data and create query */
+        foreach ($searchData as $key => $val) {
+            $query .= "$key=$val";
+            if ($and-- > 0) $query .= '&';
+        }
+        return $query;
     }
 
     /* function to get search param */
@@ -618,51 +375,175 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
     private function getSearchParam(): array {
         return [
             USERS_TABLE => [
-                USER_ID => 'User id',
-                NAME => 'Name',
-                USERNAME => 'Username',
-                EMAIL => 'Email',
-                ROLE => 'Role',
-                ENABLED => 'Enabled',
-                REGISTRATION_DATETIME => 'Registration datetime',
-                EXPIRE_LOCK => 'Expire lock datetime'
+                USER_ID => [
+                    VALUE => 'User id',
+                    TYPE => 'text'
+                ],
+                NAME => [
+                    VALUE => 'Name',
+                    TYPE => 'text'
+                ],
+                USERNAME => [
+                    VALUE => 'Username',
+                    TYPE => 'text'
+                ],
+                EMAIL => [
+                    VALUE => 'Email',
+                    TYPE => 'text'
+                ],
+                ROLE => [
+                    VALUE => 'Role',
+                    TYPE => 'select',
+                    SELECT_LIST => [
+                        USER_ROLE_ID => 'User',
+                        EDITOR_ROLE_ID => 'Editor',
+                        ADMIN_ROLE_ID => 'Admin'
+                    ]
+                ],
+                ENABLED => [
+                    VALUE => 'Enabled',
+                    TYPE => 'select',
+                    SELECT_LIST => [
+                        1 => 'Enabled',
+                        0 => 'Disabled'
+                    ]
+                ],
+                REGISTRATION_DATETIME => [
+                    VALUE => 'Registration datetime',
+                    TYPE => 'datetime'
+                ],
+                EXPIRE_LOCK => [
+                    VALUE => 'Expire lock datetime',
+                    TYPE => 'datetime'
+                ]
             ],
             DELETED_USER_TABLE => [
-                DELETED_USER_ID => 'Deleted user id',
-                USER_ID_FRGN => ' User id',
-                NAME=> 'Name',
-                USERNAME => 'Username',
-                EMAIL => 'Email',
-                ROLE => 'Role',
-                REGISTRATION_DATETIME => 'Regiastration datetime'
+                DELETED_USER_ID => [
+                    VALUE => 'Deleted user id',
+                    TYPE => 'text'
+                ],
+                USER_ID_FRGN => [
+                    VALUE => 'User id',
+                    TYPE => 'text'
+                ],
+                NAME => [
+                    VALUE => 'Name',
+                    TYPE => 'text'
+                ],
+                USERNAME => [
+                    VALUE => 'Username',
+                    TYPE => 'text'
+                ],
+                EMAIL => [
+                    VALUE => 'Email',
+                    TYPE => 'text'
+                ],
+                ROLE => [
+                    VALUE => 'Role',
+                    TYPE => 'select',
+                    SELECT_LIST => [
+                        USER_ROLE_ID => 'User',
+                        EDITOR_ROLE_ID => 'Editor',
+                        ADMIN_ROLE_ID => 'Admin'
+                    ]
+                ],
+                REGISTRATION_DATETIME => [
+                    VALUE => 'Registration datetime',
+                    TYPE => 'datetime'
+                ]
             ],
             PENDING_USERS_TABLE => [
-                PENDING_USER_ID => 'Pending user id',
-                USER_ID_FRGN => ' User id',
-                NAME=> 'Name',
-                USERNAME => 'Username',
-                EMAIL => 'Email',
-                ROLE => 'Role',
-                REGISTRATION_DATETIME => 'Regiastration datetime',
-                EXPIRE_DATETIME => 'Expire datetime'
+                PENDING_USER_ID => [
+                    VALUE => 'Pending user id',
+                    TYPE => 'text'
+                ],
+                USER_ID_FRGN => [
+                    VALUE => 'User id',
+                    TYPE => 'text'
+                ],
+                NAME => [
+                    VALUE => 'Name',
+                    TYPE => 'text'
+                ],
+                USERNAME => [
+                    VALUE => 'Username',
+                    TYPE => 'text'
+                ],
+                EMAIL => [
+                    VALUE => 'Email',
+                    TYPE => 'text'
+                ],
+                ROLE => [
+                    VALUE => 'Role',
+                    TYPE => 'select',
+                    SELECT_LIST => [
+                        USER_ROLE_ID => 'User',
+                        EDITOR_ROLE_ID => 'Editor',
+                        ADMIN_ROLE_ID => 'Admin'
+                    ]
+                ],
+                REGISTRATION_DATETIME => [
+                    VALUE => 'Registration datetime',
+                    TYPE => 'datetime'
+                ],
+                EXPIRE_DATETIME => [
+                    VALUE => 'Expire datetime',
+                    TYPE => 'datetime'
+                ]
             ],
             PENDING_EMAILS_TABLE => [
-                PENDING_EMAIL_ID => 'Pending email id',
-                USER_ID_FRGN => ' User id',
-                NEW_EMAIL => 'New email',
-                EXPIRE_DATETIME => 'Expire datetime'
+                PENDING_EMAIL_ID => [
+                    VALUE => 'Pending email id',
+                    TYPE => 'text'
+                ],
+                USER_ID_FRGN => [
+                    VALUE => 'User id',
+                    TYPE => 'text'
+                ],
+                NEW_EMAIL => [
+                    VALUE => 'New email',
+                    TYPE => 'text'
+                ],
+                EXPIRE_DATETIME => [
+                    VALUE => 'Expire datetime',
+                    TYPE => 'datetime'
+                ]
             ],
             SESSIONS_TABLE => [
-                SESSION_ID => 'Session id',
-                USER_ID_FRGN => ' User id',
-                IP_ADDRESS => 'IP address',
-                EXPIRE_DATETIME => 'Expire datetime'
+                SESSION_ID => [
+                    VALUE => 'Session id',
+                    TYPE => 'text'
+                ],
+                USER_ID_FRGN => [
+                    VALUE => 'User id',
+                    TYPE => 'text'
+                ],
+                IP_ADDRESS => [
+                    VALUE => 'IP address',
+                    TYPE => 'text'
+                ],
+                EXPIRE_DATETIME => [
+                    VALUE => 'Expire datetime',
+                    TYPE => 'datetime'
+                ]
             ],
             PASSWORD_RESET_REQ_TABLE => [
-                PASSWORD_RESET_REQ_TABLE => 'Password reset request id',
-                USER_ID_FRGN => ' User id',
-                IP_ADDRESS => 'IP address',
-                EXPIRE_DATETIME => 'Expire datetime'
+                PASSWORD_RESET_REQ_TABLE => [
+                    VALUE => 'Password reset request id',
+                    TYPE => 'text'
+                ],
+                USER_ID_FRGN => [
+                    VALUE => ' User id',
+                    TYPE => 'text'
+                ],
+                IP_ADDRESS => [
+                    VALUE => 'IP address',
+                    TYPE => 'text'
+                ],
+                EXPIRE_DATETIME => [
+                    VALUE => 'Expire datetime',
+                    TYPE => 'datetime'
+                ]
             ]
         ];
     }

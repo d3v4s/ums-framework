@@ -7,7 +7,7 @@ $(document).ready(function() {
 
 		$item.change(function() {
 //			$('input[type=radio][name="' + item.name + '"]').on('change', function() {
-			$('.table-param input[type=text]').attr('disabled', 'disabled');
+			$('.table-param .search-param').attr('disabled', 'disabled');
 			$('.collapse.table-param').collapse('hide');
 			if ($item.is(':checked')) $target.collapse('show');
 		});

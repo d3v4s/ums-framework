@@ -15,16 +15,35 @@
 					<?php foreach (${TABLES_LIST} as $table => $tableName): ?>
 						<div id="table-param-<?=$table?>" class="container-fluid m-auto row collapse hide table-param">
 							<h5 class="col-12"><?=$tableName?></h5>
-							<?php foreach (${SEARCH_PARAMS}[$table] as $param => $paramName): ?>
+							<?php foreach (${SEARCH_PARAMS}[$table] as $param => $attr): ?>
 								<div class="input-group m-2 text-center justify-content-center mx-auto">
 									<div class="input-group-prepend">
 										<span class="input-group-text">
-											<input type="checkbox" data-toggle="param" data-target="#<?=$param?>">
+											<input type="checkbox" data-toggle="param" data-target="<?="#$table-$param"?>" <?=(${TABLE} === $table && isset(${PARAM_VALUES}[$param])) ? CHECKED :  ''?>>
 										</span>
 									</div>
-									<input id="<?=$param?>" type="text" class="form-control" name="<?=$param?>">
+									<?php
+                                    switch ($attr[TYPE]): 
+                                        case 'text':
+                                    ?>                                    			
+											<input id="<?="$table-$param"?>" type="text" class="form-control search-param" name="<?=$param?>" value="<?=(${TABLE} === $table) ? ${SEARCH_PARAMS}[$param] ?? '' : ''?>">
+									<?php
+                                            break;
+                                        case 'datetime':
+                                    ?> 
+                                    		<input id="<?="$table-$param"?>" type="datetime" class="form-control search-param" name="<?=$param?>" value="<?=(${TABLE} === $table) ? ${SEARCH_PARAMS}[$param] ?? '' : ''?>">
+                            		<?php
+                                            break;
+                                        case 'select':
+                            		?>
+                            				<select id="<?="$table-$param"?>" name="<?=$param?>" class="search-param">
+                                    			<?php foreach ($attr[SELECT_LIST] as $key => $val): ?>
+                                	    			<option <?=(${TABLE} === $table && isset(${PARAM_VALUES}[$param]) && $key === ${PARAM_VALUES}[$param]) ? 'selected="selected"' : ''?> value="<?=$key?>"><?=$val?></option>
+                                    			<?php endforeach; ?>
+                                    		</select>
+									<?php endswitch;?>
 									<div class="input-group-append">
-										<span class="input-group-text"><?=$paramName?></span>
+										<span class="input-group-text"><?=$attr[VALUE]?></span>
 									</div>
                                 </div>
 							<?php endforeach; ?>

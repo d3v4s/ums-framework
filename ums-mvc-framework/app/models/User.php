@@ -320,7 +320,30 @@ class User {
         /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     }
-    
+
+    /* function count users for advance search */
+    public function countAdvanceSearchUsers(array $searchData): int {
+        /* create sql query */
+        $searchData = array_filter($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE.' JOIN ';
+        $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID.' WHERE ';
+        /* append query search */
+        if (isset($searchData[USER_ID])) $sql .= USER_ID.'=:'.USER_ID;
+        else {
+            $and = count($searchData)-1;
+//             $keys = array_keys($searchData);
+            foreach ($searchData as $key => $val) {
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
 
     /* ############# UPDATE FUNCTIONS ############# */
 

@@ -395,6 +395,10 @@ define('RESULT', 'rslt');
 define('COLUMN_LIST', 'cmln_lst');
 define('TABLES_LIST', 'tbls_lst');
 define('SEARCH_PARAMS', 'srch_param');
+define('PARAM_VALUES', 'prm_val');
+define('VALUE', 'val');
+define('TYPE', 'tp');
+define('SELECT_LIST', 'slct_lst');
 
 /* CONSTANTS FOR PAGINATION */
 define('LINK_PAGIN_ARROW_LEFT', 'lnk_pgn_arlft');

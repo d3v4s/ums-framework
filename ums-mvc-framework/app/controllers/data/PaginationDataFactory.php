@@ -26,7 +26,8 @@ class PaginationDataFactory extends DataFactory {
     }
 
     /* function to get the order by */
-    protected function getOrderBy(string $orderBy, array $orderByList, string $orderByDefault): string {
+    protected function getOrderBy(string $orderBy=NULL, array $orderByList, string $orderByDefault): string {
+        $orderBy = $orderBy ?? $orderByDefault;
         return in_array($orderBy, $orderByList) ? $orderBy : $orderByDefault;
     }
 
