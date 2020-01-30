@@ -28,6 +28,7 @@ class UMSActionsController extends UMSBaseController {
 
     /* fuction to switch request */
     public function switchShowAction(string $table, string $action, string $id='') {
+        $this->redirectOrFailIfSimpleUser();
         switch ($table) {
             case USERS_TABLE:
                 $this->switchShowUserAction($action, $id);

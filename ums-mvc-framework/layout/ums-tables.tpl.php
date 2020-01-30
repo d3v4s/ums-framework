@@ -69,6 +69,9 @@
                     		<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.$table?>"><?=ucfirst($name)?></a>
                     	</li>
 					<?php endforeach; ?>
+					<li class="p-2 nav-item <?=$this->isAdvanceSearch ? 'active' : ''?>">
+						<a class="nav-link" href="/<?=ADVANCE_SEARCH_ROUTE?>">Advance Search</a>
+					</li>
 				</ul>
             </div>
 			<div class="container-fluid p-3 my-2 justify-content-center text-center">

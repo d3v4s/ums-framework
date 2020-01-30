@@ -86,4 +86,23 @@ class PaginationDataFactory extends DataFactory {
             BASE_LINK_ROWS_FOR_PAGE => "$baseLinkPagination$page/"
         ];
     }
+
+    public function getPaginationDefaultData(): array {
+        return [
+            SEARCH => '',
+            SEARCH_QUERY => '',
+            ROWS_FOR_PAGE => 10,
+            PAGE => 1,
+            MAX_PAGES => 1,
+            START_PAGE => 1,
+            STOP_PAGE => 1,
+            CLOSE_LINK_PAGIN => '',
+            BASE_LINK_PAGIN => '',
+            LINK_PAGIN_ARROW_LEFT => '',
+            CLASS_PAGIN_ARROW_LEFT => DISABLED,
+            LINK_PAGIN_ARROW_RIGHT => '',
+            CLASS_PAGIN_ARROW_RIGHT => DISABLED,
+            BASE_LINK_ROWS_FOR_PAGE => ''
+        ];
+    }
 }

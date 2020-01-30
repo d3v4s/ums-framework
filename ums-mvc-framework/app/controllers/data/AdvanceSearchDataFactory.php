@@ -18,7 +18,7 @@ use \PDO;
  * management system
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class UMSTablesDataFactory extends PaginationDataFactory {
+class AdvanceSearchDataFactory extends PaginationDataFactory {
 
     protected function __construct(PDO $conn=NULL) {
         parent::__construct($conn);
@@ -28,10 +28,59 @@ class UMSTablesDataFactory extends PaginationDataFactory {
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
 
+    public function getAdvanceSearchData(string $orderBy=NULL, string $orderDir, int $page, int $rowsForPage, array $searchParam): array {
+        /* check if is set table */ 
+        if (isset($searchParam[TABLE]) && !empty($searchParam[TABLE])) {
+            /* switch view */
+            switch ($searchParam[TABLE]) {
+                case USERS_TABLE:
+                    $data = $this->getUsersData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
+                    break;
+                case DELETED_USER_TABLE:
+                    $this->showDeletedUsersList($orderBy, $orderDir, $page, $rowsForPage);
+                    break;
+                case PENDING_USERS_TABLE:
+                    $this->showPendingUsersList($orderBy, $orderDir, $page, $rowsForPage);
+                    break;
+                case PENDING_EMAILS_TABLE:
+                    $this->showPendingEmailsList($orderBy, $orderDir, $page, $rowsForPage);
+                    break;
+                case ROLES_TABLE:
+                    $this->showRolesList($orderBy, $orderDir, $page, $rowsForPage);
+                    break;
+                case SESSIONS_TABLE:
+                    $this->showSessionsList($orderBy, $orderDir, $page, $rowsForPage);
+                    break;
+                case PASSWORD_RESET_REQ_TABLE:
+                    $this->showPassResetReqList($orderBy, $orderDir, $page, $rowsForPage);
+                    break;
+                default:
+                    $this->showMessageAndExit('INVALID TABLE', TRUE);
+                    break;
+            }
+        } else $data = $this->getDefaultData();
+
+        return $data;
+    }
+
     /* ########## TABLES FUNCTIONS ########## */
 
+    /* fuction to get default data */
+    public function getDefaultData(): array {
+        return array_merge($this->getPaginationDefaultData(),[
+            SEARCH_ACTION => '/'.ADVANCE_SEARCH_ROUTE,
+            TOT_ROWS => 0,
+            HEAD_TABLE_LIST => [],
+            RESULT => [],
+            TABLES_LIST => $this->getTablesList(),
+            SEARCH_PARAMS => $this->getSearchParam(),
+            TABLE => ''
+            
+        ]);
+    }
+
     /* function to get data of users list */
-    public function getUsersListData(string $orderBy, string $orderDir, int $page, int $usersForPage, string $search, bool $canViewRole, bool $canSendEmails): array {
+    public function getUsersData(string $orderBy=NULL, string $orderDir, int $page, int $usersForPage, array $searchParam): array {
         /* init user model and count users */
         $userModel = new User($this->conn);
         $totUsers = $userModel->countAllUsers($search);
@@ -551,5 +600,70 @@ class UMSTablesDataFactory extends PaginationDataFactory {
             $data[CLASS_HEAD.$col] = $orderBy === $col ? "fas fa-sort-$orderDirClass" : '';
         }
         return $data;
+    }
+
+    /* function to get search param */
+    private function getTablesList(): array {
+        return [
+            USERS_TABLE => 'Users',
+            DELETED_USER_TABLE => 'Deleted users',
+            PENDING_USERS_TABLE => 'Pending users',
+            PENDING_EMAILS_TABLE => 'Pending emails',
+            SESSIONS_TABLE => 'Session',
+            PASSWORD_RESET_REQ_TABLE => 'Password reset request'
+        ];
+    }
+
+    /* function to get search params */
+    private function getSearchParam(): array {
+        return [
+            USERS_TABLE => [
+                USER_ID => 'User id',
+                NAME => 'Name',
+                USERNAME => 'Username',
+                EMAIL => 'Email',
+                ROLE => 'Role',
+                ENABLED => 'Enabled',
+                REGISTRATION_DATETIME => 'Registration datetime',
+                EXPIRE_LOCK => 'Expire lock datetime'
+            ],
+            DELETED_USER_TABLE => [
+                DELETED_USER_ID => 'Deleted user id',
+                USER_ID_FRGN => ' User id',
+                NAME=> 'Name',
+                USERNAME => 'Username',
+                EMAIL => 'Email',
+                ROLE => 'Role',
+                REGISTRATION_DATETIME => 'Regiastration datetime'
+            ],
+            PENDING_USERS_TABLE => [
+                PENDING_USER_ID => 'Pending user id',
+                USER_ID_FRGN => ' User id',
+                NAME=> 'Name',
+                USERNAME => 'Username',
+                EMAIL => 'Email',
+                ROLE => 'Role',
+                REGISTRATION_DATETIME => 'Regiastration datetime',
+                EXPIRE_DATETIME => 'Expire datetime'
+            ],
+            PENDING_EMAILS_TABLE => [
+                PENDING_EMAIL_ID => 'Pending email id',
+                USER_ID_FRGN => ' User id',
+                NEW_EMAIL => 'New email',
+                EXPIRE_DATETIME => 'Expire datetime'
+            ],
+            SESSIONS_TABLE => [
+                SESSION_ID => 'Session id',
+                USER_ID_FRGN => ' User id',
+                IP_ADDRESS => 'IP address',
+                EXPIRE_DATETIME => 'Expire datetime'
+            ],
+            PASSWORD_RESET_REQ_TABLE => [
+                PASSWORD_RESET_REQ_TABLE => 'Password reset request id',
+                USER_ID_FRGN => ' User id',
+                IP_ADDRESS => 'IP address',
+                EXPIRE_DATETIME => 'Expire datetime'
+            ]
+        ];
     }
 }
