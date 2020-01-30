@@ -67,8 +67,6 @@ define('USE_REGEX_EMAIL', TRUE);
 define('REGEX_EMAIL', '/^[a-zA-Z\d\-_%.]+@[a-zA-Z\d\-.]+\.[a-zA-Z]+$/');
 define('USE_REGEX_PASSWORD', TRUE);
 define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@!%*?&._\-]))[A-Za-z0-9$@!%*?&._\-]{'.MIN_LENGTH_PASS.',}$/');
-// define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\W]))[A-Za-z\d\W]{'.MIN_LENGTH_PASS.',}$/');
-// define('REGEX_PASSWORD', '/^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@!%*?&._\-]))[A-Za-z\d$@!%*?&._\-]{8,}$/');
 
 /* CONTANTS USED FOR HTML, JS AND OTHER SOURCES */ 
 define('NAME_LAYOUT_DATA', 'name-layout-');
@@ -109,18 +107,13 @@ define('REDIRECT_TO', 'redirect_to');
 define('DOUBLE_LOGIN_REQUIRE', 'dbl_lgn_rq');
 define('MESSAGE_LANG_SOURCES', 'msg');
 define('DATA_LANG_SOURCES', 'data');
+define('TABLE', 'tbl');
 
 /* ROUTES CONSTANTS */
 define('HOME_ROUTE', '');
 define('UMS_HOME_ROUTE', 'ums');
-// define('USER_ROUTE', 'ums/'.USERS_TABLE);
-// define('DELETED_USER_ROUTE', 'ums/'.DELETED_USER_TABLE);
-// define('SESSION_ROUTE', 'ums/'.SESSIONS_TABLE);
-// define('PENDING_EMAIL_ROUTE', 'ums/'.PENDING_EMAILS_TABLE);
-// define('PENDING_USER_ROUTE', 'ums/'.PENDING_USERS_TABLE);
-// define('PASS_RESE_ROUTE', 'ums/'.PENDING_USERS_TABLE);
-// define('NEW_USER_ROUTE', 'ums/user/new');
 define('UMS_TABLES_ROUTE', 'ums/table');
+define('ADVANCE_SEARCH_ROUTE', 'ums/search/advance');
 define('NEW_EMAIL_ROUTE', 'ums/email/new');
 define('SEND_EMAIL_ROUTE', 'ums/email/send');
 define('APP_SETTINGS_ROUTE', 'ums/app/settings');
@@ -155,7 +148,6 @@ define('RESTORE_ROUTE', 'restore');
 define('SAVE_ROUTE', 'save');
 define('GET_ROUTE', 'get');
 define('PASS_UPDATE_ROUTE', 'password_update');
-// define('LOCK_COUNTERS_RESET_ROUTE', UPDATE_ROUTE.'/reset/locks');
 
 /* CONSTANTS FOR SOURCES */
 define('SOURCE', 'src');
@@ -368,6 +360,7 @@ define('ENABLED_USERS', 'enbl_usrs');
 define('PENDING_USERS', 'pend_usrs');
 define('PENDING_EMAILS', 'pend_mls');
 define('VALID_SESSIONS', 'vld_ssns');
+define('TOT_ROWS', 'tot_rws');
 define('TOT_USERS', 'tot_usrs');
 define('TOT_DELETED_USERS', 'tot_del_usrs');
 define('TOT_PENDING_USERS', 'tot_pen_usrs');
@@ -379,6 +372,7 @@ define('MAX_PAGES', 'max_pages');
 define('START_PAGE', 'strt_pg');
 define('STOP_PAGE', 'stp_pg');
 define('LINK_HEAD', 'lnk_hd_');
+define('HEAD_TABLE_LIST', 'hd_tbl_lst');
 define('CLASS_HEAD', 'clss_hd_');
 define('SEND_EMAIL_LINK', 'lnk_sndml');
 define('BASE_LINK_ROWS_FOR_PAGE', 'bs_lnk_rfp');
@@ -397,6 +391,10 @@ define('MESSAGE_EXPIRE', 'msg_expr');
 define('WAIT_EMAIL_CONFIRM', 'wt_cnf_mail');
 define('VIEW_ROLE', 'view_role');
 define('DOUBLE_LOGIN_SESSION', 'dbl_lgn_ssn');
+define('RESULT', 'rslt');
+define('COLUMN_LIST', 'cmln_lst');
+define('TABLES_LIST', 'tbls_lst');
+define('SEARCH_PARAMS', 'srch_param');
 
 /* CONSTANTS FOR PAGINATION */
 define('LINK_PAGIN_ARROW_LEFT', 'lnk_pgn_arlft');

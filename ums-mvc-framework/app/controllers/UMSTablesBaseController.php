@@ -9,6 +9,7 @@ use \PDO;
  */
 class UMSTablesBaseController extends UMSBaseController {
     protected $table;
+    protected $isAdvanceSearch = FALSE;
 
     public function __construct(PDO $conn, array $appConfig, string $layout=UMS_TABLES_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
