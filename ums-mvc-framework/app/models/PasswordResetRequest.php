@@ -7,17 +7,22 @@ use \PDO;
  * Class model for CRUD operations on pending password reset request db table
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class PasswordResetRequest {
-    protected $conn;
-
-    public function __construct(PDO $conn) {
-        $this->conn = $conn;
-    }
+class PasswordResetRequest extends DbModel {
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
-    
+
+    /* function to get coloumn list */
+    public function getColList(): array {
+        return [
+            PASSWORD_RESET_REQ_ID,
+            USER_ID_FRGN,
+            IP_ADDRESS,
+            EXPIRE_DATETIME
+        ];
+    }
+
     /* ############# CREATE FUNCTIONS ############# */
 
     /* function to add new password reset request */
@@ -82,6 +87,46 @@ class PasswordResetRequest {
         /* if success, then return users list */
         if ($stmt) return $stmt->fetchAll(PDO::FETCH_OBJ);
         /* else return empty array */
+        return [];
+    }
+
+    /* function get sessions for advance search */
+    public function getPassResReqAdvanceSearch(string $orderBy=PASSWORD_RESET_REQ_ID, string $orderDir=DESC, int $start=0, int $nRow=10, array $searchData=[]): array {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT * FROM '.PASSWORD_RESET_REQ_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[PASSWORD_RESET_REQ_ID])) {
+            $sql .= PASSWORD_RESET_REQ_ID.'=:'.PASSWORD_RESET_REQ_ID;
+            $searchData = [
+                PASSWORD_RESET_REQ_ID => $searchData[PASSWORD_RESET_REQ_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, $this->getColList()) ? $orderBy : PASSWORD_RESET_REQ_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
+        
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* if success, then return users list */
+        if ($stmt->errorCode() == 0) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            return $users;
+        }
+        /* else return empty array*/
         return [];
     }
 
@@ -169,6 +214,34 @@ class PasswordResetRequest {
         $stmt->execute($data);
         /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    /* function count password reset requests for advance search */
+    public function countAdvanceSearchPassResReq(array $searchData=[]): int {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.PASSWORD_RESET_REQ_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[PASSWORD_RESET_REQ_ID])) {
+            $sql .= PASSWORD_RESET_REQ_ID.'=:'.PASSWORD_RESET_REQ_ID;
+            $searchData = [
+                PASSWORD_RESET_REQ_ID => $searchData[PASSWORD_RESET_REQ_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* ############# UPDATE FUNCTIONS ############# */

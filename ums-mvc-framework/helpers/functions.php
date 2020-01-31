@@ -234,86 +234,10 @@ function isSimpleUser($roleId): bool {
     return $roleId === DEFAULT_ROLE;
 }
 
-// function isUserLoggedin(): bool {
-//     return $_SESSION['loggedin'] ?? FALSE;
-// }
-
-// function getUserLogged() {
-//     return $_SESSION['user'] ?? NULL;
-// }
-
-// function getUserLoggedFullName(): string {
-//     return $_SESSION['user']->name ?? '';
-// }
-
-// function getUserLoggedUsername(): string {
-//     return $_SESSION['user']->username ?? '';
-// }
-
-// function getUserLoggedEmail(): string {
-//     return $_SESSION['user']->email ?? '';
-// }
-
-// function getUserLoggedRole(): string {
-//     return $_SESSION['user']->roletype ?? '';
-// }
-
-// function getUserLoggedID(): string {
-//     return $_SESSION['user']->id ?? '';
-// }
-
-// function getUserLoggedNewEmail() {
-//     return $_SESSION['user']->new_email ?? FALSE;
-// }
-
-// function getUserLoggedTokenConfirmEmail() {
-//     return $_SESSION['user']->token_confirm_email ?? FALSE;
-// }
-
-// function isUserAdmin(): bool {
-//     return getUserLoggedRole() === 'admin';
-// }
-
-// function isUserEditor(): bool {
-//     return getUserLoggedRole() === 'editor';
-// }
-
-// function isUser(): bool {
-//     return getUserLoggedRole() === 'user';
-// }
-
-// function isNotSimpleUser(): bool {
-//     return isUserLoggedin() && !isUser();
-// }
-
-// function userCanCreate(): bool {
-//     return isUserAdmin();
-// }
-
-// function userCanUpdate(): bool {
-//     return isUserAdmin() || isUserEditor();
-// }
-
-// function userCanDelete(): bool {
-//     return isUserAdmin();
-// }
-
-// function userCanChangePasswords(): bool {
-//     return isUserAdmin();
-// }
-
-// function userCanGenerateRsaKey(): bool {
-//     return isUserAdmin();
-// }
-
-// function userCanGenerateSiteMap(): bool {
-//     return isUserAdmin();
-// }
-
-// function userCanChangeSettings(): bool {
-//     return isUserAdmin();
-// }
-
-// function userCanSendEmail(): bool {
-//     return isUserAdmin();
-// }
+/* function to get  */
+function filterNullVal(array $array): array {
+    return array_filter($array, function($val, $key) {
+//         var_dump($val !== NULL);
+        return $val !== NULL;
+    }, ARRAY_FILTER_USE_BOTH);
+}

@@ -7,17 +7,29 @@ use \PDO;
  * Class model for CRUD operations on ums db tables
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class User {
+class User extends DbModel {
     protected $conn;
 
     public function __construct(PDO $conn) {
         $this->conn = $conn;
-//         $this->appConfig = $appConfig ?? getConfig();
     }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    public function getColList(): array {
+        return [
+            USER_ID,
+            NAME,
+            USERNAME,
+            EMAIL,
+            ROLE_ID_FRGN,
+            ENABLED,
+            REGISTRATION_DATETIME,
+            EXPIRE_LOCK
+        ];
+    }
 
     /* ############# CREATE FUNCTIONS ############# */
 
@@ -138,7 +150,7 @@ class User {
         $orderBy = in_array($orderBy, USERS_ORDER_BY_LIST) ? $orderBy : USER_ID;
         $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
         $start = is_numeric($start) ? $start : 0;
-        $nRow = is_numeric($nRow) ? $nRow : 20;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
 
         /* prepare and execute sql query */
         $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
@@ -146,12 +158,53 @@ class User {
         $stmt->execute($data);
 
         /* if success, then return users list */
-        if ($stmt) {
+        if ($stmt->errorCode() == 0) {
             $users = $stmt->fetchAll(PDO::FETCH_OBJ);
             foreach ($users as $user) unset($user->password);
             return $users;
         }
         /* else return empty array */
+        return [];
+    }
+
+    /* function get users for advance search */
+    public function getUsersAdvanceSearch(string $orderBy=USER_ID, string $orderDir=DESC, int $start=0, int $nRow=10, array $searchData=[]): array {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT * FROM '.USERS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[USER_ID])) {
+            $sql .= USER_ID.'=:'.USER_ID;
+            $searchData = [
+                USER_ID => $searchData[USER_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, $this->getColList()) ? $orderBy : USER_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
+        
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* if success, then return users list */
+        if ($stmt->errorCode() == 0) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            foreach ($users as $user) unset($user->password);
+            return $users;
+        }
+        /* else return empty array*/
         return [];
     }
 
@@ -162,7 +215,7 @@ class User {
         $stmt->bindParam('id', $id, PDO::PARAM_INT);
         $stmt->execute();
         /* if success query and find user return user */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
         }
@@ -181,7 +234,7 @@ class User {
         $stmt->execute();
         
         /* if success query and find user return user */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
         }
@@ -215,7 +268,7 @@ class User {
         $stmt->execute(['username' => $username]);
 
         /* if find user return it */
-        if ($stmt && $user = $stmt->fetch(PDO::FETCH_OBJ)) {
+        if ($stmt->errorCode() == 0 && $user = $stmt->fetch(PDO::FETCH_OBJ)) {
             /* unset password if require */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -235,7 +288,7 @@ class User {
         $stmt->execute(['username' => $username]);
         
         /* if find user return it */
-        if ($stmt && $user = $stmt->fetch(PDO::FETCH_OBJ)) {
+        if ($stmt->errorCode() == 0 && $user = $stmt->fetch(PDO::FETCH_OBJ)) {
             /* unset password if require */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -255,7 +308,7 @@ class User {
         ]);
         
         /* check statement, get lock and return it */
-        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) return $userLock;
+        if ($stmt->errorCode() == 0 && ($userLock = $stmt->fetch(PDO::FETCH_ASSOC))) return $userLock;
         
         /* return fail result */
         return FALSE;
@@ -274,7 +327,7 @@ class User {
         ]);
         
         /* check statement, get lock and return it */
-        if ($stmt && ($userLock = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($userLock = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* unset password and return user */
             unset($userLock->{PASSWORD});
             return $userLock;
@@ -307,7 +360,7 @@ class User {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
         /* return total users */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* function to count the enabled users on table */
@@ -318,9 +371,35 @@ class User {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         /* return total users */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ?  $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
-    
+
+    /* function count users for advance search */
+    public function countAdvanceSearchUsers(array $searchData=[]): int {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[USER_ID])) {
+            $sql .= USER_ID.'=:'.USER_ID;
+            $searchData = [
+                USER_ID => $searchData[USER_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
+    }
 
     /* ############# UPDATE FUNCTIONS ############# */
 

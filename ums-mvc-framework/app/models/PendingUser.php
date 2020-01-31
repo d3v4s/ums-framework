@@ -7,17 +7,26 @@ use \PDO;
  * Class model for CRUD operations on pending users db table
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class PendingUser {
-    protected $conn;
-
-    public function __construct(PDO $conn) {
-        $this->conn = $conn;
-    }
+class PendingUser extends DbModel {
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
-    
+
+    /* function to get coloumn list */
+    public function getColList(): array {
+        return [
+            PENDING_USER_ID,
+            USER_ID_FRGN,
+            NAME,
+            USERNAME,
+            EMAIL,
+            ROLE_ID_FRGN,
+            REGISTRATION_DATETIME,
+            EXPIRE_DATETIME
+        ];
+    }
+
     /* ############# CREATE FUNCTIONS ############# */
 
     /* function to save new pending user */
@@ -60,7 +69,7 @@ class PendingUser {
     /* ############# READ FUNCTIONS ############# */
 
     /* function to get pending user list*/
-    public function getPendingUsers(string $orderBy = PENDING_USER_ID, string $orderDir = DESC, string $search = '', int $start = 0, int $nRow = 10) {
+    public function getPendingUsers(string $orderBy=PENDING_USER_ID, string $orderDir=DESC, string $search='', int $start=0, int $nRow=10) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' JOIN ';
         $sql .= ROLES_TABLE.' ON '.ROLE_ID_FRGN.'='.ROLE_ID;
@@ -85,12 +94,57 @@ class PendingUser {
         $stmt->execute($data);
 
         /* if success, then return users list */
-        if ($stmt) {
+        if ($stmt->errorCode() == 0) {
             $users = $stmt->fetchAll(PDO::FETCH_OBJ);
             foreach ($users as $user) unset($user->password);
             return $users;
         }
         /* else return empty array */
+        return [];
+    }
+
+    /* function get pending users for advance search */
+    public function getPendingUsersAdvanceSearch(string $orderBy=PENDING_USER_ID, string $orderDir=DESC, int $start=0, int $nRow=10, array $searchData=[]): array {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[PENDING_USER_ID])) {
+            $sql .= PENDING_USER_ID.'=:'.PENDING_USER_ID;
+            $searchData = [
+                PENDING_USER_ID => $searchData[PENDING_USER_ID]
+            ];
+        } else if (isset($searchData[USER_ID_FRGN])) {
+            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+            $searchData = [
+                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, $this->getColList()) ? $orderBy : PENDING_USER_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
+        
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* if success, then return users list */
+        if ($stmt->errorCode() == 0) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            return $users;
+        }
+        /* else return empty array*/
         return [];
     }
 
@@ -101,7 +155,7 @@ class PendingUser {
         $stmt->execute(['id' => $id]);
 
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if require unset password */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -120,7 +174,7 @@ class PendingUser {
         $stmt->execute(['id' => $id]);
 
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if require unset password */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -137,7 +191,7 @@ class PendingUser {
         $stmt->execute(['id' => $pendUserId]);
         
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if require unset password */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -153,7 +207,7 @@ class PendingUser {
         $stmt->execute(['token' => $token]);
         
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if require unset password */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -183,7 +237,7 @@ class PendingUser {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
         /* return total users */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* function to count only the valid pending users on table */
@@ -197,7 +251,39 @@ class PendingUser {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         /* return total users */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
+    }
+
+    /* function count pending users for advance search */
+    public function countAdvanceSearchPendingUsers(array $searchData=[]): int {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[PENDING_USER_ID])) {
+            $sql .= PENDING_USER_ID.'=:'.PENDING_USER_ID;
+            $searchData = [
+                PENDING_USER_ID => $searchData[PENDING_USER_ID]
+            ];
+        } else if (isset($searchData[USER_ID_FRGN])) {
+            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+            $searchData = [
+                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* ############# UPDATE FUNCTIONS ############# */

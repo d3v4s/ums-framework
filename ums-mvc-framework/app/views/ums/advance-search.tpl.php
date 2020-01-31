@@ -3,7 +3,7 @@
     <header class="p-3">
     	<nav class="navbar navbar-expand-md justify-content-center">
     		<form id="advance-search-form" class="form-inline text-center justify-content-center" action="<?=${SEARCH_ACTION}?>" method="get">
-				<div class="container-fluid p-3 text-center justify-content-center row">
+				<div class="container-fluid p-3 text-center justify-content-center row table-list">
 					<?php foreach(${TABLES_LIST} as $table => $name): ?>
 						<div class="form-check form-check-inline text-left m-2">
                 			<input id="<?=$table?>" name="<?=TABLE?>" type="radio" class="form-check-input" data-toggle="table" data-target="#table-param-<?=$table?>" value="<?=$table?>" <?=$table === ${TABLE} ? CHECKED : ''?>>
@@ -13,18 +13,33 @@
 				</div>
 				<div class="container-fluid row justify-content-center text-center p-2">
 					<?php foreach (${TABLES_LIST} as $table => $tableName): ?>
-						<div id="table-param-<?=$table?>" class="container-fluid m-auto row collapse hide table-param">
+						<div id="table-param-<?=$table?>" class="container-fluid m-auto row collapse table-params <?=${TABLE} === $table ? 'show' : 'hide'?>">
 							<h5 class="col-12"><?=$tableName?></h5>
-							<?php foreach (${SEARCH_PARAMS}[$table] as $param => $paramName): ?>
+							<?php foreach (${SEARCH_PARAMS}[$table] as $param => $attr): ?>
 								<div class="input-group m-2 text-center justify-content-center mx-auto">
 									<div class="input-group-prepend">
 										<span class="input-group-text">
-											<input type="checkbox" data-toggle="param" data-target="#<?=$param?>">
+											<input type="checkbox" data-toggle="param" data-target="<?="#$table-$param"?>" <?=(${TABLE} === $table && array_key_exists($param, ${PARAM_VALUES})) ? CHECKED :  ''?>>
 										</span>
 									</div>
-									<input id="<?=$param?>" type="text" class="form-control" name="<?=$param?>">
+									<?php
+                                    switch ($attr[TYPE]): 
+                                        case 'text':
+                                        case 'date':
+                                    ?>                                    			
+											<input id="<?="$table-$param"?>" type="<?=$attr[TYPE]?>" class="form-control param" name="<?=$param?>" value="<?=(${TABLE} === $table) ? (${PARAM_VALUES}[$param] ?? '') : ''?>">
+									<?php
+                                            break;
+                                        case 'select':
+                            		?>
+                            				<select id="<?="$table-$param"?>" name="<?=$param?>" class="from-control param">
+                                    			<?php foreach ($attr[SELECT_LIST] as $key => $val): ?>
+                                	    			<option <?=(${TABLE} === $table && array_key_exists($param, ${PARAM_VALUES}) && $key == ${PARAM_VALUES}[$param]) ? 'selected="selected"' : ''?> value="<?=$key?>"><?=$val?></option>
+                                    			<?php endforeach; ?>
+                                    		</select>
+									<?php endswitch;?>
 									<div class="input-group-append">
-										<span class="input-group-text"><?=$paramName?></span>
+										<span class="input-group-text"><?=$attr[VALUE]?></span>
 									</div>
                                 </div>
 							<?php endforeach; ?>
@@ -41,45 +56,17 @@
         <table class="table table-striped" id="advance-search-table">
         	<thead>
         		<tr>
-        			<th colspan="7" class="text-center">
+        			<th colspan="<?=count(${COLUMN_LIST})?>" class="text-center">
         				<span>TOTAL ROWS <?=${TOT_ROWS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
         		<tr>
-        			<?php foreach (${HEAD_TABLE_LIST} as $head => $prop):?>
+        			<?php foreach (${COLUMN_LIST} as $col): ?>
         				<th class="w-5">
-            				<a href="<?=$prop[LINK_HEAD]?>"><?=$head?></a>
-            				<i class="<?=$prop[CLASS_HEAD]?>"></i>
+            				<a href="<?=${LINK_HEAD.$col}?>"><?=$col?></a>
+            				<i class="<?=${CLASS_HEAD.$col}?>"></i>
             			</th>
         			<?php endforeach; ?>
-<!--         			<th class="w-5"> -->
-<!--         				<a href="< ?=${LINK_HEAD.USER_ID}?>">#</a> -->
-<!--         				<i class="< ?=${CLASS_HEAD.USER_ID}?>"></i> -->
-<!--         			</th> -->
-<!--         			<th> -->
-<!--         				<a href="< ?=${LINK_HEAD.USERNAME}?>">USERNAME</a> -->
-<!--         				<i class="< ?=${CLASS_HEAD.USERNAME}?>"></i> -->
-<!--         			</th> -->
-<!--         			<th> -->
-<!--         				<a href="< ?=${LINK_HEAD.NAME}?>">NAME</a> -->
-<!--         				<i class="< ?=${CLASS_HEAD.NAME}?>"></i> -->
-<!--         			</th> -->
-<!--         			<th> -->
-<!--         				<a href="< ?=${LINK_HEAD.EMAIL}?>">EMAIL</a> -->
-<!--         				<i class="< ?=${CLASS_HEAD.EMAIL}?>"></i> -->
-<!--         			</th> -->
-<!-- 					<th> -->
-<!--         				<a href="< ?=${LINK_HEAD.ENABLED}?>">STATE</a> -->
-<!--         				<i class="< ?=${CLASS_HEAD.ENABLED}?>"></i> -->
-<!--         			</th> -->
-<!--         			< ?php if (${VIEW_ROLE}): ?> -->
-<!--             			<th> -->
-<!--             				<a href="< ?=${LINK_HEAD.ROLE}?>">ROLE</a> -->
-<!--             				<i class="< ?=${CLASS_HEAD.ROLE}?>"></i> -->
-<!--             			</th> -->
-<!--         			< ?php endif; ?> -->
-<!--         			<th> -->
-<!--         			</th> -->
         		</tr>
         	</thead>
         	<tbody>
@@ -91,7 +78,7 @@
     					<?php foreach (${COLUMN_LIST} as $count => $col): ?>
             	        	<td class="align-middle">
         	        			<?php if ($count === 0): ?>
-                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE."/${TABLE}/".$row->$col?>"><?=$row->$col?></a>
+                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.${TABLE}.'/'.$row->$col?>"><?=$row->$col?></a>
         	        			<?php
                                 else:
                                     echo $row->$col;
