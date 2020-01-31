@@ -50,8 +50,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $usersForPage * ($page - 1);
-        $data[USERS] = $userModel->getUsers($orderBy, $orderDir, $search, $start, $usersForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[USERS] = $userModel->getUsers($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_USERS] = $totUsers;
@@ -81,8 +81,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $usersForPage * ($page - 1);
-        $data[USERS] = $delUserModel->getDeletedUsers($orderBy, $orderDir, $search, $start, $usersForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[USERS] = $delUserModel->getDeletedUsers($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_USERS] = $totUsers;
@@ -113,8 +113,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $usersForPage * ($page - 1);
-        $data[USERS] = $pendUserModel->getPendingUsers($orderBy, $orderDir, $search, $start, $usersForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[USERS] = $pendUserModel->getPendingUsers($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_USERS] = $totUsers;
@@ -145,8 +145,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $mailsForPage * ($page - 1);
-        $data[EMAILS] = $pendEmailModel->getPendingEmails($orderBy, $orderDir, $search, $start, $mailsForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[EMAILS] = $pendEmailModel->getPendingEmails($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_PENDING_MAILS] = $totEmails;
@@ -172,8 +172,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(ROLES_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], ROLES_ORDER_BY_LIST));
         /* add user data */
-        $start = $rolesForPage * ($page - 1);
-        $data[ROLES] = $rolesModel->getRoles($orderBy, $orderDir, $start, $rolesForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[ROLES] = $rolesModel->getRoles($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_ROLES] = $totRoles;
@@ -202,8 +202,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $sessionsForPage * ($page - 1);
-        $data[SESSIONS] = $sessionModel->getSessions($orderBy, $orderDir, $search, $start, $sessionsForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[SESSIONS] = $sessionModel->getSessions($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_SESSIONS] = $totSessions;
@@ -232,8 +232,8 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $requestsForPage * ($page - 1);
-        $data[REQUESTS] = $passResReqModel->getPassResetRequests($orderBy, $orderDir, $search, $start, $requestsForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[REQUESTS] = $passResReqModel->getPassResetRequests($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_REQ] = $totReq;

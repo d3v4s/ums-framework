@@ -1,4 +1,5 @@
 <?php
+
 namespace app\models;
 
 use \PDO;
@@ -7,16 +8,26 @@ use \PDO;
  * Class model for CRUD operations on deleted users db table
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class DeletedUser {
+class DeletedUser extends DbModel {
     protected $conn;
-
-    public function __construct(PDO $conn) {
-        $this->conn = $conn;
-    }
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* function to get coloumn list */
+    public function getColList(): array {
+        return [
+            DELETED_USER_ID,
+            USER_ID,
+            NAME,
+            USERNAME,
+            EMAIL,
+            ROLE_ID_FRGN,
+            REGISTRATION_DATETIME,
+            DELETE_DATETIME
+        ];
+    }
     
     /* ############# CREATE FUNCTIONS ############# */
 
@@ -80,8 +91,45 @@ class DeletedUser {
         $stmt->execute($data);
 
         /* if find user return it */
-        if ($stmt && ($users = $stmt->fetchAll(PDO::FETCH_OBJ))) return $users;
+        if ($stmt->errorCode() == 0 && ($users = $stmt->fetchAll(PDO::FETCH_OBJ))) return $users;
         /* else empty array */
+        return [];
+    }
+
+    /* function get deleted users for advance search */
+    public function getDeletedUsersAdvanceSearch(string $orderBy=DELETED_USER_ID, string $orderDir=DESC, int $start=0, int $nRow=10, array $searchData=[]): array {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT * FROM '.DELETED_USER_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[DELETED_USER_ID])) $sql .= DELETED_USER_ID.'=:'.DELETED_USER_ID;
+        else if (isset($searchData[USER_ID_FRGN])) $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+        else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, $this->getColList()) ? $orderBy : DELETED_USER_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
+        
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* if success, then return users list */
+        if ($stmt->errorCode() == 0) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            return $users;
+        }
+        /* else return empty array*/
         return [];
     }
 
@@ -108,7 +156,7 @@ class DeletedUser {
         $stmt->execute();
         
         /* if success query and find user return user */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) return $user;
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) return $user;
         /* else return false */
         return FALSE;
     }
@@ -120,7 +168,7 @@ class DeletedUser {
         $stmt->execute(['id' => $id]);
         
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) return $user;
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) return $user;
         /* else return false */
         return FALSE;
     }
@@ -148,7 +196,31 @@ class DeletedUser {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
         /* return num of user */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
+    }
+
+    /* function to count deleted users for advance search */
+    public function countAdvanceSearchDeletedUsers(array $searchData=[]): int {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.DELETED_USER_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[DELETED_USER_ID])) $sql .= DELETED_USER_ID.'=:'.DELETED_USER_ID;
+        else if (isset($searchData[USER_ID_FRGN])) $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+        else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* ############# DELETE FUNCTIONS ############# */
@@ -163,7 +235,7 @@ class DeletedUser {
         /* disable foreign key check */
         $sql = 'SET FOREIGN_KEY_CHECKS=0;';
         /* delete query */
-        $sql .= 'DELETE FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID.'=:id;';
+        $sql .= 'DELETE FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID_FRGN.'=:id;';
         /* enable foreign key check */
         $sql .= 'SET FOREIGN_KEY_CHECKS=1';
         /* execute sql query */
@@ -179,8 +251,4 @@ class DeletedUser {
         
         return $result;
     }
-//     /* ##################################### */
-//     /* PRIVATE FUNCTIONS */
-//     /* ##################################### */
-
 }

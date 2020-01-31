@@ -372,7 +372,7 @@ define('MAX_PAGES', 'max_pages');
 define('START_PAGE', 'strt_pg');
 define('STOP_PAGE', 'stp_pg');
 define('LINK_HEAD', 'lnk_hd_');
-define('HEAD_TABLE_LIST', 'hd_tbl_lst');
+// define('HEAD_TABLE_LIST', 'hd_tbl_lst');
 define('CLASS_HEAD', 'clss_hd_');
 define('SEND_EMAIL_LINK', 'lnk_sndml');
 define('BASE_LINK_ROWS_FOR_PAGE', 'bs_lnk_rfp');

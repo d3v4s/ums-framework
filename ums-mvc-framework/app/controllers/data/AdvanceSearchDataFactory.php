@@ -9,7 +9,6 @@ use app\models\PendingUser;
 use app\models\Session;
 use app\models\User;
 use app\models\Role;
-use \DateTime;
 use \PDO;
 
 /**
@@ -37,10 +36,10 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                     $data = $this->getUsersData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 case DELETED_USER_TABLE:
-                    $this->showDeletedUsersList($orderBy, $orderDir, $page, $rowsForPage);
+                    $data = $this->getDeletedUsersData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 case PENDING_USERS_TABLE:
-                    $this->showPendingUsersList($orderBy, $orderDir, $page, $rowsForPage);
+                    $data = $this->getPendingUsersData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 case PENDING_EMAILS_TABLE:
                     $this->showPendingEmailsList($orderBy, $orderDir, $page, $rowsForPage);
@@ -70,7 +69,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         return array_merge($this->getPaginationDefaultData(),[
             SEARCH_ACTION => '/'.ADVANCE_SEARCH_ROUTE,
             TOT_ROWS => 0,
-            HEAD_TABLE_LIST => [],
+            COLUMN_LIST => [],
             RESULT => [],
             TABLES_LIST => $this->getTablesList(),
             SEARCH_PARAMS => $this->getSearchParam(),
@@ -82,115 +81,152 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
 
     /* function to get data of users list */
     public function getUsersData(string $orderBy=NULL, string $orderDir, int $page, int $usersForPage, array $searchParam): array {
+        /* init user model and get order by list */
+        $userModel = new User($this->conn);
+        $orderByList = $userModel->getColList();
         /* get order by and order direction */
-        $usersOrderByList = [
-            USER_ID,
-            NAME,
-            USERNAME,
-            EMAIL,
-            ROLE,
-            ENABLED,
-            REGISTRATION_DATETIME,
-            EXPIRE_LOCK
-        ];
         $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, $usersOrderByList, USER_ID);
+        $orderBy = $this->getOrderBy($orderBy, $orderByList, USER_ID);
 
+        /* set search data */
         $searchData = [
             USER_ID => $searchParam[USER_ID] ?? NULL,
             NAME => $searchParam[NAME] ?? NULL,
             USERNAME => $searchParam[USERNAME] ?? NULL,
             EMAIL => $searchParam[EMAIL] ?? NULL,
-            ROLE => $searchParam[ROLE] ?? NULL,
+            ROLE_ID_FRGN => $searchParam[ROLE_ID_FRGN] ?? NULL,
             ENABLED => $searchParam[ENABLED] ?? NULL,
             REGISTRATION_DATETIME => $searchParam[REGISTRATION_DATETIME] ?? NULL,
             EXPIRE_LOCK => $searchParam[EXPIRE_LOCK] ?? NULL
         ];
-
-        /* init user model and count users */
-        $userModel = new User($this->conn);
+        /* filter null value */
+        $searchData = filterNullVal($searchData);
+        /* count users */
         $totUsers = $userModel->countAdvanceSearchUsers($searchData);
 
         /* get search query */
-        $searchQuery = $this->getAdvanceSearchQuery($searchData);
+        $dataQuery = $searchData;
+        $dataQuery[TABLE] = USERS_TABLE;
+        $searchQuery = $this->getAdvanceSearchQuery($dataQuery);
 
         /* get pagination data */
         $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $usersOrderByList, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $usersForPage * ($page - 1);
-        $data[USERS] = $userModel->getUsers($orderBy, $orderDir, $search, $start, $usersForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[RESULT] = $userModel->getUsersAdvanceSearch($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE], $searchData);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
-        $data[TOT_USERS] = $totUsers;
-        $data[VIEW_ROLE] = $canViewRole;
-        $data[SEND_EMAIL_LINK] = getSendEmailLink($canSendEmails);
+        $data[COLUMN_LIST] = $orderByList;
+        $data[TABLES_LIST] = $this->getTablesList();
+        $data[SEARCH_PARAMS] = $this->getSearchParam();
+        $data[PARAM_VALUES] = $searchData;
+        $data[TOT_ROWS] = $totUsers;
         /* return data */
         return $data;
     }
 
     /* function to get data of deleted users list */
-    public function getDeletedUsersListData(string $orderBy, string $orderDir, int $page, int $usersForPage, string $search, bool $canViewRole, bool $canSendEmails): array {
-        /* init user model and count users */
+    public function getDeletedUsersData(string $orderBy=NULL, string $orderDir, int $page, int $usersForPage, array $searchParam): array {
+        /* init deleted user model and get order by list */
         $delUserModel = new DeletedUser($this->conn);
-        $totUsers = $delUserModel->countDeletedUsers($search);
+        $orderByList = $delUserModel->getColList();
 
         /* get order by and order direction */
         $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, DELETED_USERS_ORDER_BY_LIST, USER_ID);
+        $orderBy = $this->getOrderBy($orderBy, $orderByList, USER_ID);
+
+        /* set search data */
+        $searchData = [
+            DELETED_USER_ID => $searchParam[DELETED_USER_ID] ?? NULL,
+            USER_ID => $searchParam[USER_ID] ?? NULL,
+            NAME => $searchParam[NAME] ?? NULL,
+            USERNAME => $searchParam[USERNAME] ?? NULL,
+            EMAIL => $searchParam[EMAIL] ?? NULL,
+            ROLE_ID_FRGN => $searchParam[ROLE_ID_FRGN] ?? NULL,
+            REGISTRATION_DATETIME => $searchParam[REGISTRATION_DATETIME] ?? NULL,
+            DELETE_DATETIME => $searchParam[DELETE_DATETIME] ?? NULL
+        ];
+        /* filter null value */
+        $searchData = filterNullVal($searchData);
+
+        /* count users */
+        $totUsers = $delUserModel->countAdvanceSearchDeletedUsers($searchData);
 
         /* get search query */
-        $searchQuery = $this->getSearchQuery($search);
+        $dataQuery = $searchData;
+        $dataQuery[TABLE] = DELETED_USER_TABLE;
+        $searchQuery = $this->getAdvanceSearchQuery($dataQuery);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.UMS_TABLES_ROUTE.'/'.DELETED_USER_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(DELETED_USER_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], DELETED_USERS_ORDER_BY_LIST, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(DELETED_USER_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
-        $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
+        $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $usersForPage * ($page - 1);
-        $data[USERS] = $delUserModel->getDeletedUsers($orderBy, $orderDir, $search, $start, $usersForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[RESULT] = $delUserModel->getDeletedUsersAdvanceSearch($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE], $searchData);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
-        $data[TOT_USERS] = $totUsers;
-        $data[VIEW_ROLE] = $canViewRole;
-        $data[SEND_EMAIL_LINK] = getSendEmailLink($canSendEmails);
+        $data[COLUMN_LIST] = $orderByList;
+        $data[TABLES_LIST] = $this->getTablesList();
+        $data[SEARCH_PARAMS] = $this->getSearchParam();
+        $data[PARAM_VALUES] = $searchData;
+        $data[TOT_ROWS] = $totUsers;
         return $data;
     }
 
     /* function to get data of deleted users list */
-    public function getPendingUsersListData(string $orderBy, string $orderDir, int $page, int $usersForPage, string $search, bool $canViewRole, bool $canSendEmails): array {
-        /* init user model */
+    public function getPendingUsersData(string $orderBy=NULL, string $orderDir, int $page, int $usersForPage, array $searchParam): array {
+        /* init pending user model and get order by list */
         $pendUserModel = new PendingUser($this->conn);
-
-        /* count user */
-        $totUsers = $pendUserModel->countAllPendingUsers($search);
+        $orderByList = $pendUserModel->getColList();
 
         /* get order by and order direction */
         $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, PENDING_USERS_ORDER_BY_LIST, PENDING_USER_ID);
+        $orderBy = $this->getOrderBy($orderBy, $orderByList, PENDING_USER_ID);
+
+        /* set search data */
+        $searchData = [
+            PENDING_USER_ID => $searchParam[PENDING_USER_ID] ?? NULL,
+            USER_ID_FRGN => $searchParam[USER_ID_FRGN] ?? NULL,
+            NAME => $searchParam[NAME] ?? NULL,
+            USERNAME => $searchParam[USERNAME] ?? NULL,
+            EMAIL => $searchParam[EMAIL] ?? NULL,
+            ROLE_ID_FRGN => $searchParam[ROLE_ID_FRGN] ?? NULL,
+            REGISTRATION_DATETIME => $searchParam[REGISTRATION_DATETIME] ?? NULL,
+            EXPIRE_DATETIME => $searchParam[EXPIRE_DATETIME] ?? NULL
+        ];
+        /* filter null value */
+        $searchData = filterNullVal($searchData);
+        /* count user */
+        $totUsers = $pendUserModel->countAdvanceSearchPendingUsers($searchData);
         
         /* get search query */
-        $searchQuery = $this->getSearchQuery($search);
+        $queryData = $searchData;
+        $queryData[TABLE] = PENDING_USERS_TABLE;
+        $searchQuery = $this->getAdvanceSearchQuery($queryData);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], PENDING_USERS_ORDER_BY_LIST, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
-        $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
+        $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $usersForPage * ($page - 1);
-        $data[USERS] = $pendUserModel->getPendingUsers($orderBy, $orderDir, $search, $start, $usersForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[RESULT] = $pendUserModel->getPendingUsersAdvanceSearch($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE], $searchData);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
-        $data[TOT_USERS] = $totUsers;
-        $data[VIEW_ROLE] = $canViewRole;
-        $data[SEND_EMAIL_LINK] = getSendEmailLink($canSendEmails);
+        $data[COLUMN_LIST] = $orderByList;
+        $data[TABLES_LIST] = $this->getTablesList();
+        $data[SEARCH_PARAMS] = $this->getSearchParam();
+        $data[PARAM_VALUES] = $searchData;
+        $data[TOT_ROWS] = $totUsers;
         return $data;
     }
 
@@ -216,8 +252,8 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $mailsForPage * ($page - 1);
-        $data[EMAILS] = $pendEmailModel->getPendingEmails($orderBy, $orderDir, $search, $start, $mailsForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[EMAILS] = $pendEmailModel->getPendingEmails($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_PENDING_MAILS] = $totEmails;
@@ -243,8 +279,8 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(ROLES_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], ROLES_ORDER_BY_LIST));
         /* add user data */
-        $start = $rolesForPage * ($page - 1);
-        $data[ROLES] = $rolesModel->getRoles($orderBy, $orderDir, $start, $rolesForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[ROLES] = $rolesModel->getRoles($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_ROLES] = $totRoles;
@@ -273,8 +309,8 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $sessionsForPage * ($page - 1);
-        $data[SESSIONS] = $sessionModel->getSessions($orderBy, $orderDir, $search, $start, $sessionsForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[SESSIONS] = $sessionModel->getSessions($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_SESSIONS] = $totSessions;
@@ -303,8 +339,8 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         /* get and merge search data */
         $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
-        $start = $requestsForPage * ($page - 1);
-        $data[REQUESTS] = $passResReqModel->getPassResetRequests($orderBy, $orderDir, $search, $start, $requestsForPage);
+        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
+        $data[REQUESTS] = $passResReqModel->getPassResetRequests($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
         $data[TOT_REQ] = $totReq;
@@ -334,7 +370,9 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $orderDirRev = $orderDir === ASC ? DESC : ASC;
         $orderDirClass = $orderDir === ASC ? ORDER_ASC_CLASS : ORDER_DESC_CLASS;
         $closeUrl = "/$page/$rowsForPage$searchQuery";
-        $data = [];
+        $data = [
+            TABLE => $table
+        ];
         foreach ($columnList as $col) {
             $data[LINK_HEAD.$col] = '/'.ADVANCE_SEARCH_ROUTE."/$col/";
             $data[LINK_HEAD.$col] .= $orderBy === $col ? $orderDirRev : DESC;
@@ -391,7 +429,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                     VALUE => 'Email',
                     TYPE => 'text'
                 ],
-                ROLE => [
+                ROLE_ID_FRGN => [
                     VALUE => 'Role',
                     TYPE => 'select',
                     SELECT_LIST => [
@@ -410,11 +448,11 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ],
                 REGISTRATION_DATETIME => [
                     VALUE => 'Registration datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ],
                 EXPIRE_LOCK => [
                     VALUE => 'Expire lock datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ]
             ],
             DELETED_USER_TABLE => [
@@ -422,7 +460,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                     VALUE => 'Deleted user id',
                     TYPE => 'text'
                 ],
-                USER_ID_FRGN => [
+                USER_ID => [
                     VALUE => 'User id',
                     TYPE => 'text'
                 ],
@@ -438,7 +476,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                     VALUE => 'Email',
                     TYPE => 'text'
                 ],
-                ROLE => [
+                ROLE_ID_FRGN => [
                     VALUE => 'Role',
                     TYPE => 'select',
                     SELECT_LIST => [
@@ -449,7 +487,11 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ],
                 REGISTRATION_DATETIME => [
                     VALUE => 'Registration datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
+                ],
+                DELETE_DATETIME => [
+                    VALUE => 'Delete datetime',
+                    TYPE => 'date'
                 ]
             ],
             PENDING_USERS_TABLE => [
@@ -473,7 +515,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                     VALUE => 'Email',
                     TYPE => 'text'
                 ],
-                ROLE => [
+                ROLE_ID_FRGN => [
                     VALUE => 'Role',
                     TYPE => 'select',
                     SELECT_LIST => [
@@ -484,11 +526,11 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ],
                 REGISTRATION_DATETIME => [
                     VALUE => 'Registration datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ],
                 EXPIRE_DATETIME => [
                     VALUE => 'Expire datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ]
             ],
             PENDING_EMAILS_TABLE => [
@@ -506,7 +548,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ],
                 EXPIRE_DATETIME => [
                     VALUE => 'Expire datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ]
             ],
             SESSIONS_TABLE => [
@@ -524,7 +566,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ],
                 EXPIRE_DATETIME => [
                     VALUE => 'Expire datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ]
             ],
             PASSWORD_RESET_REQ_TABLE => [
@@ -542,7 +584,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ],
                 EXPIRE_DATETIME => [
                     VALUE => 'Expire datetime',
-                    TYPE => 'datetime'
+                    TYPE => 'date'
                 ]
             ]
         ];
