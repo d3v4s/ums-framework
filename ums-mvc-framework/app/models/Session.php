@@ -3,16 +3,21 @@ namespace app\models;
 
 use \PDO;
 
-class Session {
-    protected $conn;
-
-    public function __construct(PDO $conn) {
-        $this->conn = $conn;
-    }
+class Session extends DbModel {
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* function to get coloumn list */
+    public function getColList(): array {
+        return [
+            SESSION_ID,
+            USER_ID_FRGN,
+            IP_ADDRESS,
+            EXPIRE_DATETIME
+        ];
+    }
     
     /* ############# CREATE FUNCTIONS ############# */
 
@@ -78,6 +83,46 @@ class Session {
         /* if success, then return users list */
         if ($stmt) return $stmt->fetchAll(PDO::FETCH_OBJ);
         /* else return empty array */
+        return [];
+    }
+
+    /* function get sessions for advance search */
+    public function getSessionsAdvanceSearch(string $orderBy=SESSION_ID, string $orderDir=DESC, int $start=0, int $nRow=10, array $searchData=[]): array {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT * FROM '.SESSIONS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[SESSION_ID])) {
+            $sql .= SESSION_ID.'=:'.SESSION_ID;
+            $searchData = [
+                SESSION_ID => $searchData[SESSION_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, $this->getColList()) ? $orderBy : SESSION_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
+        
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* if success, then return users list */
+        if ($stmt->errorCode() == 0) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            return $users;
+        }
+        /* else return empty array*/
         return [];
     }
 
@@ -171,6 +216,34 @@ class Session {
         $stmt->execute();
         /* return total users */
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    /* function count sessions for advance search */
+    public function countAdvanceSearchSessions(array $searchData=[]): int {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.SESSIONS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[SESSION_ID])) {
+            $sql .= SESSION_ID.'=:'.SESSION_ID;
+            $searchData = [
+                SESSION_ID => $searchData[SESSION_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* ############# UPDATE FUNCTIONS ############# */

@@ -102,9 +102,17 @@ class DeletedUser extends DbModel {
         $searchData = filterNullVal($searchData);
         $sql = 'SELECT * FROM '.DELETED_USER_TABLE.' WHERE ';
         /* append query search */
-        if (isset($searchData[DELETED_USER_ID])) $sql .= DELETED_USER_ID.'=:'.DELETED_USER_ID;
-        else if (isset($searchData[USER_ID_FRGN])) $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
-        else {
+        if (isset($searchData[DELETED_USER_ID])) {
+            $sql .= DELETED_USER_ID.'=:'.DELETED_USER_ID;
+            $searchData = [
+                DELETED_USER_ID => $searchData[DELETED_USER_ID]
+            ];
+        } else if (isset($searchData[USER_ID_FRGN])) {
+            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+            $searchData = [
+                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+            ];
+        } else {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;
@@ -205,9 +213,17 @@ class DeletedUser extends DbModel {
         $searchData = filterNullVal($searchData);
         $sql = 'SELECT COUNT(*) AS total FROM '.DELETED_USER_TABLE.' WHERE ';
         /* append query search */
-        if (isset($searchData[DELETED_USER_ID])) $sql .= DELETED_USER_ID.'=:'.DELETED_USER_ID;
-        else if (isset($searchData[USER_ID_FRGN])) $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
-        else {
+        if (isset($searchData[DELETED_USER_ID])) {
+            $sql .= DELETED_USER_ID.'=:'.DELETED_USER_ID;
+            $searchData = [
+                DELETED_USER_ID => $searchData[DELETED_USER_ID]
+            ];
+        } else if (isset($searchData[USER_ID_FRGN])) {
+            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+            $searchData = [
+                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+            ];
+        } else {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;

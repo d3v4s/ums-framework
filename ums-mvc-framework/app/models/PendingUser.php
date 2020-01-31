@@ -109,9 +109,17 @@ class PendingUser extends DbModel {
         $searchData = filterNullVal($searchData);
         $sql = 'SELECT * FROM '.PENDING_USERS_TABLE.' WHERE ';
         /* append query search */
-        if (isset($searchData[PENDING_USER_ID])) $sql .= PENDING_USER_ID.'=:'.PENDING_USER_ID;
-        else if (isset($searchData[USER_ID_FRGN])) $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
-        else {
+        if (isset($searchData[PENDING_USER_ID])) {
+            $sql .= PENDING_USER_ID.'=:'.PENDING_USER_ID;
+            $searchData = [
+                PENDING_USER_ID => $searchData[PENDING_USER_ID]
+            ];
+        } else if (isset($searchData[USER_ID_FRGN])) {
+            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+            $searchData = [
+                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+            ];
+        } else {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;
@@ -252,9 +260,17 @@ class PendingUser extends DbModel {
         $searchData = filterNullVal($searchData);
         $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_USERS_TABLE.' WHERE ';
         /* append query search */
-        if (isset($searchData[PENDING_USER_ID])) $sql .= PENDING_USER_ID.'=:'.PENDING_USER_ID;
-        else if (isset($searchData[USER_ID_FRGN])) $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
-        else {
+        if (isset($searchData[PENDING_USER_ID])) {
+            $sql .= PENDING_USER_ID.'=:'.PENDING_USER_ID;
+            $searchData = [
+                PENDING_USER_ID => $searchData[PENDING_USER_ID]
+            ];
+        } else if (isset($searchData[USER_ID_FRGN])) {
+            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+            $searchData = [
+                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+            ];
+        } else {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;

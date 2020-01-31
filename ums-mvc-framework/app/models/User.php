@@ -173,8 +173,12 @@ class User extends DbModel {
         $searchData = filterNullVal($searchData);
         $sql = 'SELECT * FROM '.USERS_TABLE.' WHERE ';
         /* append query search */
-        if (isset($searchData[USER_ID])) $sql .= USER_ID.'=:'.USER_ID;
-        else {
+        if (isset($searchData[USER_ID])) {
+            $sql .= USER_ID.'=:'.USER_ID;
+            $searchData = [
+                USER_ID => $searchData[USER_ID]
+            ];
+        } else {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;
@@ -376,8 +380,12 @@ class User extends DbModel {
         $searchData = filterNullVal($searchData);
         $sql = 'SELECT COUNT(*) AS total FROM '.USERS_TABLE.' WHERE ';
         /* append query search */
-        if (isset($searchData[USER_ID])) $sql .= USER_ID.'=:'.USER_ID;
-        else {
+        if (isset($searchData[USER_ID])) {
+            $sql .= USER_ID.'=:'.USER_ID;
+            $searchData = [
+                USER_ID => $searchData[USER_ID]
+            ];
+        } else {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;

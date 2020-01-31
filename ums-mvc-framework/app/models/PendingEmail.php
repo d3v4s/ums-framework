@@ -7,16 +7,21 @@ use \PDO;
  * Class model for CRUD operations on pending emails db table
  * @author Andrea Serra (DevAS) https://devas.info
  */
-class PendingEmail {
-    protected $conn;
-
-    public function __construct(PDO $conn) {
-        $this->conn = $conn;
-    }
+class PendingEmail extends DbModel {
 
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
+
+    /* function to get coloumn list */
+    public function getColList(): array {
+        return [
+            PENDING_EMAIL_ID,
+            USER_ID_FRGN,
+            NEW_EMAIL,
+            EXPIRE_DATETIME
+        ];
+    }
     
     /* ############# CREATE FUNCTIONS ############# */
 
@@ -80,8 +85,48 @@ class PendingEmail {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
         /* if success, then return users list */
-        if ($stmt) return $stmt->fetchAll(PDO::FETCH_OBJ);
+        if ($stmt->errorCode() == 0) return $stmt->fetchAll(PDO::FETCH_OBJ);
         /* else return empty array */
+        return [];
+    }
+
+    /* function get pending emails for advance search */
+    public function getPendingEmailsAdvanceSearch(string $orderBy=PENDING_EMAIL_ID, string $orderDir=DESC, int $start=0, int $nRow=10, array $searchData=[]): array {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT * FROM '.PENDING_EMAILS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[PENDING_EMAIL_ID])) {
+            $sql .= PENDING_EMAIL_ID.'=:'.PENDING_EMAIL_ID;
+            $searchData = [
+                PENDING_EMAIL_ID => $searchData[PENDING_EMAIL_ID]
+            ];
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* validate order by, order direction, start and num of row */
+        $orderBy = in_array($orderBy, $this->getColList()) ? $orderBy : PENDING_EMAIL_ID;
+        $orderDir = in_array($orderDir, ORDER_DIR_LIST) ? $orderDir : DESC;
+        $start = is_numeric($start) ? $start : 0;
+        $nRow = is_numeric($nRow) ? $nRow : DEFAULT_ROWS_FOR_PAGE;
+        
+        /* prepare and execute sql query */
+        $sql .= " ORDER BY $orderBy $orderDir LIMIT $start, $nRow";
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* if success, then return users list */
+        if ($stmt->errorCode() == 0) {
+            $users = $stmt->fetchAll(PDO::FETCH_OBJ);
+            return $users;
+        }
+        /* else return empty array*/
         return [];
     }
 
@@ -95,7 +140,7 @@ class PendingEmail {
         $stmt->execute(['id' => $userId]);
 
         /* if find pending mail return it */
-        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
+        if ($stmt->errorCode() == 0 && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }
@@ -109,7 +154,7 @@ class PendingEmail {
         $stmt->execute(['token' => $token]);
         
         /* if find pending mail return it */
-        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
+        if ($stmt->errorCode() == 0 && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }
@@ -124,7 +169,7 @@ class PendingEmail {
         $stmt->execute(['token' => $token]);
         
         /* if find user return it */
-        if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
+        if ($stmt->errorCode() == 0 && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
             /* if require unset password */
             if ($unsetPassword) unset($user->{PASSWORD});
             return $user;
@@ -143,7 +188,7 @@ class PendingEmail {
         $stmt->execute(['id' => $pendMailId]);
         
         /* if find pending mail return it */
-        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
+        if ($stmt->errorCode() == 0 && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }
@@ -158,7 +203,7 @@ class PendingEmail {
         $stmt->execute(['id' => $pendMailId]);
         
         /* if find pending mail return it */
-        if ($stmt && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
+        if ($stmt->errorCode() == 0 && ($pendMail = $stmt->fetch(PDO::FETCH_OBJ))) return $pendMail;
         /* else return false */
         return FALSE;
     }
@@ -182,7 +227,7 @@ class PendingEmail {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute($data);
         /* return total users */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* function to count the pending mails on table */
@@ -195,7 +240,34 @@ class PendingEmail {
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         /* return total users */
-        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
+    }
+
+    /* function count pending mails for advance search */
+    public function countAdvanceSearchPendingEmails(array $searchData=[]): int {
+        /* create sql query */
+        $searchData = filterNullVal($searchData);
+        $sql = 'SELECT COUNT(*) AS total FROM '.PENDING_EMAILS_TABLE.' WHERE ';
+        /* append query search */
+        if (isset($searchData[PENDING_EMAIL_ID])) {
+            $sql .= PENDING_EMAIL_ID.'=:'.PENDING_EMAIL_ID;
+            $searchData = [
+                PENDING_EMAIL_ID => $searchData[PENDING_EMAIL_ID]
+            ]; 
+        } else {
+            $and = count($searchData)-1;
+            foreach ($searchData as $key => $val) {
+                if (!in_array($key, $this->getColList())) continue;
+                $searchData[$key] = "%$val%";
+                $sql .= "$key LIKE :$key";
+                if ($and-- > 0) $sql .= ' AND ';
+            }
+        }
+        /* execute sql query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute($searchData);
+        /* return total users */
+        return $stmt->errorCode() == 0 ? $stmt->fetch(PDO::FETCH_ASSOC)['total'] : 0;
     }
 
     /* ############# UPDATE FUNCTIONS ############# */

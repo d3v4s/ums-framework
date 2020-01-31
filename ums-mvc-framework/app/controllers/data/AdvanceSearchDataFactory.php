@@ -8,7 +8,6 @@ use app\models\DeletedUser;
 use app\models\PendingUser;
 use app\models\Session;
 use app\models\User;
-use app\models\Role;
 use \PDO;
 
 /**
@@ -42,16 +41,13 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                     $data = $this->getPendingUsersData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 case PENDING_EMAILS_TABLE:
-                    $this->showPendingEmailsList($orderBy, $orderDir, $page, $rowsForPage);
-                    break;
-                case ROLES_TABLE:
-                    $this->showRolesList($orderBy, $orderDir, $page, $rowsForPage);
+                    $data = $this->getPendingEmailsData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 case SESSIONS_TABLE:
-                    $this->showSessionsList($orderBy, $orderDir, $page, $rowsForPage);
+                    $data = $this->getSessionsData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 case PASSWORD_RESET_REQ_TABLE:
-                    $this->showPassResetReqList($orderBy, $orderDir, $page, $rowsForPage);
+                    $data = $this->getPassResetReqData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
                     break;
                 default:
                     $this->showMessageAndExit('INVALID TABLE', TRUE);
@@ -231,119 +227,143 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
     }
 
     /* function to get data of pending emails list */
-    public function getPendingEmailsListData(string $orderBy, string $orderDir, int $page, int $mailsForPage, string $search, bool $canSendEmails): array {
+    public function getPendingEmailsData(string $orderBy=NULL, string $orderDir, int $page, int $mailsForPage, array $searchParam): array {
         /* init user model */
         $pendEmailModel = new PendingEmail($this->conn);
-        
-        /* count tot pending mails */
-        $totEmails = $pendEmailModel->countAllPendingEmails($search);
+        $orderByList = $pendEmailModel->getColList();
 
         /* get order by and order direction */
         $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, PENDING_EMAILS_ORDER_BY_LIST, PENDING_EMAIL_ID);
-        
+        $orderBy = $this->getOrderBy($orderBy, $orderByList, PENDING_EMAIL_ID);
+
+        /* set search data */
+        $searchData = [
+            PENDING_EMAIL_ID => $searchParam[PENDING_EMAIL_ID] ?? NULL,
+            USER_ID_FRGN => $searchParam[USER_ID_FRGN] ?? NULL,
+            NEW_EMAIL => $searchParam[NEW_EMAIL] ?? NULL,
+            EXPIRE_DATETIME => $searchParam[EXPIRE_DATETIME] ?? NULL
+        ];
+        /* filter null value */
+        $searchData = filterNullVal($searchData);
+
+        /* count tot pending mails */
+        $totEmails = $pendEmailModel->countAdvanceSearchPendingEmails($searchData);
+
         /* get search query */
-        $searchQuery = $this->getSearchQuery($search);
-        
+        $queryData = $searchData;
+        $queryData[TABLE] = PENDING_EMAILS_TABLE;
+        $searchQuery = $this->getAdvanceSearchQuery($queryData);
+
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $mailsForPage, $totEmails, '/'.UMS_TABLES_ROUTE.'/'.PENDING_EMAILS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $mailsForPage, $totEmails, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_EMAILS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], PENDING_EMAILS_ORDER_BY_LIST, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_EMAILS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
-        $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
+        $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
         $start = $data[ROWS_FOR_PAGE] * ($page - 1);
-        $data[EMAILS] = $pendEmailModel->getPendingEmails($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
+        $data[RESULT] = $pendEmailModel->getPendingEmailsAdvanceSearch($orderBy, $orderDir,$start, $data[ROWS_FOR_PAGE], $searchData);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
-        $data[TOT_PENDING_MAILS] = $totEmails;
-        $data[SEND_EMAIL_LINK] = getSendEmailLink($canSendEmails);
-        return $data;
-    }
-
-    /* function to get data of roles list */
-    public function getRolesListData(string $orderBy, string $orderDir, int $page, int $rolesForPage): array {
-        /* init user model */
-        $rolesModel = new Role($this->conn);
-        
-        /* count tot pending mails */
-        $totRoles = $rolesModel->countRoles();
-
-        /* get order by and order direction */
-        $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, ROLES_ORDER_BY_LIST, ROLE_ID);
-        
-        
-        /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $rolesForPage, $totRoles, '/'.UMS_TABLES_ROUTE.'/'.ROLES_TABLE);
-        /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(ROLES_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], ROLES_ORDER_BY_LIST));
-        /* add user data */
-        $start = $data[ROWS_FOR_PAGE] * ($page - 1);
-        $data[ROLES] = $rolesModel->getRoles($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE]);
-        /* add other property and return data */
-        $data[ORDER_BY] = $orderBy;
-        $data[TOT_ROLES] = $totRoles;
+        $data[COLUMN_LIST] = $orderByList;
+        $data[TABLES_LIST] = $this->getTablesList();
+        $data[SEARCH_PARAMS] = $this->getSearchParam();
+        $data[PARAM_VALUES] = $searchData;
+        $data[TOT_ROWS] = $totEmails;
         return $data;
     }
 
     /* function to get data of sessions list */
-    public function geSessionsListData(string $orderBy, string $orderDir, int $page, int $sessionsForPage, string $search): array {
+    public function getSessionsData(string $orderBy=NULL, string $orderDir, int $page, int $sessionsForPage, array $searchParam): array {
         /* init user model */
         $sessionModel = new Session($this->conn);
-        
-        /* count tot pending mails */
-        $totSessions = $sessionModel->countAllSessions($search);
+        $orderByList = $sessionModel->getColList();
 
         /* get order by and order direction */
         $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, SESSIONS_ORDER_BY_LIST, SESSION_ID);
-        
+        $orderBy = $this->getOrderBy($orderBy, $orderByList, SESSION_ID);
+
+        /* set search data */
+        $searchData = [
+            SESSION_ID => $searchParam[PENDING_EMAIL_ID] ?? NULL,
+            USER_ID_FRGN => $searchParam[USER_ID_FRGN] ?? NULL,
+            IP_ADDRESS => $searchParam[IP_ADDRESS] ?? NULL,
+            EXPIRE_DATETIME => $searchParam[EXPIRE_DATETIME] ?? NULL
+        ];
+        /* filter null value */
+        $searchData = filterNullVal($searchData);
+
+        /* count tot pending mails */
+        $totSessions = $sessionModel->countAdvanceSearchSessions($searchData);
+
         /* get search query */
-        $searchQuery = $this->getSearchQuery($search);
-        
+        $queryData = $searchData;
+        $queryData[TABLE] = SESSIONS_TABLE;
+        $searchQuery = $this->getAdvanceSearchQuery($queryData);
+
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $sessionsForPage, $totSessions, '/'.UMS_TABLES_ROUTE.'/'.SESSIONS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $sessionsForPage, $totSessions, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(SESSIONS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], SESSIONS_ORDER_BY_LIST, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(SESSIONS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
-        $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
+        $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
         $start = $data[ROWS_FOR_PAGE] * ($page - 1);
-        $data[SESSIONS] = $sessionModel->getSessions($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
+        $data[RESULT] = $sessionModel->getSessionsAdvanceSearch($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE], $searchData);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
-        $data[TOT_SESSIONS] = $totSessions;
+        $data[COLUMN_LIST] = $orderByList;
+        $data[TABLES_LIST] = $this->getTablesList();
+        $data[SEARCH_PARAMS] = $this->getSearchParam();
+        $data[PARAM_VALUES] = $searchData;
+        $data[TOT_ROWS] = $totSessions;
         return $data;
     }
 
     /* function to get data of password reset requests list */
-    public function gePassResetReqListData(string $orderBy, string $orderDir, int $page, int $requestsForPage, string $search): array {
+    public function getPassResetReqData(string $orderBy=NULL, string $orderDir, int $page, int $requestsForPage, array $searchParam): array {
         /* init user model */
         $passResReqModel = new PasswordResetRequest($this->conn);
+        $orderByList = $passResReqModel->getColList();
         
-        /* count tot pending mails */
-        $totReq = $passResReqModel->countAllPasswordResetReq($search);
-
         /* get order by and order direction */
         $orderDir = $this->getOrderDirection($orderDir);
-        $orderBy = $this->getOrderBy($orderBy, PASS_RESET_REQ_ORDER_BY_LIST, PASSWORD_RESET_REQ_ID);
-        
+        $orderBy = $this->getOrderBy($orderBy, $orderByList, PASSWORD_RESET_REQ_ID);
+
+        /* set search data */
+        $searchData = [
+            PASSWORD_RESET_REQ_ID => $searchParam[PASSWORD_RESET_REQ_ID] ?? NULL,
+            USER_ID_FRGN => $searchParam[USER_ID_FRGN] ?? NULL,
+            IP_ADDRESS => $searchParam[IP_ADDRESS] ?? NULL,
+            EXPIRE_DATETIME => $searchParam[EXPIRE_DATETIME] ?? NULL
+        ];
+        /* filter null value */
+        $searchData = filterNullVal($searchData);
+
+        /* count tot pending mails */
+        $totReq = $passResReqModel->countAdvanceSearchPassResReq($searchData);
+
         /* get search query */
-        $searchQuery = $this->getSearchQuery($search);
+        $queryData = $searchData;
+        $queryData[TABLE] = PASSWORD_RESET_REQ_TABLE;
+        $searchQuery = $this->getAdvanceSearchQuery($queryData);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $requestsForPage, $totReq, '/'.UMS_TABLES_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $requestsForPage, $totReq, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
         /* get and merge table head data */
-        $data = array_merge($data, $this->getLinkAndClassHeadTable(PASSWORD_RESET_REQ_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], PASS_RESET_REQ_ORDER_BY_LIST, $searchQuery));
+        $data = array_merge($data, $this->getLinkAndClassHeadTable(PASSWORD_RESET_REQ_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
-        $data = array_merge($data, $this->getSearchData($search, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
+        $data = array_merge($data, $this->getSearchData($searchQuery, $data[BASE_LINK_PAGIN], $data[CLOSE_LINK_PAGIN]));
         /* add user data */
         $start = $data[ROWS_FOR_PAGE] * ($page - 1);
-        $data[REQUESTS] = $passResReqModel->getPassResetRequests($orderBy, $orderDir, $search, $start, $data[ROWS_FOR_PAGE]);
+        $data[RESULT] = $passResReqModel->getPassResReqAdvanceSearch($orderBy, $orderDir, $start, $data[ROWS_FOR_PAGE], $searchData);
         /* add other property and return data */
         $data[ORDER_BY] = $orderBy;
-        $data[TOT_REQ] = $totReq;
+        $data[COLUMN_LIST] = $orderByList;
+        $data[TABLES_LIST] = $this->getTablesList();
+        $data[SEARCH_PARAMS] = $this->getSearchParam();
+        $data[PARAM_VALUES] = $searchData;
+        $data[TOT_ROWS] = $totReq;
         return $data;
     }
 
@@ -570,7 +590,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
                 ]
             ],
             PASSWORD_RESET_REQ_TABLE => [
-                PASSWORD_RESET_REQ_TABLE => [
+                PASSWORD_RESET_REQ_ID => [
                     VALUE => 'Password reset request id',
                     TYPE => 'text'
                 ],
