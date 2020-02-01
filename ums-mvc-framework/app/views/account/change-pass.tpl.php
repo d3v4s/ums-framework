@@ -19,9 +19,9 @@
     	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-change" class="btn btn-success px-3 py-1" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Change</span>
+	    		<i class="fas fa-check ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Change</span>
 	    	</button>
     	</div>
     	<input id="<?=GET_KEY_TOKEN?>" type="hidden" name="<?=CSRF_KEY_JSON?>" value="<?=${GET_KEY_TOKEN}?>">

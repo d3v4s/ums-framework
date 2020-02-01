@@ -254,8 +254,9 @@ class LoginController extends Controller {
             SUCCESS => $resLogin[SUCCESS],
             ERROR => $resLogin[ERROR] ?? NULL,
             MESSAGE => $resLogin[MESSAGE] ?? NULL
+//             CK_LOGIN_SESSION => $sessToken ?? NULL
         ];
-        
+
         $this->switchResponse($dataOut, (!$resLogin[SUCCESS] && $resLogin[GENERATE_TOKEN]), $funcDefault, CSRF_LOGIN);
     }
 

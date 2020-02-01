@@ -1,4 +1,4 @@
-<div class="row justify-content-center col-7 mx-auto">
+<div class="row justify-content-center col-12 mx-auto">
 	<label class="my-auto mx-2">Rows for page</label>
     <?php foreach (ROWS_FOR_PAGE_LIST as $rfp): ?>
     	<a

@@ -4,8 +4,9 @@
     <form id="signup-confirm-form" action="/<?=SIGNUP_ROUTE.'/'.RESEND_EMAIL_ROUTE?>" method="post">
     	<a class="btn btn-success mx-2 my-2" href="/<?=LOGIN_ROUTE?>">Login</a>
     	<button id="btn-resend-email" class="btn btn-primary mx-2 my-2" type="submit">
-			<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-			<span id="text-btn">Resend email</span>
+    		<i class="far fa-paper-plane ico-btn"></i>
+			<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+			<span class="text-btn">Resend email</span>
 		</button>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_RESEND_ENABLER_ACC?>" value="<?=${TOKEN}?>">
 	</form>

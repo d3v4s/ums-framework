@@ -47,9 +47,9 @@
     		<?php if (${CAN_RESTORE_USER}): ?>
     	    	<form id="restore-user-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.DELETED_USER_TABLE.'/'.RESTORE_ROUTE?>" method="post">
     	    		<button id="btn-restore-user" class="btn btn-danger mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fa fa-trash-restore-alt fa-xs"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Restore</span>
+    	    			<i class="fa fa-trash-restore-alt fa-xs ico-btn"></i>
+	    				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Restore</span>
 	    			</button>
     		    	<input id="<?=RESTORE_TOKEN?>" name="<?=CSRF_RESTORE_USER?>" value="<?=${RESTORE_TOKEN}?>" type="hidden">
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">

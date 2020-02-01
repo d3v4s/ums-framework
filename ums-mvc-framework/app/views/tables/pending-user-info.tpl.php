@@ -60,9 +60,9 @@
     		<?php if (${CAN_REMOVE_ENABLER_TOKEN} && ${IS_VALID}): ?>
     	    	<form id="invalidate-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PENDING_USERS_TABLE.'/'.INVALIDATE_ROUTE?>" method="post">
     	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fa fa-user-times"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Invalidate Pending User</span>
+    	    			<i class="ico-btn fa fa-user-times"></i>
+	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Invalidate Pending User</span>
 	    			</button>
     		    	<input id="<?=INVALIDATE_TOKEN?>" name="<?=CSRF_INVALIDATE_PENDING_USER?>" value="<?=${INVALIDATE_TOKEN}?>" type="hidden">
     		    	<input name="<?=PENDING_USER_ID?>" value="<?=${USER}->{PENDING_USER_ID}?>" class="send-ajax" type="hidden">
@@ -71,9 +71,9 @@
     	    <?php if (${CAN_SEND_EMAIL} && ${IS_VALID}): ?>
     	    	<form id="resend-email-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PENDING_USERS_TABLE.'/'.RESEND_ROUTE?>" method="post">
     	    		<button id="btn-resend-email" class="btn btn-primary mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fa fa-paper-plane"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Resend Enabler Email</span>
+    	    			<i class="ico-btn fa fa-paper-plane"></i>
+	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Resend Enabler Email</span>
 	    			</button>
     		    	<input id="<?=RESEND_ENABLER_EMAIL_TOKEN?>" name="<?=CSRF_RESEND_ENABLER_ACC?>" value="<?=${RESEND_ENABLER_EMAIL_TOKEN}?>" type="hidden">
     		    	<input name="<?=PENDING_USER_ID?>" value="<?=${USER}->{PENDING_USER_ID}?>" class="send-ajax" type="hidden">

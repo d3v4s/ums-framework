@@ -9,11 +9,11 @@ $(document).ready(function () {
 
 		/* block default submit form and disable button */
 		event.preventDefault();
-		disableElement($btn);
+		var txtBttn = showLoading($btn);
 
 		/* success function */
 		funcSuccess = function(response) {
-			enableElement($btn);
+			removeLoading($btn, txtBttn);
 			try {
 				showMessage(response.message, !response.success);
 				if(response.success) setTimeout(redirect, 2000, response.redirect_to);
@@ -28,7 +28,7 @@ $(document).ready(function () {
 
 		/* fail function */
 		funcFail = function() {
-			enbleElement($btn);
+			removeLoading($btn, txtBttn);
 			showMessage('Problem to contact server', true);
 		};
 		

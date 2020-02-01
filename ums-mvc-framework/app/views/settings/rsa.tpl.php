@@ -20,8 +20,9 @@
     	<form id="rsa-gen-save-form" action="/<?=RSA_GENERATOR_ROUTE.'/'.SAVE_ROUTE?>" method="post">
     		<input id="<?=RSA_TOKEN?>" type="hidden" name="<?=CSRF_GEN_SAVE_RSA?>" value="<?=${RSA_TOKEN}?>" class="send-ajax">
 	    	<button id="btn-gen-save-key" type="submit" class="btn btn-primary m-2">
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Generate and Save Key</span>
+	    		<i class="fas fa-save ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Generate and Save Key</span>
 	    	</button>
     	</form>
     </div>

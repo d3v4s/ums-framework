@@ -57,10 +57,10 @@
 		require_once MESSAGE_BOX_TEMPLATE;
 		require_once UMS_NAVBAR_TEMPLATE;
 		?>
-		<a id="sidebar-toggle" href="#" class="btn m-2"><i class="fas fa-bars"></i></a>
+		<a id="sidebar-toggle" href="#" class="btn m-2" data-toggle="collapse" data-target="#sidebar"><i class="fas fa-bars"></i></a>
 		<main role="main">
-            <div id="sidebar" class="bg-dark rounded shadow-lg">
-				<ul class="sidebar-nav">
+            <div id="sidebar" class="bg-dark rounded shadow-lg collapse in">
+				<ul class="sidebar-nav p-3">
 					<li>
             			<h3 class="px-2 py-3">SECTIONS</h3>
             		</li>

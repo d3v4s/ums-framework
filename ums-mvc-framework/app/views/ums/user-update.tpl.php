@@ -33,9 +33,9 @@
     			<a class="btn btn-warning px-3 py-1 mx-2 my-2" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-key"></i> Change Password</a>
 			<?php endif; ?>
 	    	<button id="btn-update" class="btn btn-success px-3 py-1 mx-2 my-2" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Update</span>
+	    		<i class="ico-btn fas fa-check"></i>
+	    		<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Update</span>
 	    	</button>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_UPDATE_USER?>" value="<?=${TOKEN}?>">

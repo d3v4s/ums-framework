@@ -8,11 +8,11 @@ $(document).ready(function(){
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBttn = showLoading($btn);
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Delete');
+			removeLoading($btn, txtBttn);
 
 			try {
 				showMessage(response.message, !response.success);
@@ -25,7 +25,7 @@ $(document).ready(function(){
 		
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Delete');
+			removeLoading($btn, txtBttn);
 			showMessage('Problem to contact server', true);
 		};
 

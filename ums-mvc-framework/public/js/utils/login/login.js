@@ -11,23 +11,26 @@ $(document).ready(function() {
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBttn = showLoading($btn);
 
 		try {
 			/* crypt password and append on data */
 			data += '&' + cryptSerialize($cryptElem);
 		} catch (e) {
-			removeLoading($btn, 'Login');
+			removeLoading($btn, txtBttn);
 			showMessage('Login failed', true);
 			return;
 		}
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Login');
+			removeLoading($btn, txtBttn);
 			try {
 				showMessage(response.message, !response.success);
-				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
+				if (response.success) {
+					
+					setTimeout(redirect, 2000, response.redirect_to);
+				}
 				else {
 					focusError(response);
 					if (response.ntk !== undefined) $xf.val(response.ntk);
@@ -40,7 +43,7 @@ $(document).ready(function() {
 
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Login');
+			removeLoading($btn, txtBttn);
 			showMessage('Problem to contact server', true);
 		};
 

@@ -42,6 +42,28 @@
     			<tr>
     				<td colspan="2" class="align-middle <?=${USER}->{ENABLED} ? 'text-success' : 'text-danger'?>"><?=${MESSAGE_ENABLE_ACC}?></td>
     			</tr>
+    			<tr>
+    				<td colspan="2" class="align-middle" <?=${USER}->{ENABLED} ? '' : ''?>>
+    					<a
+    						class="btn btn-primary m-2"
+    						href="/<?=ADVANCE_SEARCH_ROUTE.'/'.PENDING_USER_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.PENDING_EMAILS_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
+						>
+							Pending Emails
+						</a>
+						<a
+    						class="btn btn-primary m-2"
+    						href="/<?=ADVANCE_SEARCH_ROUTE.'/'.SESSION_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.SESSIONS_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
+						>
+							Sessions
+						</a>
+						<a
+    						class="btn btn-primary m-2"
+    						href="/<?=ADVANCE_SEARCH_ROUTE.'/'.PASSWORD_RESET_REQ_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.PASSWORD_RESET_REQ_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
+						>
+							Password Reset Requests 
+						</a>
+    				</td>
+    			</tr>
         	</tbody>
         </table>
     </div>
@@ -53,9 +75,9 @@
     	    <?php if (${CAN_DELETE_USER}): ?>
     	    	<form id="delete-user-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.DELETE_ROUTE?>" method="post">
     	    		<button id="btn-delete-user" class="btn btn-danger mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fa fa-trash-alt fa-xs"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Delete</span>
+    	    			<i class="ico-btn fa fa-trash-alt fa-xs"></i>
+	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Delete</span>
 	    			</button>
     		    	<input id="<?=TOKEN?>" name="<?=CSRF_DELETE_USER?>" value="<?=${TOKEN}?>" type="hidden">
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
@@ -65,9 +87,9 @@
 	    	<?php if (${IS_LOCK} && ${CAN_UNLOCK_USER}): ?>
 	    		<form id="lock-user-reset-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USER_LOCK_TABLE.'/'.RESET_ROUTE?>" method="post">
     	    		<button id="btn-lock-user-reset" class="btn btn-danger mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fas fa-unlock fa-xs"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Unlock</span>
+    	    			<i class="ico-btn fas fa-unlock fa-xs"></i>
+	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Unlock</span>
 	    			</button>
     		    	<input id="<?=LOCKS_USER_RESET_TOKEN?>" name="<?=CSRF_LOCK_USER_RESET?>" value="<?=${LOCKS_USER_RESET_TOKEN}?>" type="hidden">
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">

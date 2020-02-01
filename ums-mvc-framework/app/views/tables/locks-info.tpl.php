@@ -42,9 +42,9 @@
 	    	<?php if (${CAN_UNLOCK_USER}): ?>
 	    		<form id="lock-user-reset-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USER_LOCK_TABLE.'/'.RESET_ROUTE?>" method="post">
     	    		<button id="btn-lock-user-reset" class="btn btn-warning mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fas fa-undo"></i>
-        				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-    					<span id="text-btn">Reset Locks</span>
+    	    			<i class="fas fa-undo ico-btn"></i>
+        				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+    					<span class="text-btn">Reset Locks</span>
         			</button>
     		    	<input id="<?=LOCKS_USER_RESET_TOKEN?>" name="<?=CSRF_LOCK_USER_RESET?>" value="<?=${LOCKS_USER_RESET_TOKEN}?>" type="hidden">
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
