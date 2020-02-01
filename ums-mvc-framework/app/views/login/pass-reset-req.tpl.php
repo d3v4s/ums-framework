@@ -8,8 +8,9 @@
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_PASS_RESET_REQ?>" value="<?=${TOKEN}?>">
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-reset-pass" class="btn btn-primary px-3 py-1" type="submit">
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Reset password</span>
+	    		<i class="fas fa-redo-alt ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Reset password</span>
 	    	</button>
     	</div>
     </form>

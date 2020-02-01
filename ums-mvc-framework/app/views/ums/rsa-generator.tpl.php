@@ -17,9 +17,9 @@
     	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-generate" class="btn btn-success px-3 py-1" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Generate</span>
+	    		<i class="ico-btn fas fa-check"></i>
+				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Generate</span>
 			</button>
     	</div>
     </form>

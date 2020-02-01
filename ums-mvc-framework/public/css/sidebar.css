@@ -4,21 +4,11 @@
 #sidebar{
 	z-index:1;
 	position: absolute;
-	width: 0;
-	height: 90%;
 	overflow-y: hidden;
-	/* background: #5b4282; */
 	opacity: 0.98;
-	transition: all .5s;
-	display: flex;
 	align-items: center;
 	color: #fd7e14;
 	max-width: 333px;
-}
-
-/* Change the width of the sidebar to display it*/
-#sidebar.show {
-	width: calc(30vw + 100px);
 }
 
 /* Sidebar styling */
@@ -37,7 +27,7 @@
 	justify-content:center;
 }
 
-li.nav-item.active > a.nav-link {
+.sidebar-nav li.nav-item.active > a.nav-link {
 	color: #5bb7e5;
 }
 

@@ -30,7 +30,8 @@ define('MAX_LENGTH_EMAIL', 64);
 define('ENABLER_LINK_EXPIRE_TIME', '1 day');
 define('PASS_RESET_EXPIRE_TIME', '3 hour');
 define('RESEND_LOCK_EXPIRE_TIME', '3 minutes');
-define('DOMAIN_LOGIN_SESSION_COOCKIE', 'localhost');
+/* domain for coookie, if set false, then it' taken from url */
+define('DOMAIN_LOGIN_SESSION_COOCKIE', FALSE);
 define('DEFAULT_SETTING_SECTION', 'app');
 define('COOKIE_EXPIRE_DAYS', 30);
 define('CSRF_TOKEN_EXPIRE_TIME', '10 minutes');
@@ -108,6 +109,7 @@ define('DOUBLE_LOGIN_REQUIRE', 'dbl_lgn_rq');
 define('MESSAGE_LANG_SOURCES', 'msg');
 define('DATA_LANG_SOURCES', 'data');
 define('TABLE', 'tbl');
+// define('LOGIN_TOKEN', 'lgn_tkn');
 
 /* ROUTES CONSTANTS */
 define('HOME_ROUTE', '');

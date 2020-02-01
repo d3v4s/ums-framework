@@ -399,10 +399,11 @@ class Controller {
         /* init session model and calc session expire time */
         $session = new Session($this->conn);
         $expireDatetime = getExpireDatetime(MAX_TIME_UNCONNECTED_LOGIN_SESSION);
-        /* create login session */
+        /* create new login session */
         $res = $session->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
-        /* calc expire in unix time and set login session cookie */
-//         $expireUnixTime =  date_timestamp_get($expireDatetime);
+        /* if fail, send error response */
+        if (!$res[SUCCESS]) $this->switchFailResponse();
+        /* else get domain, calc expire in unix time and set login session cookie */
         setcookie(CK_LOGIN_SESSION, $res[TOKEN], time() + (86400 * COOKIE_EXPIRE_DAYS), '/',  DOMAIN_LOGIN_SESSION_COOCKIE, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
     }
 
@@ -767,8 +768,11 @@ class Controller {
         /* get lang array default */
         $langArray[MESSAGE] = require_once getPath('lang', DEFAULT_LANG, MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
         /* merge with the lang require of client */
-        $langCli[MESSAGE] = require_once getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
-        $langArray = array_merge_recursive($langArray, $langCli);
+        $langCliPath = getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
+        if (file_exists(getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php"))) {
+            $langCli[MESSAGE] = require_once $langCliPath;
+            $langArray = array_merge_recursive($langArray, $langCli);
+        }
         /* return array */
         return $langArray;
     }
@@ -809,9 +813,8 @@ class Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
                 redirect();
-//                 $this->showMessageAndExit($data[MESSAGE], TRUE);
             };
-
+            
             /* send session expired message */
             $this->switchResponse($dataOut, FALSE, $funcDefault);
         }

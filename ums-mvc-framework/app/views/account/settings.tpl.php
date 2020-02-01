@@ -1,10 +1,4 @@
 <div class="container col-md-7 text-center p-3">
-<!-- 	<div class="container-fluid justify-content-right text-right"> -->
-<!--     	<form action="/auth/logout" method="post"> -->
-<!-- 			<input id="_xf-out" type="hidden" name="_xf-out" value="< ?=$tokenLogout?>" class="send-ajax"> -->
-<!-- 			<button id="btn-logout" class="btn btn-danger m-2" type="submit"><i id="ico-btn" class="fas fa-sign-out-alt"></i> Logout</button> -->
-<!-- 		</form> -->
-<!-- 	</div> -->
     <form id="user-update-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>">Full name</label>
@@ -44,15 +38,15 @@
     	<?php endif; ?>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
     		<a id="btn-delete" class="btn btn-danger px-3 py-1 mx-2 my-2" href="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.DELETE_ROUTE.'/'.CONFIRM_ROUTE?>">
-    			<i id="ico-btn" class="fas fa-trash-alt"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Delete Account</span>
+    			<i class="fas fa-trash-alt ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Delete Account</span>
 			</a>
 	    	<a class="btn btn-warning px-3 py-1 mx-2 my-2" href="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE?>"><i class="fas fa-key"></i> Change Password</a>
 	    	<button id="btn-update" class="btn btn-success px-3 py-1 mx-2 my-2" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Update</span>
+	    		<i class="fas fa-check ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Update</span>
 	    	</button>
     	</div>
 <!--     	<input id="< ?=DELETE_TOKEN?>" type="hidden" name="< ?=CSRF_DELETE_ACCOUNT?>" value="< ?=${DELETE_TOKEN}?>"> -->

@@ -60,9 +60,9 @@
     		<?php if (${CAN_REMOVE_ENABLER_TOKEN} && ${IS_VALID}): ?>
     	    	<form id="invalidate-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.INVALIDATE_ROUTE?>" method="post">
     	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fa fa-user-times"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Invalidate Request</span>
+    	    			<i class="fa fa-user-times ico-btn"></i>
+	    				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Invalidate Request</span>
 	    			</button>
     		    	<input id="<?=INVALIDATE_TOKEN?>" name="<?=CSRF_INVALIDATE_PASS_RES_REQ?>" value="<?=${INVALIDATE_TOKEN}?>" type="hidden">
     		    	<input name="<?=PASSWORD_RESET_REQ_ID?>" value="<?=${REQUEST}->{PASSWORD_RESET_REQ_ID}?>" class="send-ajax" type="hidden">
@@ -71,9 +71,9 @@
     	    <?php if (${CAN_SEND_EMAIL} && ${IS_VALID}): ?>
     	    	<form id="resend-email-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.RESEND_ROUTE?>" method="post">
     	    		<button id="btn-resend-email" class="btn btn-primary mx-3 my-1" type="submit">
-    	    			<i id="ico-btn" class="fa fa-paper-plane"></i>
-	    				<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  						<span id="text-btn">Resend Password Reset Email</span>
+    	    			<i class="fa fa-paper-plane ico-btn"></i>
+	    				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  						<span class="text-btn">Resend Password Reset Email</span>
 	    			</button>
     		    	<input id="<?=RESEND_ENABLER_EMAIL_TOKEN?>" name="<?=CSRF_RESEND_PASS_RES_REQ?>" value="<?=${RESEND_ENABLER_EMAIL_TOKEN}?>" type="hidden">
     		    	<input name="<?=PASSWORD_RESET_REQ_ID?>" value="<?=${REQUEST}->{PASSWORD_RESET_REQ_ID}?>" class="send-ajax" type="hidden">

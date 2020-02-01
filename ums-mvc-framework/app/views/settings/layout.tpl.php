@@ -19,9 +19,9 @@
     	</div>
     	<div class="form-group text-right container-fluid col-10 pt-4">
 	    	<button id="btn-save" class="btn btn-success px-3 py-1 mx-2 my-2" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Save</span>
+	    		<i class="fas fa-check ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Save</span>
 	    	</button>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_SETTINGS?>" value="<?=${TOKEN}?>">

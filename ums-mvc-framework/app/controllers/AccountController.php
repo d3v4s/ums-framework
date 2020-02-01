@@ -252,7 +252,6 @@ class AccountController extends Controller {
         $verifier = AccountVerifier::getInstance($this->lang[MESSAGE], $this->conn);
         $resPass = $verifier->verifyChangePass($id, $oldPass, $pass, $cpass, $tokens);
 
-
         /* if success */
         if($resPass[SUCCESS]) {
             /* init user model and reset wrong passwords lock */
@@ -342,7 +341,7 @@ class AccountController extends Controller {
 
         /* check resend lock */
         $this->handlerResendLock();
-        
+
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_EMAIL);
         $id = $this->loginSession->{USER_ID};

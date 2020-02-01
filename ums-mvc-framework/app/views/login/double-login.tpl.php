@@ -15,9 +15,9 @@
     	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-double-login" class="btn btn-success px-3 py-1" type="submit">
-	    		<i id="ico-btn" class="fas fa-sign-in-alt"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Continue</span>
+	    		<i class="fas fa-sign-in-alt ico-btn"></i>
+	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Continue</span>
 	    	</button>
     	</div>
     	<?php if (isset(${REDIRECT_TO})): ?>

@@ -105,8 +105,15 @@ class PasswordResetRequest extends DbModel {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;
-                $searchData[$key] = "%$val%";
-                $sql .= "$key LIKE :$key";
+                switch ($key) {
+                    case USER_ID_FRGN:
+                        $sql .= "$key=:$key";
+                        break;
+                    default:
+                        $searchData[$key] = "%$val%";
+                        $sql .= "$key LIKE :$key";
+                        break;
+                }
                 if ($and-- > 0) $sql .= ' AND ';
             }
         }
@@ -231,8 +238,15 @@ class PasswordResetRequest extends DbModel {
             $and = count($searchData)-1;
             foreach ($searchData as $key => $val) {
                 if (!in_array($key, $this->getColList())) continue;
-                $searchData[$key] = "%$val%";
-                $sql .= "$key LIKE :$key";
+                switch ($key) {
+                    case USER_ID_FRGN:
+                        $sql .= "$key=:$key";
+                        break;
+                    default:
+                        $searchData[$key] = "%$val%";
+                        $sql .= "$key LIKE :$key";
+                        break;
+                }
                 if ($and-- > 0) $sql .= ' AND ';
             }
         }

@@ -16,9 +16,9 @@
     	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-change" class="btn btn-success px-3 py-1" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Change</span>
+	    		<i class="ico-btn fas fa-check"></i>
+	    		<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Change</span>
 	    	</button>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_UPDATE_PASS?>" value="<?=${TOKEN}?>">

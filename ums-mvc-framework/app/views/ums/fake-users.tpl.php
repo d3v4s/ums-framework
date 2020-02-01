@@ -17,9 +17,9 @@
         </div>
     	<div class="form-group text-right mr-md-4 mt-md-4 mt-3">
 	    	<button id="btn-add" class="btn btn-success px-3 py-1" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Add</span>
+	    		<i class="ico-btn fas fa-check"></i>
+	    		<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Add</span>
 	    	</button>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_ADD_FAKE_USER?>" value="<?=${TOKEN}?>">

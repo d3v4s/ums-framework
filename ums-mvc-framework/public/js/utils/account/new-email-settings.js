@@ -15,7 +15,6 @@ $(document).ready(function() {
 			buttonDone  : "Yes",
 			buttonFail  : "No",
 			message     : "Delete your new email?"
-
 		}).done(function() { /* confirm function */
 			/* get token */
 			const $xf = $form.find('#_xf_del_ml');
@@ -39,18 +38,6 @@ $(document).ready(function() {
 			};
 
 			sendAjaxReq(actionUrl, {}, $xf, funcSuccess, funcFail);
-//			$.ajax({
-//				method: 'post',
-//				data: data,
-//				url: '/user/settings/new/email/delete',
-//				success: function(response) {
-//					
-//				},
-//				failure: function() {
-//					enableElement($btn);
-//					showMessage('Problem to contact server', true);
-//				}
-//			});
 		}).fail(function(){
 			enableElement($btn);
 		});
@@ -86,25 +73,5 @@ $(document).ready(function() {
 		};
 
 		sendAjaxReq(actionUrl, {}, $xf, funcSuccess, funcFail);
-//		$.ajax({
-//			method: 'post',
-//			data: data,
-//			url: '/user/settings/new/email/resend/validation',
-//			success: function(response) {
-//				enableElement($btn);
-//				try {
-//					const response = JSON.parse(response);
-//					
-//					showMessage(response.message, !response.success);
-//					$xf.val(response.ntk);
-//				} catch (e) {
-//					showMessage('Email resend failed', true);
-//				}
-//			},
-//			failure: function() {
-//				enableElement($btn);
-//				showMessage('Problem to contact server', true);
-//			}
-//		});
 	});
 });

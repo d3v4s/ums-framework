@@ -41,9 +41,9 @@
     	</div>
     	<div class="form-group text-right container-fluid col-10 pt-4">
 	    	<button id="btn-generate" class="btn btn-success px-3 py-1 mx-2 my-2" type="submit">
-	    		<i id="ico-btn" class="fas fa-check"></i>
-	    		<span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-  				<span id="text-btn">Generate</span>
+	    		<i class="fas fa-check ico-btn"></i>
+	    		<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+  				<span class="text-btn">Generate</span>
 	    	</button>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_GEN_SITEMAP?>" value="<?=${TOKEN}?>">

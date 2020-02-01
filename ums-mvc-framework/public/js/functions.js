@@ -128,19 +128,19 @@ function redirect(url) {
 }
 
 function showLoading($btn) {
-	textBtn = $btn.children('#text-btn').text()
+	textBtn = $btn.children('.text-btn').text()
 	$btn.attr("disabled", "disabled");
-	$btn.children('#ico-btn').addClass('d-none');
-	$btn.children('#spinner').removeClass('d-none');
-	$btn.children('#text-btn').text(' Loading...');
+	$btn.children('.ico-btn').addClass('d-none');
+	$btn.children('.spinner').removeClass('d-none');
+	$btn.children('.text-btn').text(' Loading...');
 	return textBtn;
 }
 
 function removeLoading($btn, text) {
 	$btn.removeAttr("disabled");
-	$btn.children('#spinner').addClass('d-none');
-	$btn.children('#ico-btn').removeClass('d-none');
-	$btn.children('#text-btn').text(text);
+	$btn.children('.spinner').addClass('d-none');
+	$btn.children('.ico-btn').removeClass('d-none');
+	$btn.children('.text-btn').text(text);
 }
 
 $(document).ready(function () {
@@ -149,7 +149,7 @@ $(document).ready(function () {
 	$('#close-message-box.btn-close-msg').click(function(event) {
 		event.preventDefault();
 		closeMessage();
-	})
+	});
 
 	$(window).resize(function() {
 		positionMessageBox();

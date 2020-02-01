@@ -9,21 +9,21 @@ $(document).ready(function (){
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBttn = showLoading($btn);
 
 		try {
 			/* crypt and serialize passwords */
 			var data = cryptSerialize($cryptData);
 			console.log(data);
 		} catch (e) {
-			removeLoading($btn, 'Change');
+			removeLoading($btn, txtBttn);
 			showMessage('Change passord failed', true);
 			return;
 		}
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Change');
+			removeLoading($btn, txtBttn);
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
@@ -38,7 +38,7 @@ $(document).ready(function (){
 
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Change');
+			removeLoading($btn, txtBttn);
 			showMessage('Problem to contact server', true);
 		};
 
