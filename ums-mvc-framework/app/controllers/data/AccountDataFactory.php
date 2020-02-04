@@ -5,6 +5,7 @@ use app\models\Role;
 use app\models\PendingEmail;
 use \PDO;
 use app\models\User;
+use app\models\Session;
 
 /**
  * Class data factory, to manage response data of user request
@@ -41,5 +42,14 @@ class AccountDataFactory extends DataFactory {
             VIEW_ROLE => !isSimpleUser($user->{ROLE_ID_FRGN})
         ];
     }
-}
 
+    /* function to get sessions of user */
+    public function getSessionsData($userId): array {
+        /* init session model */
+        $sessionModel = new Session($this->conn);
+        return [
+            SESSIONS => $sessionModel->getValidSessionsByUserId($userId),
+            TOKEN => generateToken(CSRF_INVALIDATE_SESSION)
+        ];
+    }
+}

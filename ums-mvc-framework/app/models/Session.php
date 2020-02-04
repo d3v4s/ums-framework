@@ -172,11 +172,11 @@ class Session extends DbModel {
     }
 
     /* function to get user by login session token */
-    public function getUserByLoginSessionToken(string $token, bool $unsetPassword = TRUE) {
+    public function getUserByLoginSessionToken(string $token, bool $unsetPassword=TRUE) {
         /* prepare sql query, then execute */
         $sql = 'SELECT * FROM '.SESSIONS_TABLE.' JOIN ';
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
-        $sql .= ' WHERE '.SESSION_TOKEN.' = :token';
+        $sql .= ' WHERE '.SESSION_TOKEN.'=:token';
         $stmt = $this->conn->prepare($sql);
         $stmt->execute(['token' => $token]);
 
@@ -188,6 +188,44 @@ class Session extends DbModel {
         }
         /* else return false */
         return FALSE;
+    }
+
+    /* function to get valid session id */
+    public function getValidSession(int $sessionId) {
+        /* create sql query */
+        $sql = 'SELECT * FROM '.SESSIONS_TABLE.' JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.SESSION_ID.'=:id AND ';
+        $sql .= SESSION_TOKEN.' IS NOT NULL AND '.EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
+        /* execute query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'id' => $sessionId
+        ]);
+        
+        /* if not return error and find result, then return it */
+        if ($stmt->errorCode() == 0 && ($res = $stmt->fetch(PDO::FETCH_OBJ))) return $res;
+        /* else return empty array */
+        return FALSE;
+    }
+
+    /* function to get list of valid session by user id */
+    public function getValidSessionsByUserId(int $userId): array {
+        /* create sql query */
+        $sql = 'SELECT * FROM '.SESSIONS_TABLE.' JOIN ';
+        $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
+        $sql .= ' WHERE '.USER_ID_FRGN.'=:id AND ';
+        $sql .= SESSION_TOKEN.' IS NOT NULL AND '.EXPIRE_DATETIME.' > CURRENT_TIMESTAMP()';
+        /* execute query */
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'id' => $userId
+        ]);
+
+        /* if not return error and find result, then return it */
+        if ($stmt->errorCode() == 0 & ($res = $stmt->fetchAll(PDO::FETCH_OBJ))) return $res;
+        /* else return empty array */
+        return [];
     }
 
     /* function to count all session on table */

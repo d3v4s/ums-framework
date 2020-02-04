@@ -23,7 +23,7 @@ class AccountController extends Controller {
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
-    
+
     /* ########## SHOW FUNCTIONS ########## */
 
     /* function to view delete account page */
@@ -45,18 +45,18 @@ class AccountController extends Controller {
     public function showAccountSettings() {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
-        
+
         /* add javascript sources */
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/account/settings.js']
         );
-        
+
         /* get data from data factory */
         $data = AccountDataFactory::getInstance($this->conn)->getAccountSettingsData($this->loginSession->{USER_ID});
         /* if wait email confir, then add javascript sorce for new email settings */
         if ($data[WAIT_EMAIL_CONFIRM]) $this->jsSrcs[] = [SOURCE => '/js/utils/account/new-email-settings.js'];
-        
+
         /* show user settings page */
         $this->content = view(getPath('account','settings'), $data);
     }
@@ -79,11 +79,6 @@ class AccountController extends Controller {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/crypt/jsbn.js'],
-            [SOURCE => '/js/crypt/prng4.js'],
-            [SOURCE => '/js/crypt/rng.js'],
-            [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/account/change-pass.js']
         );
@@ -94,6 +89,24 @@ class AccountController extends Controller {
             TOKEN => generateToken(CSRF_CHANGE_PASS),
             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
         ]);
+    }
+
+    /* function to show active sessions of user */
+    public function showSessions() {
+        /* redirect */
+        $this->redirectOrFailIfNotLogin();
+
+        /* add javascript sources */
+        array_push($this->jsSrcs, 
+            [SOURCE => '/js/utils/account/sessions.js']
+        );
+
+        /* get user id and sessions data */
+        $userId = $this->loginSession->{USER_ID};
+        $data = AccountDataFactory::getInstance($this->conn)->getSessionsData($userId);
+
+        /* show sessions page */
+        $this->content = view(getPath('account', 'sessions'), $data);
     }
 
     /* ########## ACTION FUNCTIONS ########## */
@@ -380,5 +393,48 @@ class AccountController extends Controller {
         };
 
         $this->switchResponse($dataOut, $resResendEmail[GENERATE_TOKEN], $funcDefault, CSRF_RESEND_ENABLER_EMAIL);
+    }
+
+    /* function to delete new email on pending */
+    public function removeSession() {
+        /* redirects */
+        $this->redirectOrFailIfNotLogin();
+
+        /* require double login */
+        $this->handlerDoubleLogin();
+        
+        /* get tokens, user id and session id */
+        $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_SESSION);
+        $id = $this->loginSession->{USER_ID};
+        $sessionId = $_POST[SESSION_ID];
+
+        /* get verifier instance, and check remve session request */
+        $resRemoveSess = AccountVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyRemoveSession($id, $sessionId, $tokens);
+        /* if success */
+        if ($resRemoveSess[SUCCESS]) {
+            /* init pending mail model */
+            $sessModel = new Session($this->conn);
+            /* remove new email with token and if success set success messagge */
+            if (($resRemoveSess[SUCCESS] = $sessModel->removeLoginSession($sessionId))) $resRemoveSess[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][SUCCESS];
+            /* else set error message */
+            else $resRemoveSess[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
+        }
+        
+        /* result data */
+        $dataOut = [
+            SUCCESS => $resRemoveSess[SUCCESS],
+            MESSAGE => $resRemoveSess[MESSAGE] ?? NULL
+        ];
+        
+        /* function for default response */
+        $funcDefault = function($data) {
+            if (isset($data[MESSAGE])) {
+                $_SESSION[MESSAGE] = $data[MESSAGE];
+                $_SESSION[SUCCESS] = $data[SUCCESS];
+            }
+            redirect('/'.ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE);
+        };
+        
+        $this->switchResponse($dataOut, (!$resRemoveSess[SUCCESS] && $resRemoveSess[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);
     }
 }

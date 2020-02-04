@@ -1,31 +1,33 @@
 $(document).ready(function(){
+	reqPublicKey();
 	/* submit event on new user form to send XML HTTP request */
 	$('#new-user-form').on('submit', function(event) {
 		/* get button and token */
 		const $xf = $(this).find('#_xf'),
 			$btn = $(this).find('#btn-save'),
 			actionUrl = $(this).attr('action'),
-			$cryptData = $(this).find('.send-ajax-crypt');
+			$cryptData = $(this).find('.send-ajax-crypt')
+		;
 		
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBtn = showLoading($btn);
 
 		try {
 			/* serilize data */
 			var data = $(this).find('.send-ajax').serialize();
 			/* crypt and serialize passwords */
 			data += '&' + cryptSerialize($cryptData);
-//			
+
 		} catch (e) {
-			removeLoading($btn, 'Save');
+			removeLoading($btn, txtBtn);
 			showMessage('Adding new user failed', true);
 			return;
 		}
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Save');
+			removeLoading($btn, txtBtn);
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
@@ -40,7 +42,7 @@ $(document).ready(function(){
 
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Save');
+			removeLoading($btn, txtBtn);
 			showMessage('Problem to contact server', true);
 		};
 

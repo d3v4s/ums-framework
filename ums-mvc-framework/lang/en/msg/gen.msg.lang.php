@@ -58,5 +58,10 @@ return [
     USER_DELETE => [
         SUCCESS => 'User succesfully delete',
         FAIL => 'Delete user failed'
-    ]
+    ],
+
+    REMOVE_SESSION => [
+        SUCCESS => 'Session removed succesfully',
+        FAIL => 'Remove session failed'
+    ],
 ];

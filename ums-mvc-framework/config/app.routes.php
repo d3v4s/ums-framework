@@ -36,6 +36,7 @@ return [
         ACCOUNT_INFO_ROUTE => 'app\controllers\AccountController@showAccountInfo',
         ACCOUNT_SETTINGS_ROUTE => 'app\controllers\AccountController@showAccountSettings',
         ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE => 'app\controllers\AccountController@showChangePassword',
+        ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE => 'app\controllers\AccountController@showSessions',
         ACCOUNT_SETTINGS_ROUTE.'/'.DELETE_ROUTE.'/'.CONFIRM_ROUTE => 'app\controllers\AccountController@showDeleteAccount',
         GET_JSON_CONFIG_ROUTE => function () {
             sendJsonResponse([
@@ -61,17 +62,6 @@ return [
 
     'POST' => [
         UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/:table/:action' => 'app\controllers\UMSActionsController@switchAction',
-//         NEW_USER_ROUTE => 'app\controllers\UMSController@newUser',
-//         USER_ROUTE.'/'.UPDATE_ROUTE => 'app\controllers\UMSController@userUpdate',
-//         USER_ROUTE.'/'.PASS_UPDATE_ROUTE => 'app\controllers\UMSController@passwordUpdate',
-//         USER_ROUTE.'/'.LOCK_COUNTERS_RESET_ROUTE => 'app\controllers\UMSController@lockCountersReset',
-//         USER_ROUTE.'/'.DELETE_ROUTE => 'app\controllers\UMSController@deleteUser',
-//         USER_ROUTE.'/'.RESTORE_ROUTE => 'app\controllers\UMSController@restoreUser',
-//         PENDING_USER_ROUTE.'/'.RESEND_ROUTE => 'app\controllers\UMSController@resendEnablerAccount',
-//         PENDING_USER_ROUTE.'/'.INVALIDATE_ROUTE => 'app\controllers\UMSController@inavlidatePendingUser',
-//         PENDING_EMAIL_ROUTE.'/'.RESEND_ROUTE => 'app\controllers\UMSController@resendEnablerEmail',
-//         PENDING_EMAIL_ROUTE.'/'.INVALIDATE_ROUTE => 'app\controllers\UMSController@inavlidatePendingEmail',
-//         SESSION_ROUTE.'/'.INVALIDATE_ROUTE => 'app\controllers\UMSController@invalidateSession',
         APP_SETTINGS_ROUTE.'/:section/'.UPDATE_ROUTE => 'app\controllers\AppSettingsController@updateSettings',
         RSA_GENERATOR_ROUTE.'/'.SAVE_ROUTE => 'app\controllers\RSAKeyGeneratorController@generateSaveRsaKey',
         RSA_GENERATOR_ROUTE.'/'.GET_ROUTE => 'app\controllers\RSAKeyGeneratorController@generateRsaKey',
@@ -85,6 +75,7 @@ return [
         LOGOUT_ROUTE => 'app\controllers\LoginController@logout',
         PASS_RESET_REQ_ROUTE => 'app\controllers\LoginController@passwordResetRequest',
         PASS_RESET_ROUTE => 'app\controllers\LoginController@passwordReset',
+        ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE.'/'.INVALIDATE_ROUTE => 'app\controllers\AccountController@removeSession',
         ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE => 'app\controllers\AccountController@updateAccount',
         ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE => 'app\controllers\AccountController@changePassword',
         ACCOUNT_SETTINGS_ROUTE.'/'.DELETE_ROUTE => 'app\controllers\AccountController@deleteAccount',

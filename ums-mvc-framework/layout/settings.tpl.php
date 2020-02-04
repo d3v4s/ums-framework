@@ -57,24 +57,26 @@
 		require_once MESSAGE_BOX_TEMPLATE;
 		require_once UMS_NAVBAR_TEMPLATE;
 		?>
-		<a id="sidebar-toggle" href="#" class="btn m-2" data-toggle="collapse" data-target="#sidebar"><i class="fas fa-bars"></i></a>
 		<main role="main">
-            <div id="sidebar" class="bg-dark rounded shadow-lg collapse in">
-				<ul class="sidebar-nav p-3">
-					<li>
-            			<h3 class="px-2 py-3">SECTIONS</h3>
-            		</li>
-                	<?php foreach ($this->appSectionsList as $appSection): ?>
-                    	<li class="p-2 nav-item <?=$appSection === $this->section ? 'active' : ''?>">
-                    		<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE.'/'.$appSection?>"><?=ucfirst($appSection)?></a>
-                    	</li>
-					<?php endforeach; ?>
-				</ul>
-            </div>
-			<div class="container-fluid p-3 my-2 justify-content-center text-center">
-				<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE?>
-				<div class="mx-auto justify-content-center text-center p-4">
-					<?=$this->content?>
+			<div id="sidebar-continer">
+				<a id="sidebar-toggle" href="#" class="btn m-2" data-toggle="collapse" data-target="#sidebar"><i class="fas fa-bars"></i></a>
+				<div id="sidebar" class="bg-dark rounded-right shadow-lg collapse in">
+					<ul class="sidebar-nav p-3">
+						<li>
+							<h3 class="px-2 py-3">SECTIONS</h3>
+						</li>
+						<?php foreach ($this->appSectionsList as $appSection): ?>
+							<li class="p-2 nav-item <?=$appSection === $this->section ? 'active' : ''?>">
+								<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE.'/'.$appSection?>"><?=ucfirst($appSection)?></a>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
+				<div class="container-fluid p-3 my-2 justify-content-center text-center">
+					<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE?>
+					<div class="mx-auto justify-content-center text-center p-4">
+						<?=$this->content?>
+					</div>
 				</div>
 			</div>
 		</main>

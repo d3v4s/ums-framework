@@ -1,4 +1,5 @@
 $(document).ready(function() {
+	reqPublicKey();
 	/* submit event on login form to send XML HTTP request */
 	$('#login-form').on('submit', function(event) {
 		/* get button and token */

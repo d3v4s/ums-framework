@@ -32,11 +32,6 @@ class EmailController extends UMSBaseController {
         /* add javascript source */
         array_push($this->jsSrcs,
 //             [SOURCE => '/js/ckeditor/ckeditor.js'],
-            [SOURCE => '/js/crypt/jsbn.js'],
-            [SOURCE => '/js/crypt/prng4.js'],
-            [SOURCE => '/js/crypt/rng.js'],
-            [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/ums/send-email.js']
         );

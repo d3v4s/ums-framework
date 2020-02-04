@@ -3,7 +3,8 @@ function handlerTableParams($tableParams) {
 	$tableParams.find('input[type=checkbox][data-toggle=param]').each(function(index, item) {
 		/* get input and target */
 		var $item = $(item),
-			$target = $($item.data('target'));
+			$target = $($item.data('target'))
+		;
 
 		handlerItem($item, $target);
 	});
@@ -20,7 +21,8 @@ $(document).ready(function() {
 	$('#advance-search-form div.table-list input[type=radio][data-toggle=table]').each(function(index, item) {
 		/* get input and target */
 		var $item = $(item),
-			$target = $($item.data('target'));
+			$target = $($item.data('target'))
+		;
 
 		handlerTableParams($target);
 		$item.change(function() {

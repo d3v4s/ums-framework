@@ -42,7 +42,6 @@ class LoginController extends Controller {
             [SOURCE => '/js/crypt/prng4.js'],
             [SOURCE => '/js/crypt/rng.js'],
             [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/login/login.js']
         );
 
@@ -70,7 +69,6 @@ class LoginController extends Controller {
             [SOURCE => '/js/crypt/prng4.js'],
             [SOURCE => '/js/crypt/rng.js'],
             [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/login/signup.js']
         );
@@ -151,7 +149,6 @@ class LoginController extends Controller {
             [SOURCE => '/js/crypt/prng4.js'],
             [SOURCE => '/js/crypt/rng.js'],
             [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/login/pass-reset.js']
         );

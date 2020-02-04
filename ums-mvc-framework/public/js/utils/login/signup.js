@@ -1,4 +1,5 @@
 $(document).ready(function () {
+	reqPublicKey();
 	/* submit event on signup form to send XML HTTP request */
 	$('#signup-form').on('submit', function(event) {
 		/* get button and token */
@@ -12,20 +13,20 @@ $(document).ready(function () {
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBtn = showLoading($btn);
 
 		try {
 			/* crypt password and append on data */
 			data += '&' + cryptSerialize($cryptElem);
 		} catch (e) {
-			removeLoading($btn, 'Signup');
+			removeLoading($btn, txtBtn);
 			showMessage('Signup failed', true);
 			return;
 		}
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Signup');
+			removeLoading($btn, txtBtn);
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
@@ -40,7 +41,7 @@ $(document).ready(function () {
 
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Signup');
+			removeLoading($btn, txtBtn);
 			showMessage('Problem to contact server', true);
 		};
 

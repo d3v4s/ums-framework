@@ -79,11 +79,6 @@ class UMSActionsController extends UMSBaseController {
         
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/crypt/jsbn.js'],
-            [SOURCE => '/js/crypt/prng4.js'],
-            [SOURCE => '/js/crypt/rng.js'],
-            [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/ums/pass-update.js']
         );
@@ -107,11 +102,6 @@ class UMSActionsController extends UMSBaseController {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/crypt/jsbn.js'],
-            [SOURCE => '/js/crypt/prng4.js'],
-            [SOURCE => '/js/crypt/rng.js'],
-            [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/validate.js'],
             [SOURCE => '/js/utils/ums/new-user.js']
         );
@@ -229,6 +219,8 @@ class UMSActionsController extends UMSBaseController {
         $id = $_POST[USER_ID] ?? '';
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE.'/'.$id;
         $this->redirectIfNotXMLHTTPRequest($redirectTo);
+
+        /* require double login */
         $this->handlerDoubleLogin();
         
         /* get tokens and post data */
@@ -280,6 +272,8 @@ class UMSActionsController extends UMSBaseController {
     public function lockCountersReset() {
         /* redirect */
         $this->redirectOrFailIfCanNotUnlockUser();
+
+        /* require double login */
         $this->handlerDoubleLogin();
 
         /* get tokens ad user id */
@@ -395,8 +389,10 @@ class UMSActionsController extends UMSBaseController {
     public function deleteUser() {
         /* redirect */
         $this->redirectOrFailIfCanNotDeleteUser();
+
+        /* require double login */
         $this->handlerDoubleLogin();
-        
+
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_USER);
         $id = $_POST[USER_ID] ?? '';
@@ -453,6 +449,8 @@ class UMSActionsController extends UMSBaseController {
     public function restoreUser() {
         /* redirect */
         $this->redirectOrFailIfCanNotRestoreUser();
+
+        /* require double login */
         $this->handlerDoubleLogin();
 
         /* get tokens ad user id */
@@ -657,8 +655,10 @@ class UMSActionsController extends UMSBaseController {
     public function invalidatePendingEmail() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveEnablerToken();
+
+        /* require double login */
         $this->handlerDoubleLogin();
-        
+
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PENDING_EMAIL);
         $id = $_POST[PENDING_EMAIL_ID] ?? '';
@@ -695,8 +695,10 @@ class UMSActionsController extends UMSBaseController {
     public function invalidatePendingUser() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveEnablerToken();
+
+        /* require double login */
         $this->handlerDoubleLogin();
-        
+
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_PENDING_USER);
         $id = $_POST[PENDING_USER_ID] ?? '';
@@ -734,6 +736,8 @@ class UMSActionsController extends UMSBaseController {
     public function invalidateSession() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveSession();
+
+        /* require double login */
         $this->handlerDoubleLogin();
         
         /* get tokens ad session id */
@@ -772,6 +776,8 @@ class UMSActionsController extends UMSBaseController {
     public function invalidatePasswordResetRequest() {
         /* redirect */
         $this->redirectOrFailIfCanNotRemoveEnablerToken();
+
+        /* require double login */
         $this->handlerDoubleLogin();
         
         /* get tokens ad session id */

@@ -231,7 +231,7 @@ function getLayoutPath(): string {
 
 /* function to check if role id is for simple user */
 function isSimpleUser($roleId): bool {
-    return $roleId === DEFAULT_ROLE;
+    return $roleId === USER_ROLE_ID;
 }
 
 /* function to get  */

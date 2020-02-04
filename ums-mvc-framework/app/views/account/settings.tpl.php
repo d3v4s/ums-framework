@@ -42,6 +42,7 @@
 	    		<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
   				<span class="text-btn">Delete Account</span>
 			</a>
+			<a class="btn btn-warning px-3 py-1 mx-2 my-2" href="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE?>"><i class="far fa-user-circle"></i> View Sessions</a>
 	    	<a class="btn btn-warning px-3 py-1 mx-2 my-2" href="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE?>"><i class="fas fa-key"></i> Change Password</a>
 	    	<button id="btn-update" class="btn btn-success px-3 py-1 mx-2 my-2" type="submit">
 	    		<i class="fas fa-check ico-btn"></i>
@@ -49,7 +50,6 @@
   				<span class="text-btn">Update</span>
 	    	</button>
     	</div>
-<!--     	<input id="< ?=DELETE_TOKEN?>" type="hidden" name="< ?=CSRF_DELETE_ACCOUNT?>" value="< ?=${DELETE_TOKEN}?>"> -->
     	<input id="<?=UPDATE_TOKEN?>" type="hidden" name="<?=CSRF_UPDATE_ACCOUNT?>" value="<?=${UPDATE_TOKEN}?>">
     	<input id="<?=DELETE_NEW_EMAIL_TOKEN?>" type="hidden" name="<?=CSRF_DELETE_NEW_EMAIL?>" value="<?=${DELETE_NEW_EMAIL_TOKEN}?>">
     	<input id="<?=RESEND_ENABLER_EMAIL_TOKEN?>" type="hidden" name="<?=CSRF_RESEND_ENABLER_EMAIL?>" value="<?=${RESEND_ENABLER_EMAIL_TOKEN}?>">

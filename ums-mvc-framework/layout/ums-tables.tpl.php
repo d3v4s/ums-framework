@@ -59,25 +59,27 @@
 		?>
 		<a id="sidebar-toggle" href="#" class="btn m-2" data-toggle="collapse" data-target="#sidebar" aria-expanded="false"><i class="fas fa-bars"></i></a>
 		<main role="main">
-            <div id="sidebar" class="bg-dark rounded shadow-lg collapse in">
-				<ul class="sidebar-nav">
-					<li>
-            			<h3 class="px-2 py-3">TABLES</h3>
-            		</li>
-                	<?php foreach (UMS_TABLES_LIST as $table => $name): ?>
-                    	<li class="p-2 nav-item <?=$table === $this->table ? 'active' : ''?>">
-                    		<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.$table?>"><?=ucfirst($name)?></a>
-                    	</li>
-					<?php endforeach; ?>
-					<li class="p-2 nav-item <?=$this->isAdvanceSearch ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=ADVANCE_SEARCH_ROUTE?>">Advance Search</a>
-					</li>
-				</ul>
-            </div>
-			<div class="container-fluid p-3 my-2 justify-content-center text-center">
-				<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE?>
-				<div class="mx-auto justify-content-center text-center p-4">
-					<?=$this->content?>
+			<div id="sidebar-container">
+				<div id="sidebar" class="bg-dark rounded-right shadow-lg collapse in">
+					<ul class="sidebar-nav">
+						<li>
+							<h3 class="px-2 py-3">TABLES</h3>
+						</li>
+						<?php foreach (UMS_TABLES_LIST as $table => $name): ?>
+							<li class="p-2 nav-item <?=$table === $this->table ? 'active' : ''?>">
+								<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.$table?>"><?=ucfirst($name)?></a>
+							</li>
+						<?php endforeach; ?>
+						<li class="p-2 nav-item <?=$this->isAdvanceSearch ? 'active' : ''?>">
+							<a class="nav-link" href="/<?=ADVANCE_SEARCH_ROUTE?>">Advance Search</a>
+						</li>
+					</ul>
+				</div>
+				<div class="container-fluid p-3 my-2 justify-content-center text-center">
+					<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE?>
+					<div class="mx-auto justify-content-center text-center p-4">
+						<?=$this->content?>
+					</div>
 				</div>
 			</div>
 		</main>
