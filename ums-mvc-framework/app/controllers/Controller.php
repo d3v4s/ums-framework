@@ -89,7 +89,13 @@ class Controller {
             $this->handlerSession();
             /* generate logout token */
             $this->{LOGOUT_TOKEN} = generateToken(CSRF_LOGOUT);
-            array_push($this->jsSrcs, [SOURCE => '/js/utils/login/logout.js']);
+            array_push($this->jsSrcs, 
+                [SOURCE => '/js/utils/login/logout.js'],
+                [SOURCE => '/js/crypt/jsbn.js'],
+                [SOURCE => '/js/crypt/prng4.js'],
+                [SOURCE => '/js/crypt/rng.js'],
+                [SOURCE => '/js/crypt/rsa.js']
+            );
         }
     }
 
@@ -181,11 +187,6 @@ class Controller {
 
         /* add javascript source */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/crypt/jsbn.js'],
-            [SOURCE => '/js/crypt/prng4.js'],
-            [SOURCE => '/js/crypt/rng.js'],
-            [SOURCE => '/js/crypt/rsa.js'],
-            [SOURCE => '/js/utils/req-key.js'],
             [SOURCE => '/js/utils/login/double-login.js']
         );
         /* set redirect data */
@@ -241,10 +242,16 @@ class Controller {
                         DOUBLE_LOGIN_REQUIRE => TRUE,
                         MESSAGE => 'Double login require',
                         SUCCESS => FALSE,
-                        REDIRECT_TO => '/'.DOUBLE_LOGIN_ROUTE
+                        DOUBLE_LOGIN_DATA => [
+                            ACTION => '/'.DOUBLE_LOGIN_ROUTE,
+                            TOKEN => generateToken(CSRF_DOUBLE_LOGIN),
+                            TOKEN_NAME => CSRF_DOUBLE_LOGIN,
+                            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
+                            KEY_TOKEN_NAME => CSRF_KEY_JSON
+                        ]
                     ]);
                     exit;
-                    /* default function */
+                /* default function */
                 default:
                     /* show double login page and exit */
                     $this->showDoubleLogin();

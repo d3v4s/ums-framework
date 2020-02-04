@@ -16,11 +16,6 @@ return [
         FAIL => 'Restore user failed'
     ],
 
-    REMOVE_SESSION => [
-        SUCCESS => 'Session removed succesfully',
-        FAIL => 'Remove session failed'
-    ],
-
     INVALIDATE_PENDING_EMAIL => [
         SUCCESS => 'Pending email removed succesfully',
         FAIL => 'Remove pending email failed'

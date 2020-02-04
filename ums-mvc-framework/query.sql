@@ -6,7 +6,7 @@ USE `ums`;
 
 -- new table for roles of users
 CREATE TABLE `roles` (
-	`id_role` int(2) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id_role` int(2) unsigned NOT NULL PRIMARY KEY,
 	`role` varchar(20) NOT NULL DEFAULT 0,
 	`create_user` bit(1) NOT NULL DEFAULT 0,
 	`update_user` bit(1) NOT NULL DEFAULT 0,

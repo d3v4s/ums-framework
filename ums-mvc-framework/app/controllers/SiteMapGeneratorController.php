@@ -66,6 +66,9 @@ class SiteMapGeneratorController extends SettingsBaseController {
         /* redirect */
         $this->redirectIfCanNotGenerateSiteMap();
 
+        /* require double login */
+        $this->handlerDoubleLogin();
+
         /* get tokens */
         $tokens = $this->getPostSessionTokens(CSRF_GEN_SITEMAP);
         /* get url server and unset it from post */

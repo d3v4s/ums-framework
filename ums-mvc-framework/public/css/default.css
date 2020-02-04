@@ -1,5 +1,8 @@
 @charset "utf-8";
 
+#message-box {
+	z-index: 10;
+}
 #close-message-box {
 	color: white;
 }
@@ -12,6 +15,19 @@
 
 #dropdown-account {
 	min-width: 250px;
+}
+
+#double-login-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 9;
+    background-color: #000000ac;
+	top: 0;
+}
+
+#double-login-container .message-box {
+    background-color: #3c3c3c;
 }
 
 html, body {

@@ -1,4 +1,5 @@
 $(document).ready(function () {
+	reqPublicKey();
 	/* submit event on reset password form to send XML HTTP request */
 	$('#reset-pass-form').on('submit', function(event) {
 		/* get button, token, and serialize data */
@@ -12,20 +13,20 @@ $(document).ready(function () {
 
 		/* block default submit form and show loading */
 		event.preventDefault();
-		showLoading($btn);
+		var txtBtn = showLoading($btn);
 
 		try {
 			/* crypt password and append on data */
 			data += '&' + cryptSerialize($cryptElem);
 		} catch (e) {
-			removeLoading($btn, 'Reset');
+			removeLoading($btn, txtBtn);
 			showMessage('Reset password failed', true);
 			return;
 		}
 
 		/* success function */
 		funcSuccess = function(response) {
-			removeLoading($btn, 'Reset');
+			removeLoading($btn, txtBtn);
 			try {
 				showMessage(response.message, !response.success);
 				if (response.success) setTimeout(redirect, 2000, response.redirect_to);
@@ -40,7 +41,7 @@ $(document).ready(function () {
 
 		/* fail function */
 		funcFail = function() {
-			removeLoading($btn, 'Reset');
+			removeLoading($btn, txtBtn);
 			showMessage('Problem to contact server', true);
 		};
 

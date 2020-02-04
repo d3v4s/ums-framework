@@ -55,6 +55,9 @@ class AppSettingsController extends SettingsBaseController {
         /* redirect */
         $this->redirectOrFailIfCanNotChangeSettings();
 
+        /* require double login */
+        $this->handlerDoubleLogin();
+
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_SETTINGS);
         $data = $_POST;

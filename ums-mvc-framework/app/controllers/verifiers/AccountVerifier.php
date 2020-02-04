@@ -1,10 +1,15 @@
 <?php
 namespace app\controllers\verifiers;
 
+use app\models\PendingEmail;
+use app\models\Session;
 use app\models\User;
 use \PDO;
-use app\models\PendingEmail;
 
+/**
+ * Class to verify the account requests
+ * @author Andrea Serra (DevAS) https://devas.info
+ */
 class AccountVerifier extends Verifier {
     protected function __construct(array $langMessage, PDO $conn) {
         parent::__construct($langMessage, $conn);
@@ -49,21 +54,51 @@ class AccountVerifier extends Verifier {
             SUCCESS => FALSE,
             GENERATE_TOKEN => FALSE
         ];
-        
+
         /* validate tokens */
         if (!$this->verifyTokens($tokens)) return $result;
         $result[GENERATE_TOKEN] = TRUE;
-        
+
         /* init pending mail model */
         $pendMail = new PendingEmail($this->conn);
-        
+
         /* get pending emails by id and check if they have a new email */
         if (!$pendMail->getValidPendingEmailByUserId($userId)) return $result;
-        
+
         /* unset error message and set success */
         unset($result[MESSAGE]);
         $result[SUCCESS] = TRUE;
-        
+
+        /* return result */
+        return $result;
+    }
+
+    /* function to verify remove session requests */
+    public function verifyRemoveSession(int $userId, int $sessionId, array $tokens): array {
+        /* set fail results */
+        $result = [
+            MESSAGE => $this->langMessage[REMOVE_SESSION][FAIL],
+            SUCCESS => FALSE,
+            GENERATE_TOKEN => FALSE
+        ];
+
+        /* validate tokens */
+        if (!$this->verifyTokens($tokens)) return $result;
+        $result[GENERATE_TOKEN] = TRUE;
+
+        /* init session model */
+        $sessionModel = new Session($this->conn);
+
+        /* validate session id */
+        if (!$sess = $sessionModel->getValidSession($sessionId)) return $result;
+
+        /* check if user is the session owner */
+        if ($sess->{USER_ID_FRGN} != $userId) return $result;
+
+        /* unset error message and set success */
+        unset($result[MESSAGE]);
+        $result[SUCCESS] = TRUE;
+
         /* return result */
         return $result;
     }
@@ -95,8 +130,6 @@ class AccountVerifier extends Verifier {
 
         /* unset user var */
         unset($usr);
-        /* get app config */
-//         $confApp = $this->appConfig['app'];
 
         /* validate new password */
         if (!$this->isValidInput($pass, MIN_LENGTH_PASS, MAX_LENGTH_PASS, USE_REGEX_PASSWORD, REGEX_PASSWORD)) {

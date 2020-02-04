@@ -1,4 +1,5 @@
-$(document).ready(function (){
+$(document).ready(function() {
+	reqPublicKey();
 	/* submit event on change password form to send XML HTTP request */
 	$('#change-pass-form').on('submit', function(event) {
 		/* get button and token */
