@@ -190,7 +190,7 @@ class UMSActionsController extends UMSBaseController {
             /* else set fail message */
             } else $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][FAIL];
         }
-        
+
         /* result data */
         $dataOut = [
             REDIRECT_TO => $redirectTo,
@@ -198,7 +198,7 @@ class UMSActionsController extends UMSBaseController {
             ERROR => $resUpdate[ERROR] ?? NULL,
             MESSAGE => $resUpdate[MESSAGE] ?? NULL,
         ];
-        
+
         /* function for default response */
         $funcDefault = function($data) {
             if (isset($data[MESSAGE])) {

@@ -346,6 +346,23 @@ class Session extends DbModel {
         return FALSE;
     }
 
+    /* function to remove login session by session id */
+    public function removeOldLoginSessionForUser(int $userId, int $nSessionToLeave): bool {
+        /* prepare sql query and execute it */
+        $sql = 'UPDATE '.SESSIONS_TABLE.' SET '.SESSION_TOKEN.'=NULL WHERE '.USER_ID_FRGN.'=:id';
+        $sql .= ' ORDER BY '.SESSION_ID." DESC LIMIT $nSessionToLeave, 9999999";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([
+            'id' => $userId
+        ]);
+
+        
+        /* if sql query success return true */
+        if ($stmt && $stmt->rowCount()) return TRUE;
+        /* else return false */
+        return FALSE;
+    }
+
     /* function to remove login session by token */
     public function removeAllLoginSessionTokens(string $userId): bool {
         /* prepare sql query and execute it */

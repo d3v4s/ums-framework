@@ -44,12 +44,13 @@ class AccountDataFactory extends DataFactory {
     }
 
     /* function to get sessions of user */
-    public function getSessionsData($userId): array {
+    public function getSessionsData($userId, $currentSessId): array {
         /* init session model */
         $sessionModel = new Session($this->conn);
         return [
             SESSIONS => $sessionModel->getValidSessionsByUserId($userId),
-            TOKEN => generateToken(CSRF_INVALIDATE_SESSION)
+            TOKEN => generateToken(CSRF_INVALIDATE_SESSION),
+            CURRENT_SESSION => $currentSessId
         ];
     }
 }

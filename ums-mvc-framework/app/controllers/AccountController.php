@@ -101,9 +101,8 @@ class AccountController extends Controller {
             [SOURCE => '/js/utils/account/sessions.js']
         );
 
-        /* get user id and sessions data */
-        $userId = $this->loginSession->{USER_ID};
-        $data = AccountDataFactory::getInstance($this->conn)->getSessionsData($userId);
+        /* get sessions data */
+        $data = AccountDataFactory::getInstance($this->conn)->getSessionsData($this->loginSession->{USER_ID}, $this->loginSession->{SESSION_ID});
 
         /* show sessions page */
         $this->content = view(getPath('account', 'sessions'), $data);
@@ -402,7 +401,7 @@ class AccountController extends Controller {
 
         /* require double login */
         $this->handlerDoubleLogin();
-        
+
         /* get tokens, user id and session id */
         $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_SESSION);
         $id = $this->loginSession->{USER_ID};
@@ -419,13 +418,13 @@ class AccountController extends Controller {
             /* else set error message */
             else $resRemoveSess[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
         }
-        
+
         /* result data */
         $dataOut = [
             SUCCESS => $resRemoveSess[SUCCESS],
             MESSAGE => $resRemoveSess[MESSAGE] ?? NULL
         ];
-        
+
         /* function for default response */
         $funcDefault = function($data) {
             if (isset($data[MESSAGE])) {
@@ -434,7 +433,7 @@ class AccountController extends Controller {
             }
             redirect('/'.ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE);
         };
-        
+
         $this->switchResponse($dataOut, (!$resRemoveSess[SUCCESS] && $resRemoveSess[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);
     }
 }

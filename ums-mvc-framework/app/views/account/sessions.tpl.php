@@ -16,7 +16,13 @@
         	<tbody>
         		<?php foreach (${SESSIONS} as $sess): ?>
             		<tr id="session-<?=SESSION_ID?>">
-            			<td class="text-primary align-middle"><?=$sess->{IP_ADDRESS}?></td>
+            			<td class="text-primary align-middle">
+            				<?=$sess->{IP_ADDRESS}?>
+            				<?php if ($sess->{SESSION_ID} == ${CURRENT_SESSION}): ?>
+            					<br>
+        						<span class="text-success">Current Session</span>
+            				<?php endif; ?>
+        				</td>
             			<td class="align-middle">
             				<form action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE.'/'.INVALIDATE_ROUTE?>" method="post" class="remove-session">
             					<button class="btn btn-warning" type="submit">

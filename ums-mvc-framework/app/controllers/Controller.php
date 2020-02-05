@@ -404,14 +404,16 @@ class Controller {
         /* reset session */
         $this->resetSession();
         /* init session model and calc session expire time */
-        $session = new Session($this->conn);
+        $sessionModel = new Session($this->conn);
         $expireDatetime = getExpireDatetime(MAX_TIME_UNCONNECTED_LOGIN_SESSION);
         /* create new login session */
-        $res = $session->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
+        $res = $sessionModel->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
         /* if fail, send error response */
         if (!$res[SUCCESS]) $this->switchFailResponse();
         /* else get domain, calc expire in unix time and set login session cookie */
         setcookie(CK_LOGIN_SESSION, $res[TOKEN], time() + (86400 * COOKIE_EXPIRE_DAYS), '/',  DOMAIN_LOGIN_SESSION_COOCKIE, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
+        /* remove old session */
+        $sessionModel->removeOldLoginSessionForUser($userId, MAX_SESSIONS);
     }
 
     /* function to reset session if client change ip address */
