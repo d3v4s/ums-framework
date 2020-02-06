@@ -48,7 +48,8 @@ class LoginController extends Controller {
         /* show login page */
         $this->content = view(getPath('login','login'), [
             TOKEN => generateToken(CSRF_LOGIN),
-            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
+            LANG => $this->lang[DATA]
         ]);
     }
 
@@ -75,7 +76,8 @@ class LoginController extends Controller {
         
         $this->content = view(getPath('login','signup'), [
             TOKEN => generateToken(CSRF_SIGNUP),
-            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
+            LANG => $this->lang[DATA]
         ]);
     }
 
@@ -106,7 +108,10 @@ class LoginController extends Controller {
             [SOURCE => '/js/utils/login/signup-confirm.js']
         );
         
-        $this->content = view(getPath('login', 'signup-confirm'), [TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC)]);
+        $this->content = view(getPath('login', 'signup-confirm'), [
+            TOKEN => generateToken(CSRF_RESEND_ENABLER_ACC),
+            LANG => $this->lang[DATA]
+        ]);
     }
 
     /* function to view reset password request page */
@@ -125,7 +130,10 @@ class LoginController extends Controller {
         );
         
         /* generate token and show page */
-        $this->content = view(getPath('login', 'pass-reset-req'), [TOKEN => generateToken(CSRF_PASS_RESET_REQ)]);
+        $this->content = view(getPath('login', 'pass-reset-req'), [
+            TOKEN => generateToken(CSRF_PASS_RESET_REQ),
+            LANG => $this->lang[DATA]
+        ]);
     }
     
     /* function to view reset password page */
@@ -157,7 +165,8 @@ class LoginController extends Controller {
         $data = [
             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
             TOKEN => generateToken(CSRF_PASS_RESET),
-            PASSWORD_RESET_TOKEN => $token
+            PASSWORD_RESET_TOKEN => $token,
+            LANG => $this->lang[DATA]
         ];
         $this->content = view('login/pass-reset', $data);
     }

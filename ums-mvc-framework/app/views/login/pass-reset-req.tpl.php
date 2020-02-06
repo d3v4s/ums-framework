@@ -1,5 +1,5 @@
 <div class="container col-md-7 text-center">
-    <h1>Forgot Password</h1>
+    <h1><?=${LANG}['forgot_password']?></h1>
     <form id="reset-pass-req-form" action="/<?=PASS_RESET_REQ_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=EMAIL?>">Email</label>

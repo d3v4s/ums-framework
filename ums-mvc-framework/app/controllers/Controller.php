@@ -333,18 +333,18 @@ class Controller {
         /* create a CSP content and return it */
         $content = $this->CSPDefaultSrc ? 'default-src '.$this->CSPDefaultSrc.'; ' : '';
         $content .= "$CSPScriptSrc; $CSPStyleSrc; $CSPImgSrc; $CSPMediaSrc; ";
-        $content .= $this->CSPFontSrc ? 'font-src '.$this->CSPFontSrc.'; ': '';
-        $content .= $this->CSPConnectSrc ? 'connect-src '.$this->CSPConnectSrc.'; ': '';
-        $content .= $this->CSPFormAction ? 'form-action '.$this->CSPFormAction.'; ': '';
-        $content .= $this->CSPFrameAncestors ? 'frame-ancestors '.$this->CSPFrameAncestors.'; ': '';
-        $content .= $this->CSPPluginTypes ? 'plugin-types '.$this->CSPPluginTypes.'; ': '';
-        $content .= $this->CSPObjectSrc ? 'object-src '.$this->CSPObjectSrc.'; ': '';
-        $content .= $this->CSPWorkerSrc ? 'worker-src '.$this->CSPWorkerSrc.'; ': '';
-        $content .= $this->CSPFrameSrc ? 'frame-src '.$this->CSPFrameSrc.'; ': '';
-        $content .= $this->CSPChildSrc ? 'child-src '.$this->CSPChildSrc.'; ': '';
-        $content .= $this->CSPBaseUri ? 'base-uri '.$this->CSPBaseUri.'; ': '';
-        $content .= $this->CSPSandbox ? 'sandbox '.$this->CSPSandbox.'; ': '';
-        $content .= $this->CSPReportUri ? 'report-uri '.$this->CSPReportUri.'; ': '';
+        $content .= $this->CSPFontSrc ? 'font-src '.$this->CSPFontSrc.'; ' : '';
+        $content .= $this->CSPConnectSrc ? 'connect-src '.$this->CSPConnectSrc.'; ' : '';
+        $content .= $this->CSPFormAction ? 'form-action '.$this->CSPFormAction.'; ' : '';
+        $content .= $this->CSPFrameAncestors ? 'frame-ancestors '.$this->CSPFrameAncestors.'; ' : '';
+        $content .= $this->CSPPluginTypes ? 'plugin-types '.$this->CSPPluginTypes.'; ' : '';
+        $content .= $this->CSPObjectSrc ? 'object-src '.$this->CSPObjectSrc.'; ' : '';
+        $content .= $this->CSPWorkerSrc ? 'worker-src '.$this->CSPWorkerSrc.'; ' : '';
+        $content .= $this->CSPFrameSrc ? 'frame-src '.$this->CSPFrameSrc.'; ' : '';
+        $content .= $this->CSPChildSrc ? 'child-src '.$this->CSPChildSrc.'; ' : '';
+        $content .= $this->CSPBaseUri ? 'base-uri '.$this->CSPBaseUri.'; ' : '';
+        $content .= $this->CSPSandbox ? 'sandbox '.$this->CSPSandbox.'; ' : '';
+        $content .= $this->CSPReportUri ? 'report-uri '.$this->CSPReportUri.'; ' : '';
         return $content;
     }
 
@@ -404,14 +404,16 @@ class Controller {
         /* reset session */
         $this->resetSession();
         /* init session model and calc session expire time */
-        $session = new Session($this->conn);
+        $sessionModel = new Session($this->conn);
         $expireDatetime = getExpireDatetime(MAX_TIME_UNCONNECTED_LOGIN_SESSION);
         /* create new login session */
-        $res = $session->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
+        $res = $sessionModel->newLoginSession($userId, $_SERVER['REMOTE_ADDR'], $expireDatetime);
         /* if fail, send error response */
         if (!$res[SUCCESS]) $this->switchFailResponse();
         /* else get domain, calc expire in unix time and set login session cookie */
         setcookie(CK_LOGIN_SESSION, $res[TOKEN], time() + (86400 * COOKIE_EXPIRE_DAYS), '/',  DOMAIN_LOGIN_SESSION_COOCKIE, $this->appConfig[SECURITY][ONLY_HTTPS], TRUE);
+        /* remove old session */
+        $sessionModel->removeOldLoginSessionForUser($userId, MAX_SESSIONS);
     }
 
     /* function to reset session if client change ip address */
@@ -420,7 +422,7 @@ class Controller {
         if ($this->loginSession->{IP_ADDRESS} !== $_SERVER['REMOTE_ADDR']) {
             /* reset login session send fail response */
             $this->resetLoginSession();
-            $this->switchFailResponse('Your ip has changed');
+            $this->switchFailResponse($this->lang[MESSAGE][GENERIC][IP_CHANGED]);
         }
     }
 
@@ -584,7 +586,7 @@ class Controller {
     protected function redirectOrFailIfConfirmEmailNotRequire() {
         if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $this->switchFailResponse();
     }
-    
+
     /* function to redirect if not XML HTTP request */
     protected function redirectIfNotXMLHTTPRequest(string $url = '/') {
         if (!isXmlhttpRequest()) {
@@ -668,7 +670,7 @@ class Controller {
         $email->setHeaders($headers);
         /* set layout and data, then generate email body and send it */
         $email->setLayout(RANDOM_PASSWORD_EMAIL_LAYOUT);
-        
+
         $email->setData([
             PASSWORD => $password
         ]);
@@ -772,14 +774,21 @@ class Controller {
 
     /* function to get laguage array */
     protected function getLanguageArray(string $section='gen'): array {
+        /* init language array */
+        $langArray = [];
         /* get lang array default */
-        $langArray[MESSAGE] = require_once getPath('lang', DEFAULT_LANG, MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
+        $langPath = getPath('lang', DEFAULT_LANG, MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
+        if (file_exists($langPath)) $langArray[MESSAGE] = require_once $langPath;
+        $langPath = getPath('lang', DEFAULT_LANG, DATA_LANG_SOURCES, "$section.data.lang.php");
+        if (file_exists($langPath)) $langArray[DATA] = require_once $langPath;
+        /* init lang require from cli */
+        $langCli = [];
         /* merge with the lang require of client */
         $langCliPath = getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
-        if (file_exists(getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php"))) {
-            $langCli[MESSAGE] = require_once $langCliPath;
-            $langArray = array_merge_recursive($langArray, $langCli);
-        }
+        if (file_exists($langCliPath)) $langCli[MESSAGE] = require_once $langCliPath;
+        $langCliPath = getPath('lang', $this->getLang(), DATA_LANG_SOURCES, "$section.data.lang.php");
+        if (file_exists($langCliPath)) $langCli[DATA] = require_once $langCliPath;
+        $langArray = array_merge_recursive($langArray, $langCli);
         /* return array */
         return $langArray;
     }
@@ -811,7 +820,7 @@ class Controller {
             $this->resetLoginSession();
             /* set result data */
             $dataOut = [
-                MESSAGE => 'Your session has expired',
+                MESSAGE => $this->lang[MESSAGE][GENERIC][EXPIRED_SESSION],
                 SUCCESS => FALSE
             ];
             

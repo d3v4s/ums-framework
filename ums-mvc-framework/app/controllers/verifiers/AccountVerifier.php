@@ -124,7 +124,7 @@ class AccountVerifier extends Verifier {
         if (!password_verify($oldPass, $usr->{PASSWORD})) {
             $result[WRONG_PASSWORD] = TRUE;
             $result[MESSAGE] = $this->langMessage[GENERIC][WRONG_PASSWORD];
-            $result[ERROR] = OLD_PASS;
+            $result[ERROR] = CURRENT_PASS;
             return $result;
         }
 

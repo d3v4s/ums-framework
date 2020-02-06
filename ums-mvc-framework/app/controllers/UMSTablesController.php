@@ -108,7 +108,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $search = $_GET[SEARCH] ?? '';
 
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
         $this->content = view(getPath('tables','users'), $data);
     }
 
@@ -127,7 +127,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $search = $_GET[SEARCH] ?? '';
 
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getDeletedUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getDeletedUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
         $this->content = view(getPath('tables','deleted-users'), $data);
     }
 
@@ -146,7 +146,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $search = $_GET[SEARCH] ?? '';
 
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getPendingUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
         $this->content = view(getPath('tables','pending-users'), $data);
     }
 
@@ -181,7 +181,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->table = ROLES_TABLE;
         
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getRolesListData($orderBy, $orderDir, $page, $usersForPage);
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getRolesListData($orderBy, $orderDir, $page, $usersForPage);
         $this->content = view(getPath('tables','roles'), $data);
     }
 
@@ -200,7 +200,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $search = $_GET[SEARCH] ?? '';
         
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->geSessionsListData($orderBy, $orderDir, $page, $usersForPage, $search);
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->geSessionsListData($orderBy, $orderDir, $page, $usersForPage, $search);
         $this->content = view(getPath('tables','sessions'), $data);
     }
 
@@ -219,7 +219,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $search = $_GET[SEARCH] ?? '';
         
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->gePassResetReqListData($orderBy, $orderDir, $page, $usersForPage, $search);
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->gePassResetReqListData($orderBy, $orderDir, $page, $usersForPage, $search);
         $this->content = view(getPath('tables','pass-res-req'), $data);
     }
 
@@ -232,7 +232,7 @@ class UMSTablesController extends UMSTablesBaseController {
         
         
         /* get data by data factory */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getUserData($username, $this->appConfig[APP][DATETIME_FORMAT], $this->canUpdateUser(), $this->canDeleteUser(), $this->canChangePassword(), $this->canViewRole(), $this->canSendEmails(), $this->canUnlockUser());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getUserData($username, $this->appConfig[APP][DATETIME_FORMAT], $this->canUpdateUser(), $this->canDeleteUser(), $this->canChangePassword(), $this->canViewRole(), $this->canSendEmails(), $this->canUnlockUser());
         
         /* if user not found, show error message */
         if (!$data[USER]) $this->showMessageAndExit('User not found', TRUE);
@@ -253,7 +253,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->redirectOrFailIfCanNotViewTables();
 
         /* get data by data factory  */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getDeletedUserData($id, $this->appConfig[APP][DATETIME_FORMAT], $this->canViewRole(), $this->canSendEmails(), $this->canRestoreUser());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getDeletedUserData($id, $this->appConfig[APP][DATETIME_FORMAT], $this->canViewRole(), $this->canSendEmails(), $this->canRestoreUser());
         
         /* if user not found, show error message */
         if (!$data[USER]) $this->showMessageAndExit('Deleted user not found', TRUE);
@@ -273,7 +273,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->redirectOrFailIfCanNotViewTables();
 
         /* get data by data factory  */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getSessionData($sessionId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveSession());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getSessionData($sessionId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveSession());
         
         /* if user not found, show error message */
         if (!$data[SESSION]) $this->showMessageAndExit('Session not found', TRUE);
@@ -293,7 +293,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->redirectOrFailIfCanNotViewTables();
 
         /* get data by data factory  */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getUserLocksData($userId, $this->appConfig[APP][DATETIME_FORMAT], $this->canUnlockUser());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getUserLocksData($userId, $this->appConfig[APP][DATETIME_FORMAT], $this->canUnlockUser());
         
         
         /* if user not found, show error message */
@@ -314,7 +314,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $this->redirectOrFailIfCanNotViewTables();
         
         /* get data by data factory  */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingEmailData($pendingMailId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveEnablerToken());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getPendingEmailData($pendingMailId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveEnablerToken());
         
         /* if user not found, show error message */
         if (!$data[PENDING]) $this->showMessageAndExit('Pending email not found', TRUE);
@@ -336,7 +336,7 @@ class UMSTablesController extends UMSTablesBaseController {
         
         
         /* get data by data factory */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingUserData($userId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails(), $this->canRemoveEnablerToken());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getPendingUserData($userId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails(), $this->canRemoveEnablerToken());
         
         /* if user not found, show error message */
         if (!$data[USER]) $this->showMessageAndExit('User not found', TRUE);
@@ -358,7 +358,7 @@ class UMSTablesController extends UMSTablesBaseController {
         
         
         /* get data by data factory */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPassResReqData($passResReqId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails(), $this->canRemoveEnablerToken());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getPassResReqData($passResReqId, $this->appConfig[APP][DATETIME_FORMAT],$this->canViewRole(), $this->canSendEmails(), $this->canRemoveEnablerToken());
         
         /* if user not found, show error message */
         if (!$data[REQUEST]) $this->showMessageAndExit('Password reset request not found', TRUE);

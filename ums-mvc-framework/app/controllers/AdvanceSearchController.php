@@ -1,8 +1,8 @@
 <?php
 namespace app\controllers;
 
-use \PDO;
 use app\controllers\data\AdvanceSearchDataFactory;
+use \PDO;
 
 /**
  * Class controller for advance searchs 
@@ -16,7 +16,7 @@ class AdvanceSearchController extends UMSTablesBaseController {
     /* ##################################### */
     /* PUBLIC FUNCTIONS */
     /* ##################################### */
-    
+
     /* ########## SHOW FUNCTIONS ########## */
 
     /* function to show the advance search */
@@ -30,13 +30,11 @@ class AdvanceSearchController extends UMSTablesBaseController {
         $searchParam = $_GET ?? [];
 
         /* init data factory */
-        $data = AdvanceSearchDataFactory::getInstance($this->conn)->getAdvanceSearchData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
-        
+        $data = AdvanceSearchDataFactory::getInstance($this->lang[DATA], $this->conn)->getAdvanceSearchData($orderBy, $orderDir, $page, $rowsForPage, $searchParam);
+
         array_push($this->jsSrcs, [SOURCE => '/js/utils/ums/advance-search.js']);
         /* get data from data factory and show page */
 //         $data = UMSTablesDataFactory::getInstance($this->conn)->getUsersListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canViewRole(), $this->canSendEmails());
         $this->content = view(getPath('ums','advance-search'), $data);
-
-        
     }
 }

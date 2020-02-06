@@ -47,7 +47,7 @@ class UMSActionsController extends UMSBaseController {
         $this->redirectOrFailIfCanNotUpdateUser();
         
         /* get data from data factory */
-        $data = UMSDataFactory::getInstance($this->conn)->getUpdateUserData($username);
+        $data = UMSDataFactory::getInstance($this->lang[DATA], $this->conn)->getUpdateUserData($username);
         
         /* if user not found, show error message */
         if (!$data[USER]) $this->showMessageAndExit('User not found', TRUE);
@@ -107,7 +107,7 @@ class UMSActionsController extends UMSBaseController {
         );
 
         /* get data from data factory and show page */
-        $data = UMSDataFactory::getInstance($this->conn)->getNewUserData();
+        $data = UMSDataFactory::getInstance($this->lang[DATA], $this->conn)->getNewUserData();
         $this->content = view(getPath('ums', 'new-user'), $data);
     }
 
@@ -190,7 +190,7 @@ class UMSActionsController extends UMSBaseController {
             /* else set fail message */
             } else $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][FAIL];
         }
-        
+
         /* result data */
         $dataOut = [
             REDIRECT_TO => $redirectTo,
@@ -198,7 +198,7 @@ class UMSActionsController extends UMSBaseController {
             ERROR => $resUpdate[ERROR] ?? NULL,
             MESSAGE => $resUpdate[MESSAGE] ?? NULL,
         ];
-        
+
         /* function for default response */
         $funcDefault = function($data) {
             if (isset($data[MESSAGE])) {

@@ -18,6 +18,7 @@ use \PDO;
 class AccountController extends Controller {
     public function __construct(PDO $conn, array $appConfig, string $layout=DEFAULT_LAYOUT) {
         parent::__construct($conn, $appConfig, $layout);
+        $this->lang = array_merge_recursive($this->lang, $this->getLanguageArray('account'));
     }
 
     /* ##################################### */
@@ -37,8 +38,9 @@ class AccountController extends Controller {
             [SOURCE => '/js/utils/account/delete.js']
         );
 
+        $data = AccountDataFactory::getInstance($this->lang[DATA])->getDeleteAccountData();
         /* generate token and show page */
-        $this->content = view(getPath('account','delete'), [TOKEN => generateToken(CSRF_DELETE_ACCOUNT)]);
+        $this->content = view(getPath('account','delete'), $data);
     }
 
     /* function to show the account settings */
@@ -53,7 +55,7 @@ class AccountController extends Controller {
         );
 
         /* get data from data factory */
-        $data = AccountDataFactory::getInstance($this->conn)->getAccountSettingsData($this->loginSession->{USER_ID});
+        $data = AccountDataFactory::getInstance($this->lang[DATA], $this->conn)->getAccountSettingsData($this->loginSession->{USER_ID});
         /* if wait email confir, then add javascript sorce for new email settings */
         if ($data[WAIT_EMAIL_CONFIRM]) $this->jsSrcs[] = [SOURCE => '/js/utils/account/new-email-settings.js'];
 
@@ -66,7 +68,7 @@ class AccountController extends Controller {
         /* redirect */
         $this->redirectOrFailIfNotLogin();
 
-        $data = AccountDataFactory::getInstance($this->conn)->getAccountInfoData($this->loginSession->{USER_ID});
+        $data = AccountDataFactory::getInstance($this->lang[DATA], $this->conn)->getAccountInfoData($this->loginSession->{USER_ID});
 
         /* generate token and show change account info page */
         $this->content = view(getPath('account','info'), $data);
@@ -83,12 +85,10 @@ class AccountController extends Controller {
             [SOURCE => '/js/utils/account/change-pass.js']
         );
 
+        $data = AccountDataFactory::getInstance($this->lang[DATA], $this->conn)->getChangePasswordData($this->loginSession->{USER_ID});
+
         /* generate token and show change password page */
-        $this->content = view(getPath('account','change-pass'), [
-            /* set tokens */
-            TOKEN => generateToken(CSRF_CHANGE_PASS),
-            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
-        ]);
+        $this->content = view(getPath('account','change-pass'), $data);
     }
 
     /* function to show active sessions of user */
@@ -101,9 +101,8 @@ class AccountController extends Controller {
             [SOURCE => '/js/utils/account/sessions.js']
         );
 
-        /* get user id and sessions data */
-        $userId = $this->loginSession->{USER_ID};
-        $data = AccountDataFactory::getInstance($this->conn)->getSessionsData($userId);
+        /* get sessions data */
+        $data = AccountDataFactory::getInstance($this->lang[DATA], $this->conn)->getSessionsData($this->loginSession->{USER_ID}, $this->loginSession->{SESSION_ID});
 
         /* show sessions page */
         $this->content = view(getPath('account', 'sessions'), $data);
@@ -251,7 +250,7 @@ class AccountController extends Controller {
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_CHANGE_PASS);
-        $oldPass = $_POST[OLD_PASS] ?? '';
+        $oldPass = $_POST[CURRENT_PASS] ?? '';
         $pass = $_POST[PASSWORD] ?? '';
         $cpass = $_POST[CONFIRM_PASS] ?? '';
         $id = $this->loginSession->{USER_ID};
@@ -402,7 +401,7 @@ class AccountController extends Controller {
 
         /* require double login */
         $this->handlerDoubleLogin();
-        
+
         /* get tokens, user id and session id */
         $tokens = $this->getPostSessionTokens(CSRF_INVALIDATE_SESSION);
         $id = $this->loginSession->{USER_ID};
@@ -419,13 +418,13 @@ class AccountController extends Controller {
             /* else set error message */
             else $resRemoveSess[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
         }
-        
+
         /* result data */
         $dataOut = [
             SUCCESS => $resRemoveSess[SUCCESS],
             MESSAGE => $resRemoveSess[MESSAGE] ?? NULL
         ];
-        
+
         /* function for default response */
         $funcDefault = function($data) {
             if (isset($data[MESSAGE])) {
@@ -434,7 +433,7 @@ class AccountController extends Controller {
             }
             redirect('/'.ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE);
         };
-        
+
         $this->switchResponse($dataOut, (!$resRemoveSess[SUCCESS] && $resRemoveSess[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);
     }
 }
