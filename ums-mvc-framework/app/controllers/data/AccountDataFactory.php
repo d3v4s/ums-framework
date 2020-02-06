@@ -13,8 +13,16 @@ use app\models\Session;
  */
 class AccountDataFactory extends DataFactory {
 
-    protected function __construct(PDO $conn) {
-        parent::__construct($conn);
+    protected function __construct(array $langData,PDO $conn=NULL) {
+        parent::__construct($langData, $conn);
+    }
+
+    /* function to get account delete data */
+    public function getDeleteAccountData() {
+        return [
+            TOKEN => generateToken(CSRF_DELETE_ACCOUNT),
+            LANG => $this->langData
+        ];
     }
 
     /* function to get account settings data */
@@ -23,12 +31,13 @@ class AccountDataFactory extends DataFactory {
         $roleModel = new Role($this->conn);
         $pendMailModel = new PendingEmail($this->conn);
         return [
-            UPDATE_TOKEN => generateToken(CSRF_UPDATE_ACCOUNT),
-            DELETE_NEW_EMAIL_TOKEN => generateToken(CSRF_DELETE_NEW_EMAIL),
             RESEND_ENABLER_EMAIL_TOKEN => generateToken(CSRF_RESEND_ENABLER_EMAIL),
+            DELETE_NEW_EMAIL_TOKEN => generateToken(CSRF_DELETE_NEW_EMAIL),
+            UPDATE_TOKEN => generateToken(CSRF_UPDATE_ACCOUNT),
+            WAIT_EMAIL_CONFIRM => $pendMailModel->getValidPendingEmailByUserId($userId),
             ROLES => $roleModel->getNameAndIdRoles(),
             USER => $userModel->getUser($userId),
-            WAIT_EMAIL_CONFIRM => $pendMailModel->getValidPendingEmailByUserId($userId)
+            LANG => $this->langData
         ];
     }
 
@@ -38,8 +47,9 @@ class AccountDataFactory extends DataFactory {
         $userModel = new User($this->conn);
         $user = $userModel->getUserAndRole($userId);
         return [
-            USER => $user,
-            VIEW_ROLE => !isSimpleUser($user->{ROLE_ID_FRGN})
+            VIEW_ROLE => !isSimpleUser($user->{ROLE_ID_FRGN}),
+            LANG => $this->langData,
+            USER => $user
         ];
     }
 
@@ -50,7 +60,17 @@ class AccountDataFactory extends DataFactory {
         return [
             SESSIONS => $sessionModel->getValidSessionsByUserId($userId),
             TOKEN => generateToken(CSRF_INVALIDATE_SESSION),
-            CURRENT_SESSION => $currentSessId
+            CURRENT_SESSION => $currentSessId,
+            LANG => $this->langData
+        ];
+    }
+
+    /* function to get change password data */
+    public function getChangePasswordData() {
+        return [
+            TOKEN => generateToken(CSRF_CHANGE_PASS),
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
+            LANG => $this->lang[DATA]
         ];
     }
 }

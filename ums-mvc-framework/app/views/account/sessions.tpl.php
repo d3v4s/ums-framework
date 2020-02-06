@@ -5,12 +5,12 @@
         		<tr>
         			<th class="align-middle" colspan="2">
                     	<form><input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_INVALIDATE_SESSION?>" value="<?=${TOKEN}?>"></form>
-        				Active Sessions
+        				<?=${LANG}['active_sessions']?>
     				</th>
         		</tr>
         		<tr>
-        			<th class="align-middle">IP Address</th>
-        			<th class="align-middle">Disable</th>
+        			<th class="align-middle"><?=${LANG}[IP_ADDRESS]?></th>
+        			<th class="align-middle"><?=${LANG}[REMOVE]?></th>
         		</tr>
         	</thead>
         	<tbody>
@@ -20,7 +20,7 @@
             				<?=$sess->{IP_ADDRESS}?>
             				<?php if ($sess->{SESSION_ID} == ${CURRENT_SESSION}): ?>
             					<br>
-        						<span class="text-success">Current Session</span>
+        						<span class="text-success"><?=${LANG}['current_session']?></span>
             				<?php endif; ?>
         				</td>
             			<td class="align-middle">
@@ -28,7 +28,7 @@
             					<button class="btn btn-warning" type="submit">
             						<i class="fas fa-minus-circle ico-btn"></i>
                 					<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
-                  					<span class="text-btn">Remove</span>
+                  					<span class="text-btn"><?=${LANG}[REMOVE]?></span>
             					</button>
             					<input name="<?=SESSION_ID?>" value="<?=$sess->{SESSION_ID}?>" type="hidden" class="send-ajax">
             				</form>
@@ -40,7 +40,7 @@
     </div>
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
-	    	<a class="btn btn-warning mx-3 my-1 text-right" href="/<?=ACCOUNT_SETTINGS_ROUTE?>"><i class="fa fa-pen fa-xs"></i> Settings</a>
+	    	<a class="btn btn-warning mx-3 my-1 text-right" href="/<?=ACCOUNT_SETTINGS_ROUTE?>"><i class="fa fa-pen fa-xs"></i> <?=${LANG}[SETTINGS]?></a>
     	</div>
     </div>
 </div>

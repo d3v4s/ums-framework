@@ -9,16 +9,11 @@
     		<label for="<?=PASSWORD?>">Password</label>
     		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>" placeholder="Password" class="form-control evidence-error send-ajax-crypt mb-1" type="password" required="required">
     		<div class="text-left mx-1">
-        		<a href="/<?=PASS_RESET_REQ_ROUTE?>" class="link-danger">Forgot password</a>
+        		<a href="/<?=PASS_RESET_REQ_ROUTE?>" class="link-danger"><?=${LANG}['forgot_password']?></a>
     		</div>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_LOGIN?>" value="<?=${TOKEN}?>">
     	<input id="<?=GET_KEY_TOKEN?>" type="hidden" name="<?=CSRF_KEY_JSON?>" value="<?=${GET_KEY_TOKEN}?>">
-    	<noscript>
-    		<div class="container-fluid">
-    			<h3 class="text-danger">ENABLE JAVASCRIPT TO LOGIN</h3>
-    		</div>
-    	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-login" class="btn btn-success px-3 py-1" type="submit">
 	    		<i class="fas fa-sign-in-alt ico-btn"></i>

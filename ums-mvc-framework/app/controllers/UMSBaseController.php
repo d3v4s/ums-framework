@@ -28,7 +28,7 @@ class UMSBaseController extends Controller {
     public function showUmsHome() {
         $this->redirectOrFailIfSimpleUser();
         $this->isUmsHome = TRUE;
-        $data = UMSDataFactory::getInstance($this->conn)->getHomeData();
+        $data = UMSDataFactory::getInstance($this->lang[DATA], $this->conn)->getHomeData();
         $this->content = view(getPath('ums','home'), $data);
     }
 

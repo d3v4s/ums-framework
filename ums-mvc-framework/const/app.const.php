@@ -85,8 +85,6 @@ define('ORDER_ASC_CLASS', 'down');
 define('ORDER_DESC_CLASS', 'up');
 define('DISABLED', 'disabled');
 define('CHECKED', 'checked="checked"');
-define('OLD_PASS', 'old_pass');
-define('CONFIRM_PASS', 'confirm_pass');
 define('TOKEN', '_xf');
 define('TOKEN_NAME', '_xf_nm');
 define('KEY_TOKEN_NAME', '_kxt_nm');
@@ -272,11 +270,24 @@ define('UMS_TABLES_LIST', [
 ]);
 
 /* CONSTATS FOR RESULT DATA */
-define('DATA', 'dta');
+define('DATA', 'dt');
+define('FAIL', 'fl');
 define('LOCK', 'lck');
 define('USER', 'usr');
 define('LINK', 'lnk');
-define('FAIL', 'fl');
+define('LANG', 'lang');
+define('UPDATE', 'updt');
+define('EXPIRED_SESSION', 'exprd_ssn');
+define('IP_CHANGED', 'ip_chngd');
+define('ENABLE_JAVASCRIPT', 'enbl_js');
+define('SETTINGS', 'sttngs');
+define('REQUIRED', 'rqr');
+define('CONFIRM_PASS', 'cnfrm_pss');
+define('DELETE', 'dlt');
+define('REMOVE', 'rmv');
+define('CONFIRM', 'cnfrm');
+define('DENY', 'dn');
+define('RESEND_EMAIL', 'rsnd_eml');
 define('CURRENT_SESSION', 'crnt_ssn');
 define('EMPTY_CONTENT', 'empt_cnt');
 define('GENERIC', 'gnrc');

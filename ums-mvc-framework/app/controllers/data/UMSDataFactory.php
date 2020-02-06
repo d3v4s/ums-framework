@@ -18,8 +18,8 @@ use \PDO;
  */
 class UMSDataFactory extends DataFactory {
 
-    protected function __construct(PDO $conn=NULL) {
-        parent::__construct($conn);
+    protected function __construct(array $langData, PDO $conn=NULL) {
+        parent::__construct($langData, $conn);
     }
 
     /* ##################################### */

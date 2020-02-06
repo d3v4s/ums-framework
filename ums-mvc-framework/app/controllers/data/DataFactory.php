@@ -9,17 +9,17 @@ use PDO;
  */
 class DataFactory {
     protected $conn;
-//     protected $appConfig = [];
+    protected $langData;
     static protected $instance;
 
     /* singleton */
-    static public function getInstance(PDO $conn=NULL): DataFactory {
-        if (!isset(static::$instance)) static::$instance = new static($conn);
+    static public function getInstance(array $langData=[],PDO $conn=NULL): DataFactory {
+        if (!isset(static::$instance)) static::$instance = new static($langData, $conn);
         return static::$instance;
     }
 
-    protected function __construct(PDO $conn=NULL) {
-//         $this->appConfig = $appConfig;
+    protected function __construct(array $langData=[], PDO $conn=NULL) {
+        $this->langData = $langData;
         $this->conn = $conn;
     }
 }

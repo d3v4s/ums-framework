@@ -37,9 +37,7 @@ return [
         LINK_EXPIRE => 'Your link has expired',
         EMAIL_ALREADY_EXISTS => 'This email already exists',
         USERNAME_ALREADY_EXISTS => 'This username already exists',
-        RESEND_LOCK => 'Wait a few minutes before another request',
-        EXPIRED_SESSION => 'Your session has expired',
-        IP_CHANGED => 'Your ip has changed'
+        RESEND_LOCK => 'Wait a few minutes before another request'
     ],
 
     NEW_EMAIL_DELETE => [
