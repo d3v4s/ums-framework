@@ -21,7 +21,7 @@ class EmailController extends UMSBaseController {
     /* function to view new email interfdace */
     public function showNewEmail() {
         /* redirect */
-        $this->redirectOrFailIfCanNotSendEmail();
+        $this->sendFailIfCanNotSendEmail();
 
         /* set location */
         $this->isNewEmail = TRUE;
@@ -47,18 +47,16 @@ class EmailController extends UMSBaseController {
     /* function to send email */
     public function sendEmail() {
         /* redirects */
-        $this->redirectOrFailIfCanNotSendEmail();
+        $this->sendFailIfCanNotSendEmail();
         $this->redirectIfNotXMLHTTPRequest('/'.NEW_EMAIL_ROUTE);
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_NEW_EMAIL);
         $to = $_POST[TO] ?? '';
-        $subject = $_POST[SUBJETC] ?? '';
+        $subject = $_POST[SUBJETC] ?? 'No subject';
         $content = $_POST[CONTENT] ?? '';
         $from = $this->appConfig[APP][SEND_EMAIL_FROM] ?? '';
 
-        /* check camps */
-        if (empty($to) || empty($subject) || empty($content)) $this->switchFailResponse('Fail!! Fill all fields');
         /* decrypt data */
         $to = $this->decryptData($to);
         $content = $this->decryptData($content);

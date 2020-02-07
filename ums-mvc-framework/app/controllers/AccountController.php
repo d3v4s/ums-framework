@@ -30,7 +30,7 @@ class AccountController extends Controller {
     /* function to view delete account page */
     public function showDeleteAccount() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
         $this->handlerDoubleLogin();
 
         /* add javascript sources */
@@ -46,7 +46,7 @@ class AccountController extends Controller {
     /* function to show the account settings */
     public function showAccountSettings() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         /* add javascript sources */
         array_push($this->jsSrcs,
@@ -66,7 +66,7 @@ class AccountController extends Controller {
     /* function to view acoount info page */
     public function showAccountInfo() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         $data = AccountDataFactory::getInstance($this->lang[DATA], $this->conn)->getAccountInfoData($this->loginSession->{USER_ID});
 
@@ -77,7 +77,7 @@ class AccountController extends Controller {
     /* function to view password change page */
     public function showChangePassword() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         /* add javascript sources */
         array_push($this->jsSrcs,
@@ -94,7 +94,7 @@ class AccountController extends Controller {
     /* function to show active sessions of user */
     public function showSessions() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         /* add javascript sources */
         array_push($this->jsSrcs, 
@@ -113,7 +113,7 @@ class AccountController extends Controller {
     /* fuction to delete the account */
     public function deleteAccount() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
         $this->handlerDoubleLogin();
 
         /* get tokens and user id */
@@ -169,7 +169,7 @@ class AccountController extends Controller {
     /* function to upadate account */
     public function updateAccount() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_ACCOUNT);
@@ -243,7 +243,7 @@ class AccountController extends Controller {
     /* function to show password change page */
     public function changePassword() {
         /* redirects */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
         /* set redirect to */
         $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE;
         $this->redirectIfNotXMLHTTPRequest($redirectTo);
@@ -306,8 +306,8 @@ class AccountController extends Controller {
     /* function to delete new email on pending */
     public function deleteNewEmail() {
         /* redirects */
-        $this->redirectOrFailIfNotLogin();
-        $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->sendFailIfNotLogin();
+        $this->sendFailIfConfirmEmailNotRequire();
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_NEW_EMAIL);
@@ -348,8 +348,8 @@ class AccountController extends Controller {
     /* function to resend email enabler */
     public function resendEmailEnabler() {
         /* redirects */
-        $this->redirectOrFailIfNotLogin();
-        $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->sendFailIfNotLogin();
+        $this->sendFailIfConfirmEmailNotRequire();
 
         /* check resend lock */
         $this->handlerResendLock();
@@ -397,7 +397,7 @@ class AccountController extends Controller {
     /* function to delete new email on pending */
     public function removeSession() {
         /* redirects */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         /* require double login */
         $this->handlerDoubleLogin();

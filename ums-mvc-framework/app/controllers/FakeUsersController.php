@@ -27,8 +27,8 @@ class FakeUsersController extends UMSTablesBaseController {
     /* function to view fake users page */
     public function showAddFakeUsers() {
         /* redirects */
-        $this->redirectOrFailIfNotAddFakeUsers();
-        $this->redirectOrFailIfCanNotCreateUser();
+        $this->sendFailIfNotAddFakeUsers();
+        $this->sendFailIfCanNotCreateUser();
 
         /* add javascript sources and view fake user page */
         array_push($this->jsSrcs,
@@ -40,8 +40,8 @@ class FakeUsersController extends UMSTablesBaseController {
     /* function to add fake users */
     public function addFakeUsers() {
         /* redirects */
-        $this->redirectOrFailIfNotAddFakeUsers();
-        $this->redirectOrFailIfCanNotCreateUser();
+        $this->sendFailIfNotAddFakeUsers();
+        $this->sendFailIfCanNotCreateUser();
 
         /* get data */
         $tokens = $this->getPostSessionTokens(CSRF_ADD_FAKE_USER);
@@ -123,7 +123,7 @@ class FakeUsersController extends UMSTablesBaseController {
     /* ##################################### */
 
     /* function to redirect if add fake user is disable on settings app */
-    private function redirectOrFailIfNotAddFakeUsers() {
+    private function sendFailIfNotAddFakeUsers() {
         if (!FAKE_USERS) $this->switchFailResponse();
     }
 

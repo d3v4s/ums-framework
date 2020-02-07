@@ -28,7 +28,7 @@ class UMSActionsController extends UMSBaseController {
 
     /* fuction to switch request */
     public function switchShowAction(string $table, string $action, string $id='') {
-        $this->redirectOrFailIfSimpleUser();
+        $this->sendFailIfSimpleUser();
         switch ($table) {
             case USERS_TABLE:
                 $this->switchShowUserAction($action, $id);
@@ -44,7 +44,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to view update user info page */
     public function showUserUpdate($username) {
         /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
+        $this->sendFailIfCanNotUpdateUser();
         
         /* get data from data factory */
         $data = UMSDataFactory::getInstance($this->lang[DATA], $this->conn)->getUpdateUserData($username);
@@ -66,7 +66,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to view update password user page */
     public function showPasswordUpdate($username) {
         /* redirect */
-        $this->redirectOrFailIfCanNotChangePassword();
+        $this->sendFailIfCanNotChangePassword();
         $this->handlerDoubleLogin();
         
         /* init user model and get user */
@@ -95,7 +95,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to view new user page */
     public function showNewUser() {
         /* redirect */
-        $this->redirectOrFailIfCanNotCreateUser();
+        $this->sendFailIfCanNotCreateUser();
 
         /* set current location */
         $this->isNewUser = TRUE;
@@ -146,7 +146,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to update a user info */
     public function userUpdate() {
         /* redirect */
-        $this->redirectOrFailIfCanNotUpdateUser();
+        $this->sendFailIfCanNotUpdateUser();
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_UPDATE_USER);
@@ -214,7 +214,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to update password user */
     public function passwordUpdate() {
         /* redirects */
-        $this->redirectOrFailIfCanNotChangePassword();
+        $this->sendFailIfCanNotChangePassword();
         /* set redirect to */
         $id = $_POST[USER_ID] ?? '';
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE.'/'.$id;
@@ -271,7 +271,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to reset counters of user lock */
     public function lockCountersReset() {
         /* redirect */
-        $this->redirectOrFailIfCanNotUnlockUser();
+        $this->sendFailIfCanNotUnlockUser();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -312,7 +312,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to add a new user */
     public function newUser() {
         /* redirects */
-        $this->redirectOrFailIfCanNotCreateUser();
+        $this->sendFailIfCanNotCreateUser();
         /* set redirect */
         $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE;
         $this->redirectIfNotXMLHTTPRequest($redirectTo);
@@ -388,7 +388,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to delete user */
     public function deleteUser() {
         /* redirect */
-        $this->redirectOrFailIfCanNotDeleteUser();
+        $this->sendFailIfCanNotDeleteUser();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -448,7 +448,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to restore a deleted user */
     public function restoreUser() {
         /* redirect */
-        $this->redirectOrFailIfCanNotRestoreUser();
+        $this->sendFailIfCanNotRestoreUser();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -523,7 +523,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to resend enabler email */
     public function resendEnablerEmail() {
         /* redirect */
-        $this->redirectOrFailIfCanNotSendEmail();
+        $this->sendFailIfCanNotSendEmail();
 
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_EMAIL);
@@ -566,7 +566,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to resend enabler email */
     public function resendEnablerAccount() {
         /* redirect */
-        $this->redirectOrFailIfCanNotSendEmail();
+        $this->sendFailIfCanNotSendEmail();
         
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_ENABLER_ACC);
@@ -609,7 +609,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to resend password reset email */
     public function resendPasswordReset() {
         /* redirect */
-        $this->redirectOrFailIfCanNotSendEmail();
+        $this->sendFailIfCanNotSendEmail();
         
         /* get tokens ad session id */
         $tokens = $this->getPostSessionTokens(CSRF_RESEND_PASS_RES_REQ);
@@ -654,7 +654,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to invalidate pending email */
     public function invalidatePendingEmail() {
         /* redirect */
-        $this->redirectOrFailIfCanNotRemoveEnablerToken();
+        $this->sendFailIfCanNotRemoveEnablerToken();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -694,7 +694,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to invalidate pending email */
     public function invalidatePendingUser() {
         /* redirect */
-        $this->redirectOrFailIfCanNotRemoveEnablerToken();
+        $this->sendFailIfCanNotRemoveEnablerToken();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -735,7 +735,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to invalidate session */
     public function invalidateSession() {
         /* redirect */
-        $this->redirectOrFailIfCanNotRemoveSession();
+        $this->sendFailIfCanNotRemoveSession();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -775,7 +775,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to invalidate pending email */
     public function invalidatePasswordResetRequest() {
         /* redirect */
-        $this->redirectOrFailIfCanNotRemoveEnablerToken();
+        $this->sendFailIfCanNotRemoveEnablerToken();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -942,27 +942,27 @@ class UMSActionsController extends UMSBaseController {
     /* ######### REDIRECTS ######### */
 
     /* function to redirect if user can not change password */
-    private function redirectOrFailIfCanNotChangePassword() {
+    private function sendFailIfCanNotChangePassword() {
         if (!$this->canChangePassword()) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not unlock users */
-    private function redirectOrFailIfCanNotUnlockUser() {
+    private function sendFailIfCanNotUnlockUser() {
         if (!$this->canUnlockUser()) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not restore users */
-    private function redirectOrFailIfCanNotRestoreUser() {
+    private function sendFailIfCanNotRestoreUser() {
         if (!$this->canRestoreUser()) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not remove session */
-    private function redirectOrFailIfCanNotRemoveSession() {
+    private function sendFailIfCanNotRemoveSession() {
         if (!$this->canRemoveSession()) $this->switchFailResponse();
     }
 
     /* function to redirect if user can not remove enabler token */
-    private function redirectOrFailIfCanNotRemoveEnablerToken() {
+    private function sendFailIfCanNotRemoveEnablerToken() {
         if (!$this->canRemoveEnablerToken()) $this->switchFailResponse();
     }
 }

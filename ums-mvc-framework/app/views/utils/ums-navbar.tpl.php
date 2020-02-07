@@ -39,5 +39,6 @@
             endif;
             ?>
 		</ul>
+		<?php require_once TOGGLE_LANG_TEMPLATE; ?>
 	</div>
 </nav>

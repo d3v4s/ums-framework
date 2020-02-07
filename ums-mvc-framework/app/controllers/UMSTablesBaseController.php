@@ -19,7 +19,7 @@ class UMSTablesBaseController extends UMSBaseController {
     /* PRIVATE FUNCTIONS */
     /* ##################################### */
 
-    protected function redirectOrFailIfCanNotViewTables() {
+    protected function sendFailIfCanNotViewTables() {
         if (!$this->canViewTables()) $this->switchFailResponse();
     }
 }

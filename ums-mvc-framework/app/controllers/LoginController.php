@@ -28,7 +28,7 @@ class LoginController extends Controller {
     /* function to view login page */
     public function showLogin() {
         /* redirect */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         
         /* set location, page title, keywords and description */
         $this->isLogin = TRUE;
@@ -56,7 +56,7 @@ class LoginController extends Controller {
     /* function to view signup page */
     public function showSignup() {
         /* redirect */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         
         /* set location, page title, keywords and description */
         $this->isSignup = TRUE;
@@ -84,9 +84,9 @@ class LoginController extends Controller {
     /* function to view signup confirm page */
     public function showSignupConfirm() {
         /* redirects */
-        $this->redirectOrFailIfConfirmEmailNotRequire();
-        $this->redirectOrFailIfLogin();
-        $this->redirectIfNotSignupSession();
+        $this->sendFailIfConfirmEmailNotRequire();
+        $this->sendFailIfLogin();
+        $this->sendFailIfNotSignupSession();
         
         /* get user id of signup session */
         $userId = $_SESSION[USER_ID] ?? '';
@@ -117,7 +117,7 @@ class LoginController extends Controller {
     /* function to view reset password request page */
     public function showPasswordResetRequest() {
         /* redirect */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         
         /* set page title */
         $this->title .= ' - Forgot Password';
@@ -139,7 +139,7 @@ class LoginController extends Controller {
     /* function to view reset password page */
     public function showPasswordReset(string $token) {
         /* redirect */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         
         /* show page not found if is not valid token */
         $passResReq = new PasswordResetRequest($this->conn);
@@ -176,7 +176,7 @@ class LoginController extends Controller {
     /* function to double counfirm */
     public function doubleLogin() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
         if ($this->isDoubleLoginSession()) $this->switchFailResponse($this->lang[MESSAGE][DOUBLE_LOGIN][ALREADY_SET]);
 
         /* get tokens */
@@ -219,7 +219,7 @@ class LoginController extends Controller {
     /* function to login */
     public function login() {
         /* redirects */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         $this->redirectIfNotXMLHTTPRequest('/'.LOGIN_ROUTE);
         
         /* get tokens and post data */
@@ -269,7 +269,7 @@ class LoginController extends Controller {
     /* function to signup */
     public function signup() {
         /* redirects */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         $this->redirectIfNotXMLHTTPRequest('/'.SIGNUP_ROUTE);
         
         /* get tokens and post data */
@@ -353,9 +353,9 @@ class LoginController extends Controller {
     /* function to resend a signup email */
     public function signupResendEmail() {
         /* redirects */
-        $this->redirectOrFailIfConfirmEmailNotRequire();
-        $this->redirectOrFailIfLogin();
-        $this->redirectIfNotSignupSession();
+        $this->sendFailIfConfirmEmailNotRequire();
+        $this->sendFailIfLogin();
+        $this->sendFailIfNotSignupSession();
 
         /* set url to redirect */
         $redirectTo = '/'.SIGNUP_ROUTE.'/'.CONFIRM_ROUTE;
@@ -402,7 +402,7 @@ class LoginController extends Controller {
     /* function handler for logout request */
     public function logout() {
         /* redirect */
-        $this->redirectOrFailIfNotLogin();
+        $this->sendFailIfNotLogin();
 
         /* get tokens and user id */
         $tokens = $this->getPostSessionTokens(CSRF_LOGOUT);
@@ -438,7 +438,7 @@ class LoginController extends Controller {
     /* function to mangae reset password request */ 
     public function passwordResetRequest() {
         /* redirect */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
 
         /* manage resend lock */
         $this->handlerResendLock();
@@ -498,7 +498,7 @@ class LoginController extends Controller {
     /* function to reset a password */
     public function passwordReset() {
         /* redirects */
-        $this->redirectOrFailIfLogin();
+        $this->sendFailIfLogin();
         $tokenReset = $_POST[PASSWORD_RESET_TOKEN] ?? '';
         /* set url to redirect */
         $redirectTo = '/'.PASS_RESET_ROUTE."/$tokenReset";
@@ -557,7 +557,7 @@ class LoginController extends Controller {
     /* function to enable new account */
     public function enableAccount(string $token) {
         /* redirect */
-        $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->sendFailIfConfirmEmailNotRequire();
         
         /* get verifier instance, and check the enable account request */
         $verifier = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn);
@@ -570,7 +570,7 @@ class LoginController extends Controller {
             if ($resEnable[REMOVE_TOKEN]) {
                 $pendUser = new PendingUser($this->conn);
                 $pendUser->removeAccountEnablerToken($token);
-                $this->switchFailResponse($resEnable[MESSAGE], $redirectTo);
+                $this->switchFailResponse($resEnable[MESSAGE]);
             /* else show page not found */
             } else $this->showPageNotFound();
             return;
@@ -608,7 +608,7 @@ class LoginController extends Controller {
     /* function to validate a new email */
     public function enableNewEmail(string $token) {
         /* redirect */
-        $this->redirectOrFailIfConfirmEmailNotRequire();
+        $this->sendFailIfConfirmEmailNotRequire();
         
         /* get verifier instance, and check the validate a new email request */
         $resEnable = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyEnableNewEmail($token);
@@ -621,7 +621,7 @@ class LoginController extends Controller {
             if ($resEnable[REMOVE_TOKEN]) {
                 $pendEmail = new PendingEmail($this->conn);
                 $pendEmail->removeAllEmailEnablerToken($resEnable->{USER_ID});
-                $this->switchFailResponse($resEnable[MESSAGE], $redirectTo);
+                $this->switchFailResponse($resEnable[MESSAGE]);
             /* else show page not found */
             } else $this->showPageNotFound();
             return;
@@ -657,7 +657,7 @@ class LoginController extends Controller {
     
 
     /* function to redirect if client is not on signup session */
-    private function redirectIfNotSignupSession() {
-        if (!(($_SESSION[SIGNUP] ?? FALSE) && ($_SESSION[USER_ID] ?? FALSE))) redirect();
+    private function sendFailIfNotSignupSession() {
+        if (!(($_SESSION[SIGNUP] ?? FALSE) && ($_SESSION[USER_ID] ?? FALSE))) $this->switchFailResponse();
     }
 }

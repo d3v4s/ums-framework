@@ -24,7 +24,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
     /* function to view a site map update page */
     public function showSiteMapUpdate() {
         /* redirects */
-        $this->redirectIfCanNotGenerateSiteMap();
+        $this->sendFailIfCanNotGenerateSiteMap();
         $this->redirectIfSiteMapNotExists();
 
         /* add javascript sources */
@@ -46,7 +46,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
     /* function to view site map generator page */
     public function showSiteMapGenerator() {
         /* redirect */
-        $this->redirectIfCanNotGenerateSiteMap();
+        $this->sendFailIfCanNotGenerateSiteMap();
 
         /* add javascript sources */
         array_push($this->jsSrcs,
@@ -64,7 +64,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
     /* fucntion to genrate a site map */
     public function generateSiteMap() {
         /* redirect */
-        $this->redirectIfCanNotGenerateSiteMap();
+        $this->sendFailIfCanNotGenerateSiteMap();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -156,7 +156,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
     }
 
     /* function to redirect if user can not generate site map */
-    private function redirectIfCanNotGenerateSiteMap() {
+    private function sendFailIfCanNotGenerateSiteMap() {
         if (!$this->canGenerateSitemap()) $this->switchFailResponse();
     }
 }

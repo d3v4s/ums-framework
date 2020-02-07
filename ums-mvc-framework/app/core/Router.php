@@ -68,7 +68,7 @@ class Router {
     }
 
     /* function to process a request */
-    protected function processQueue(string $uri, string $method = 'GET'): Controller {
+    protected function processQueue(string $uri, string $method='GET'): Controller {
         $routes = $this->routes[$method];
         
         foreach ($routes as $route => $callback) {
@@ -81,7 +81,7 @@ class Router {
             }
         }
 //         throw new Exception('Invalid request');
-        return $this->route('app\controllers\Controller@showPageNotFound');
+        return $this->route('app\controllers\Controller@switchFailResponse');
     }
     
 }

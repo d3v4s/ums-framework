@@ -23,7 +23,7 @@ class RSAKeyGeneratorController extends SettingsBaseController {
     /* function to view rsa key pair generator page */
     public function showRSAKeyGenerator() {
         /* redirect */
-        $this->redirectOrFailIfCanNotGenerateRsaKey();
+        $this->sendFailIfCanNotGenerateRsaKey();
 
         /* add javascript sources */
         array_push($this->jsSrcs,
@@ -38,7 +38,7 @@ class RSAKeyGeneratorController extends SettingsBaseController {
     /* function to generate a new rsa key pair */
     public function generateRsaKey() {
         /* redirects */
-        $this->redirectOrFailIfCanNotGenerateRsaKey();
+        $this->sendFailIfCanNotGenerateRsaKey();
         $this->redirectIfNotXMLHTTPRequest('/'.RSA_GENERATOR_ROUTE);
 
         /* get tokens */
@@ -82,7 +82,7 @@ class RSAKeyGeneratorController extends SettingsBaseController {
     /* function to generate and save a key on server */
     public function generateSaveRsaKey() {
         /* redirect */
-        $this->redirectOrFailIfCanNotGenerateRsaKey();
+        $this->sendFailIfCanNotGenerateRsaKey();
 
         /* get tokens */
         $tokens = $this->getPostSessionTokens(CSRF_GEN_SAVE_RSA);
@@ -123,8 +123,8 @@ class RSAKeyGeneratorController extends SettingsBaseController {
     /* ##################################### */
 
     /* function to redirect if user can not generate rsa key pair */ 
-    private function redirectOrFailIfCanNotGenerateRsaKey() {
-        if (!$this->canGenerateRsaKey()) redirect();
+    private function sendFailIfCanNotGenerateRsaKey() {
+        if (!$this->canGenerateRsaKey()) $this->switchFailResponse();
     }
 
     /* function to save rsa private key */
