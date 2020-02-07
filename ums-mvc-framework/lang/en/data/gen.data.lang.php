@@ -17,5 +17,6 @@ return [
     SETTINGS => 'Settings',
     IP_ADDRESS => 'IP Address',
     REQUIRED => 'Required',
-    SIGNUP => 'Signup'
+    SIGNUP => 'Signup',
+    ROWS_FOR_PAGE => 'Rows for page'
 ];

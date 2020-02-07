@@ -1,67 +1,69 @@
 <?php
 return [
     SEND_EMAIL => [
-        SUCCESS => 'Email successfully sended at: ',
-        FAIL => 'Send email failed',
-        EMPTY_CONTENT => 'Insert content' 
+        SUCCESS => 'Email inviata con successo a: ',
+        FAIL => 'Invio email fallito',
+        EMPTY_CONTENT => 'Inserire il testo' 
     ],
 
     CHANGE_PASS => [
-        SUCCESS => 'Password update succesfully',
-        FAIL => 'Update password failed'
+        SUCCESS => 'Password aggiornata',
+        FAIL => 'Aggiornamento password fallito'
     ],
 
     GENERIC => [
-        INVALID_NAME => 'Invalid name',
-        INVALID_USERNAME => 'Invalid username',
-        INVALID_EMAIL => 'Invalid email',
-        INVALID_PASSWORD => 'Invalid password',
-        INVALID_ID => 'Invalid id',
-        INVALID_DATE => 'Invalid date',
-        INVALID_DATETIME => 'Invalid datetime',
-        INVALID_FILEPATH => 'Invalid file path',
-        INVALID_SECTION => 'Invalid section',
-        INVALID_TABLE => 'Invalid table',
-        INVALID_LAYOUT => 'Invalid layout',
-        INVALID_DOMAIN => 'Invalid domain',
-        INVALID_ROLETYPE => 'Invalid role type',
-        INVALID_NUMBER => 'Invalid number',
-        INVALID_ACTION => 'Invalid action',
-        OPERATION_FAILED => 'Failed',
-        OPERATION_SUCCESS => 'Success',
-        WRONG_USERNAME => 'Wrong username',
-        WRONG_EMAIL => 'Wrong email',
-        WRONG_PASSWORD => 'Wrong password',
-        PASS_MISMATCH => 'Passwords mismatch',
-        USER_NOT_FOUND => 'User not found',
-        LINK_EXPIRE => 'Your link has expired',
-        EMAIL_ALREADY_EXISTS => 'This email already exists',
-        USERNAME_ALREADY_EXISTS => 'This username already exists',
-        RESEND_LOCK => 'Wait a few minutes before another request'
+        INVALID_NAME => 'Nome non valido',
+        INVALID_USERNAME => 'Username non valido',
+        INVALID_EMAIL => 'Email non valida',
+        INVALID_PASSWORD => 'Password non valida',
+        INVALID_ID => 'Id non valido',
+        INVALID_DATE => 'Data non valida',
+        INVALID_DATETIME => 'Data e ora non valida',
+        INVALID_FILEPATH => 'Percorso del file non valido',
+        INVALID_SECTION => 'Sezione non valida',
+        INVALID_TABLE => 'Tabella non valida',
+        INVALID_LAYOUT => 'Layout non valido',
+        INVALID_DOMAIN => 'Dominio non valido',
+        INVALID_ROLETYPE => 'Ruolo non valido',
+        INVALID_NUMBER => 'Numero non valido',
+        INVALID_ACTION => 'Azione non valida',
+        OPERATION_FAILED => 'Operazione fallita',
+        OPERATION_SUCCESS => 'Operazione eseguita con successo',
+        WRONG_USERNAME => 'Username sbagliato',
+        WRONG_EMAIL => 'Email sbagliata',
+        WRONG_PASSWORD => 'Password sbagliata',
+        PASS_MISMATCH => 'La password di conferma non corrisponde',
+        USER_NOT_FOUND => 'User non trovato',
+        LINK_EXPIRE => 'Link scaduto',
+        EMAIL_ALREADY_EXISTS => 'Questa email è già esistente',
+        USERNAME_ALREADY_EXISTS => 'Questa username è già esistente',
+        RESEND_LOCK => 'Aspetta qualche minuto prima di una seconda richiesta',
+        EXPIRED_SESSION => 'La tua sessione è scaduta',
+        IP_CHANGED => 'Il tuo IP è cambiato'
     ],
 
     NEW_EMAIL_DELETE => [
-        SUCCESS => 'New email deleted successfully',
-        FAIL => 'Delete new email failed'
+        SUCCESS => 'Nuova email eliminata con successo',
+        FAIL => 'Errore durante la eliminazione dell\'email'
     ],
 
     SIGNUP => [
-        SUCCESS => 'Successfully signup',
-        FAIL => 'Signup failed'
+        SUCCESS => 'Registrato con successo',
+        FAIL => 'Registrazione fallita'
     ],
 
     USER_UPDATE => [
-        SUCCESS => 'User succesfully update',
-        FAIL => 'Update user failed'
+        SUCCESS => 'Utente aggiornato con successo',
+        FAIL => 'Aggiornamento utente fallito'
     ],
 
     USER_DELETE => [
-        SUCCESS => 'User succesfully delete',
-        FAIL => 'Delete user failed'
+        SUCCESS => 'Utente eliminato con successo',
+        FAIL => 'Eliminazione utente fallita'
     ],
 
     REMOVE_SESSION => [
-        SUCCESS => 'Session removed succesfully',
-        FAIL => 'Remove session failed'
+        SUCCESS => 'Sessione rimossa con successo',
+        FAIL => 'Rimozione della sessione fallita'
     ],
 ];

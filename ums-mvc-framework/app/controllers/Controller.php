@@ -68,6 +68,7 @@ class Controller {
     protected $description = 'PHP FRAMEWORK UMS - This is a framework for user management, which implements the design pattern MVC (Model-view-controller) - Developed by Andrea Serra - DevAS';
     protected $loginSession = NULL;
     protected $userRole = NULL;
+    protected $langCli = NULL;
     protected $lang = NULL;
 
     public function __construct(PDO $conn = NULL, array $appConfig = NULL, string $layout=DEFAULT_LAYOUT) {
@@ -75,6 +76,7 @@ class Controller {
         $this->conn = $conn;
         $this->appConfig = $appConfig ?? getConfig();
         $this->layout = getLayoutPath().'/'.$this->appConfig[LAYOUT][$layout].'.tpl.php';
+        $this->langCli = $this->getLang();
         $this->lang = $this->getLanguageArray();
         /* if require redirect on https */
         if ($this->appConfig[SECURITY][ONLY_HTTPS]) $this->redirectOnSecureConnection();
@@ -768,7 +770,7 @@ class Controller {
             }
         }
         /* set cookie and return language */
-        setcookie(CK_LANG, $langRes, 0, '/', null, $this->appConfig[SECURITY][ONLY_HTTPS],TRUE);
+        setcookie(CK_LANG, $langRes, 0, '/', null, $this->appConfig[SECURITY][ONLY_HTTPS],FALSE);
         return $langRes;
     }
 
@@ -781,14 +783,18 @@ class Controller {
         if (file_exists($langPath)) $langArray[MESSAGE] = require_once $langPath;
         $langPath = getPath('lang', DEFAULT_LANG, DATA_LANG_SOURCES, "$section.data.lang.php");
         if (file_exists($langPath)) $langArray[DATA] = require_once $langPath;
-        /* init lang require from cli */
-        $langCli = [];
-        /* merge with the lang require of client */
-        $langCliPath = getPath('lang', $this->getLang(), MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
-        if (file_exists($langCliPath)) $langCli[MESSAGE] = require_once $langCliPath;
-        $langCliPath = getPath('lang', $this->getLang(), DATA_LANG_SOURCES, "$section.data.lang.php");
-        if (file_exists($langCliPath)) $langCli[DATA] = require_once $langCliPath;
-        $langArray = array_merge_recursive($langArray, $langCli);
+
+        /* check language set by client */
+        if ($this->langCli !== DEFAULT_LANG) {
+            /* init lang require from cli */
+            $langCli = [];
+            /* merge with the lang require of client */
+            $langCliPath = getPath('lang', $this->langCli, MESSAGE_LANG_SOURCES, "$section.msg.lang.php");
+            if (file_exists($langCliPath)) $langCli[MESSAGE] = require_once $langCliPath;
+            $langCliPath = getPath('lang', $this->langCli, DATA_LANG_SOURCES, "$section.data.lang.php");
+            if (file_exists($langCliPath)) $langCli[DATA] = require_once $langCliPath;
+            if (!empty($langCli)) $langArray = array_replace_recursive($langArray, $langCli);
+        }
         /* return array */
         return $langArray;
     }

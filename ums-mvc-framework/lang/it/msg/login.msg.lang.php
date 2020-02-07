@@ -2,32 +2,32 @@
 
 return [
     LOGIN => [
-        SUCCESS => 'Successfully login',
-        FAIL => 'Login failed'
+        SUCCESS => 'Login effettuato con successo',
+        FAIL => 'Login fallito'
     ],
 
     LOGOUT => [
-        SUCCESS => 'Successfully loguot',
-        FAIL => 'Logout failed'
+        SUCCESS => 'Logout effettuato con successo',
+        FAIL => 'Logout fallito'
     ],
 
     DOUBLE_LOGIN => [
-        SUCCESS => 'Successfully double login',
-        FAIL => 'Double login failed',
-        ALREADY_SET => 'Double login session already setted'
+        SUCCESS => 'Double login effettuato con successo',
+        FAIL => 'Double login fallito',
+        ALREADY_SET => 'Double login già eseguito'
     ],
 
     ENABLE_ACCOUNT => [
-        SUCCESS => 'Account successfully enabled',
-        FAIL => 'Account enable failed'
+        SUCCESS => 'Account abilitato con successo',
+        FAIL => 'Errore durante la abilitazione dell\'account'
     ],
 
     ENABLE_EMAIL => [
-        SUCCESS => 'Email successfully enabled',
-        FAIL => 'Email enable failed'
+        SUCCESS => 'Email abilitata con successo',
+        FAIL => 'Errore durante la abilitazione dell\'email'
     ],
 
     PASS_RESET_REQ => [
-        FAIL => 'Password reset request failed'
+        FAIL => 'Errore durante la richiesta di reset della password'
     ]
 ];

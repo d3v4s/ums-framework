@@ -57,6 +57,11 @@
 		require_once MESSAGE_BOX_TEMPLATE;
 		require_once UMS_NAVBAR_TEMPLATE;
 		?>
+		<noscript>
+    		<div class="container-fluid text-center">
+    			<h5 class="text-danger p-2"><?=$this->lang[DATA][ENABLE_JAVASCRIPT]?></h5>
+    		</div>
+    	</noscript>
 		<main role="main">
 			<div id="sidebar-continer">
 				<a id="sidebar-toggle" href="#" class="btn m-2" data-toggle="collapse" data-target="#sidebar"><i class="fas fa-bars"></i></a>
