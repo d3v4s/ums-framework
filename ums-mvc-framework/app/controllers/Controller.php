@@ -319,7 +319,6 @@ class Controller {
 
     /* function to get tokens of session and post */
     protected function getPostSessionTokens(string $nameToken=CSRF): array {
-//         $postToken = $_POST[$postTokenName] ?? 'tkn';
         /* reformat name token for header */
         $headerToken = str_replace('-', '_', $nameToken);
         $headerToken = mb_strtoupper($headerToken);

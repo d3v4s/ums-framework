@@ -7,7 +7,7 @@ return [
     REMOVE => 'Rimuovi',
     CONFIRM => 'Conferma',
     DENY => 'Annulla',
-    NAME => 'Nome e Cognome',
+    NAME => 'Nome',
     NEW_EMAIL => 'Nuova email',
     RESEND_EMAIL => 'Rinvia email',
     ROLE => 'Ruolo',
