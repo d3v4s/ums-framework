@@ -23,9 +23,10 @@
 					<a class="nav-link" href="/<?=LOGIN_ROUTE?>">Login</a>
 				</li>
 				<li class="nav-item <?=$this->isSignup ? 'active' : ''?>">
-					<a class="nav-link" href="/<?=SIGNUP_ROUTE?>">Signup</a>
+					<a class="nav-link" href="/<?=SIGNUP_ROUTE?>"><?=$this->lang[DATA][SIGNUP]?></a>
 				</li>
 			<?php endif; ?>
 		</ul>
+		<?php require_once TOGGLE_LANG_TEMPLATE; ?>
 	</div>
 </nav>

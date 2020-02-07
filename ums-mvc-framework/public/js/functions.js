@@ -69,8 +69,6 @@ function sendAjaxReq(url, data, $token, funcSuccess, funcFail=null) {
 				'funcFail': funcFail
 			}
 			showDoubleLogin(reqData, response.dbl_lgn_dt);
-			// setTimeout(redirect, 2000, response.redirect_to + "?redirect_to=" );
-			// setTimeout(redirect, 2000, response.redirect_to + "?redirect_to=" + window.location.pathname);
 			return;
 		}
 		funcSuccess(response);
@@ -251,16 +249,19 @@ function evidenceError($elem) {
 	$elem.css('box-shadow', '0 0 5px red');
 }
 
+/* function to evidence a right input */
 function evidenceRight($elem) {
 	$elem.css('border', '1px solid green');
 	$elem.css('box-shadow', '0 0 5px green');
 }
 
+/* function to remove a evidence */
 function removeEvidence($elem) {
 	$elem.css('border', '');
 	$elem.css('box-shadow', '');
 }
 
+/* function to show a message box */
 function showMessage(message, isError = false) {
 	clearTimeout(idTimeout);
 	isMessageShow = true;
@@ -278,6 +279,7 @@ function showMessage(message, isError = false) {
 	idTimeout = setTimeout(closeMessage, 5000);
 }
 
+/* function to close a message box */
 function closeMessage() {
 	isMessageShow = false;
 	$('#message-box').animate({
@@ -285,22 +287,27 @@ function closeMessage() {
 	});
 }
 
+/* function to set position of the message box */
 function positionMessageBox() {
 	if (isMessageShow) $('#message-box').css('top', $(window).scrollTop() + 'px');
 }
 
+/* function to disable a element */
 function disableElement($elem) {
 	$elem.attr("disabled", "disabled");
 }
 
+/* function to enable a element */
 function enableElement($elem) {
 	$elem.removeAttr("disabled");
 }
 
+/* function to redirect */
 function redirect(url) {
 	location.href = url;
 }
 
+/* function to show loading */
 function showLoading($btn) {
 	textBtn = $btn.children('.text-btn').text()
 	$btn.attr("disabled", "disabled");
@@ -310,6 +317,7 @@ function showLoading($btn) {
 	return textBtn;
 }
 
+/* function to remove a loading */
 function removeLoading($btn, text) {
 	$btn.removeAttr("disabled");
 	$btn.children('.spinner').addClass('d-none');
@@ -318,8 +326,10 @@ function removeLoading($btn, text) {
 }
 
 $(document).ready(function () {
+	/* fade out for message */
 	$('#message.fade-out').fadeOut(7000);
 
+	/* listenere to close a message box */
 	$('#close-message-box.btn-close-msg').click(function(event) {
 		event.preventDefault();
 		closeMessage();
@@ -331,5 +341,16 @@ $(document).ready(function () {
 
 	$(window).scroll(function() {
 		positionMessageBox();
+	});
+
+	$('#dropdown-lang button').each(function(index, elem) {
+		console.log(elem);
+
+		var $elem = $(elem);
+		$elem.click(function() {
+			var lang = $elem.val();
+			document.cookie = 'lang='+lang;
+			redirect(document.location);
+		});
 	});
 });

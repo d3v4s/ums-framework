@@ -2,32 +2,32 @@
 
 return [
     SAVE_USER => [
-        SUCCESS => 'New user saved successfully',
-        FAIL => 'Save new user failed'
+        SUCCESS => 'Nuovo utente salvato con successo',
+        FAIL => 'Errore durante il salvataggio del nuovo utente'
     ],
 
     LOCK_USER_RESET => [
-        SUCCESS => 'Reset lock counters successfully',
-        FAIL => 'Lock counter reset failed'
+        SUCCESS => 'Reset lock eseguito con successo',
+        FAIL => 'Errore durante il reset del lock'
     ],
 
     RESTORE_USER => [
-        SUCCESS => 'User successfully restored',
-        FAIL => 'Restore user failed'
+        SUCCESS => 'Utente ripristinato con successo',
+        FAIL => 'Errore durante il ripristino dell\'utente'
     ],
 
     INVALIDATE_PENDING_EMAIL => [
-        SUCCESS => 'Pending email removed succesfully',
-        FAIL => 'Remove pending email failed'
+        SUCCESS => 'Email in attesa rimossa con successo',
+        FAIL => 'Errore durante la rimozione dell\'email inn attesa'
     ],
 
     INVALIDATE_PENDING_USER => [
-        SUCCESS => 'Pending user removed succesfully',
-        FAIL => 'Remove pending user failed'
+        SUCCESS => 'Utente in attesa rimosso con successo',
+        FAIL => 'Errore durante la rimozione dell\'utente in attesa'
     ],
 
     INVALIDATE_PASS_RES_REQ => [
-        SUCCESS => 'Password reset request removed succesfully',
-        FAIL => 'Remove password reset request failed'
+        SUCCESS => 'Richesta di reset della password rimossa con successo',
+        FAIL => 'Errore durante la rimozione della richiesta di reset della password'
     ]
 ];

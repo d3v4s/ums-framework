@@ -30,9 +30,16 @@
     background-color: #3c3c3c;
 }
 
+#dropdown-lang li {
+	/* width: 10%; */
+	/* width: 50%; */
+	/* justify-content: initial; */
+}
+
 html, body {
 	height: 100%;
 	margin: 0;
+	overflow-x: hidden;
 }
 
 main {
@@ -97,6 +104,10 @@ a:hover {
 
 .over-top {
 	top: -100px;
+}
+
+.flag {
+	width: 2.3em;
 }
 
 @media (prefers-color-scheme: dark) {

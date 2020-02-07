@@ -12,11 +12,6 @@
     		<label for="<?=CONFIRM_PASS?>"><?=${LANG}[CONFIRM_PASS]?></label>
     		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
-    	<noscript>
-    		<div class="container-fluid">
-    			<h3 class="text-danger"><?=${LANG}[ENABLE_JAVASCRIPT]?></h3>
-    		</div>
-    	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-change" class="btn btn-success px-3 py-1" type="submit">
 	    		<i class="fas fa-check ico-btn"></i>

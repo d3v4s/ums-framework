@@ -56,6 +56,11 @@
 		require_once MESSAGE_BOX_TEMPLATE;
 		require_once UMS_NAVBAR_TEMPLATE;
 		?>
+		<noscript>
+    		<div class="container-fluid text-center">
+    			<h5 class="text-danger p-2"><?=$this->lang[DATA][ENABLE_JAVASCRIPT]?></h5>
+    		</div>
+    	</noscript>
 		<main role="main">
 			<div class="container-fluid p-3 my-2 justify-content-center text-center">
 				<?php require_once SHOW_SESSION_MESSAGE_TEMPLATE?>

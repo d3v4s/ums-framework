@@ -49,6 +49,7 @@ define('NAVBAR_TEMPLATE', getPath(getViewsPath(), 'utils', 'navbar.tpl.php'));
 define('UMS_NAVBAR_TEMPLATE', getPath(getViewsPath(), 'utils', 'ums-navbar.tpl.php'));
 define('ACCOUNT_POPUP_NAVBAR_TEMPLATE', getPath(getViewsPath(), 'utils', 'account-popup-navbar.tpl.php'));
 define('ROWS_FOR_PAGE_TEMPLATE', getPath(getViewsPath(), 'utils', 'rows-for-page.tpl.php'));
+define('TOGGLE_LANG_TEMPLATE', getPath(getViewsPath(), 'utils', 'toggle-lang.tpl.php'));
 
 /* ROLES CONSTANTS */
 define('ADMIN_ROLE_ID', '0');

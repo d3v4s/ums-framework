@@ -2,7 +2,7 @@
 
 return [
     SAVE_SETTINGS => [
-        SUCCESS => 'Settings succesfully saved',
-        FAIL => 'Save settings failed'
+        SUCCESS => 'Impostazioni salvate con successo',
+        FAIL => 'Errore durante il salvataggio delle impostazioni'
     ],
 ];
