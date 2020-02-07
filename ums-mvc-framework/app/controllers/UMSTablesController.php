@@ -25,7 +25,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* functio to show request table */
     public function showTable(string $table=USERS_TABLE, string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $rowsForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         /* switch view */
         switch ($table) {
@@ -59,7 +59,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* functio to show request row of table */
     public function showRow(string $table, string $id) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         /* switch view */
         switch ($table) {
@@ -95,7 +95,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the user list page */
     public function showUsersList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         $orderBy = $orderBy ?? USER_ID;
         $orderDir = $orderDir ?? DESC;
@@ -115,7 +115,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the deleted user list page */
     public function showDeletedUsersList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         $orderBy = $orderBy ?? USER_ID;
         $orderDir = $orderDir ?? DESC;
@@ -134,7 +134,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the pending user list page */
     public function showPendingUsersList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         $orderBy = $orderBy ?? PENDING_USER_ID;
         $orderDir = $orderDir ?? DESC;
@@ -153,7 +153,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the pending mails list page */
     public function showPendingEmailsList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         $orderBy = $orderBy ?? PENDING_EMAIL_ID;
         $orderDir = $orderDir ?? DESC;
@@ -172,7 +172,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the roles list page */
     public function showRolesList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
         
         $orderBy = $orderBy ?? ROLE_ID;
         $orderDir = $orderDir ?? ASC;
@@ -188,7 +188,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the sessions list page */
     public function showSessionsList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
         
         $orderBy = $orderBy ?? SESSION_ID;
         $orderDir = $orderDir ?? DESC;
@@ -207,7 +207,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view the sessions list page */
     public function showPassResetReqList(string $orderBy=NULL, string $orderDir=NULL, int $page=1, int $usersForPage=DEFAULT_ROWS_FOR_PAGE) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         $orderBy = $orderBy ?? PASSWORD_RESET_REQ_ID;
         $orderDir = $orderDir ?? DESC;
@@ -228,7 +228,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a user page */
     public function showUser($username) {
         //* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
         
         
         /* get data by data factory */
@@ -250,7 +250,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a user page */
     public function showDeletedUser($id) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         /* get data by data factory  */
         $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getDeletedUserData($id, $this->appConfig[APP][DATETIME_FORMAT], $this->canViewRole(), $this->canSendEmails(), $this->canRestoreUser());
@@ -270,7 +270,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a user page */
     public function showSession($sessionId) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         /* get data by data factory  */
         $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getSessionData($sessionId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveSession());
@@ -290,7 +290,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a user page */
     public function showLockUser($userId) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
 
         /* get data by data factory  */
         $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getUserLocksData($userId, $this->appConfig[APP][DATETIME_FORMAT], $this->canUnlockUser());
@@ -311,7 +311,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a user page */
     public function showPendingEmail($pendingMailId) {
         /* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
         
         /* get data by data factory  */
         $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getPendingEmailData($pendingMailId, $this->appConfig[APP][DATETIME_FORMAT], $this->canSendEmails(), $this->canRemoveEnablerToken());
@@ -332,7 +332,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a pending user page */
     public function showPendingUser($userId) {
         //* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
         
         
         /* get data by data factory */
@@ -354,7 +354,7 @@ class UMSTablesController extends UMSTablesBaseController {
     /* function to view a user page */
     public function showPassResReq($passResReqId) {
         //* redirect */
-        $this->redirectOrFailIfCanNotViewTables();
+        $this->sendFailIfCanNotViewTables();
         
         
         /* get data by data factory */

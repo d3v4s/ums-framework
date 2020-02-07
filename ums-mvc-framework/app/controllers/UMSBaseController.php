@@ -26,7 +26,7 @@ class UMSBaseController extends Controller {
 
     /* function to show the ums home */
     public function showUmsHome() {
-        $this->redirectOrFailIfSimpleUser();
+        $this->sendFailIfSimpleUser();
         $this->isUmsHome = TRUE;
         $data = UMSDataFactory::getInstance($this->lang[DATA], $this->conn)->getHomeData();
         $this->content = view(getPath('ums','home'), $data);
@@ -42,7 +42,7 @@ class UMSBaseController extends Controller {
     }
 
     /* function to redirect if user can not send email */
-    protected function redirectOrFailIfCanNotSendEmail() {
+    protected function sendFailIfCanNotSendEmail() {
         if (!$this->canSendEmails()) $this->switchFailResponse();
     }
 }

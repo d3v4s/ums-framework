@@ -33,7 +33,7 @@ return [
         WRONG_EMAIL => 'Email sbagliata',
         WRONG_PASSWORD => 'Password sbagliata',
         PASS_MISMATCH => 'La password di conferma non corrisponde',
-        USER_NOT_FOUND => 'User non trovato',
+        USER_NOT_FOUND => 'Utente non trovato',
         LINK_EXPIRE => 'Link scaduto',
         EMAIL_ALREADY_EXISTS => 'Questa email è già esistente',
         USERNAME_ALREADY_EXISTS => 'Questa username è già esistente',

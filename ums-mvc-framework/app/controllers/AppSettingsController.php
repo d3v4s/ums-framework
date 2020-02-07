@@ -24,7 +24,7 @@ class AppSettingsController extends SettingsBaseController {
     /* function to view app settings */
     public function showAppSettings(string $section=DEFAULT_SETTING_SECTION) {
         /* redirect */
-        $this->redirectOrFailIfCanNotChangeSettings();
+        $this->sendFailIfCanNotChangeSettings();
 
         $this->isSettings = TRUE;
         /* show message error if not valid app section */
@@ -53,7 +53,7 @@ class AppSettingsController extends SettingsBaseController {
     /* function to update settings */
     public function updateSettings(string $section) {
         /* redirect */
-        $this->redirectOrFailIfCanNotChangeSettings();
+        $this->sendFailIfCanNotChangeSettings();
 
         /* require double login */
         $this->handlerDoubleLogin();
@@ -143,7 +143,7 @@ class AppSettingsController extends SettingsBaseController {
     }
 
     /* function to redirect if user can not update settings */
-    private function redirectOrFailIfCanNotChangeSettings() {
+    private function sendFailIfCanNotChangeSettings() {
         if (!$this->canChangeSettings()) $this->switchFailResponse();
     }
 }

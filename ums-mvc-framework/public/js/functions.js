@@ -349,7 +349,7 @@ $(document).ready(function () {
 		var $elem = $(elem);
 		$elem.click(function() {
 			var lang = $elem.val();
-			document.cookie = 'lang='+lang;
+			document.cookie = 'lang='+lang+';path=/';
 			redirect(document.location);
 		});
 	});

@@ -159,8 +159,17 @@ class Controller {
 
     /* function to send 404 code and show page not found */
     public function showPageNotFound() {
+        /* set default layout */
+        $this->setLayout(DEFAULT_LAYOUT);
         header($_SERVER["SERVER_PROTOCOL"].' 404 Not Found', TRUE, 404);
         $this->content = view(PAGE_NOT_FOUND);
+    }
+
+    /* function to send 404 code, show page not found  and exit */
+    public function showPageNotFoundAndExit() {
+        $this->showPageNotFound();
+        $this->display();
+        exit;
     }
 
     /* function to view error page */
@@ -226,6 +235,51 @@ class Controller {
         /* send json response */
         sendJsonResponse($resJSON);
     }
+    
+    /* function to send json response if XML HTTP request or send a default response */
+    public function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken=CSRF) {
+        /* get request with header */
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        /* switc the response according to the header */
+        switch ($header) {
+            /* if response is XMLHTTP, then send json response */
+            case 'XMLHTTPREQUEST':
+                if ($generateNewToken) $data[NEW_TOKEN] = generateToken($nameToken);
+                sendJsonResponse($data);
+                exit;
+                /* default function */
+            default:
+                $funcDefault($data);
+                break;
+        }
+    }
+
+    /* function to send response json (XML HTTP) or default */
+    public function switchFailResponse(string $message=NULL) {
+        /* set 404 error code on response header */
+        header($_SERVER["SERVER_PROTOCOL"]." 404 Not Found", true, 404);
+        /* get request with header */
+        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
+        /* switc the response according to the header */
+        switch ($header) {
+            /* if response is XMLHTTP, then send json response */
+            case 'XMLHTTPREQUEST':
+                sendJsonResponse([
+                MESSAGE => $message ?? 'Fail',
+                SUCCESS => FALSE
+                ]);
+                exit;
+                /* default function */
+            default:
+                /* set session message if it is set */
+                if (isset($message)) {
+                    $_SESSION[MESSAGE] = $message;
+                    $_SESSION[SUCCESS] = FALSE;
+                }
+                /* show page not found */
+                $this->showPageNotFoundAndExit();
+        }
+    }
 
     /* ##################################### */
     /* PROTECTED FUNCTIONS */
@@ -263,46 +317,6 @@ class Controller {
             }
     }
 
-    /* function to send response json (XML HTTP) or default */
-    protected function switchFailResponse(string $message='Fail', string $redirectTo='/'.HOME_ROUTE) {
-        /* get request with header */
-        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-        /* switc the response according to the header */
-        switch ($header) {
-            /* if response is XMLHTTP, then send json response */
-            case 'XMLHTTPREQUEST':
-                sendJsonResponse([
-                    MESSAGE => $message,
-                    SUCCESS => FALSE
-                ]);
-                exit;
-            /* default function */
-            default:
-                /* if is set redirect to, then set session message and redirect */
-                $_SESSION[MESSAGE] = $message;
-                $_SESSION[SUCCESS] = FALSE;
-                redirect($redirectTo);
-        }
-    }
-
-    /* function to send json response if XML HTTP request or send a default response */
-    protected function switchResponse(array $data, bool $generateNewToken, callable $funcDefault, string $nameToken=CSRF) {
-        /* get request with header */
-        $header = strtoupper($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '');
-        /* switc the response according to the header */
-        switch ($header) {
-            /* if response is XMLHTTP, then send json response */
-            case 'XMLHTTPREQUEST':
-                if ($generateNewToken) $data[NEW_TOKEN] = generateToken($nameToken);
-                sendJsonResponse($data);
-                exit;
-            /* default function */
-            default:
-                $funcDefault($data);
-                break;
-        }
-    }
-    
     /* function to get tokens of session and post */
     protected function getPostSessionTokens(string $nameToken=CSRF): array {
 //         $postToken = $_POST[$postTokenName] ?? 'tkn';
@@ -474,125 +488,125 @@ class Controller {
 
     /* function to check if is simple user */
     protected function isSimpleUser(): bool {
-        return isSimpleUser($this->loginSession->{ROLE_ID_FRGN});
+        return $this->loginSession && isSimpleUser($this->loginSession->{ROLE_ID_FRGN});
     }
 
     /* function to check if user can create another user */
     protected function canCreateUser(): bool {
-        return (bool) $this->userRole[CAN_CREATE_USER];
+        return (bool) $this->loginSession && $this->userRole[CAN_CREATE_USER];
     }
 
     /* function to check if user can update another user */
     protected function canUpdateUser(): bool {
-        return (bool) $this->userRole[CAN_UPDATE_USER];
+        return (bool) $this->loginSession && $this->userRole[CAN_UPDATE_USER];
     }
 
     /* function to check if user can create another user */
     protected function canDeleteUser(): bool {
-        return (bool) $this->userRole[CAN_DELETE_USER];
+        return (bool) $this->loginSession && $this->userRole[CAN_DELETE_USER];
     }
 
     /* function to check if user can unlock another user */
     protected function canUnlockUser(): bool {
-        return (bool) $this->userRole[CAN_UNLOCK_USER];
+        return (bool) $this->loginSession && $this->userRole[CAN_UNLOCK_USER];
     }
 
     /* function to check if user can restore another user */
     protected function canRestoreUser(): bool {
-        return (bool) $this->userRole[CAN_RESTORE_USER];
+        return (bool) $this->loginSession && $this->userRole[CAN_RESTORE_USER];
     }
 
     /* function to check if user can change password at another user */
     protected function canChangePassword(): bool {
-        return (bool) $this->userRole[CAN_CHANGE_PASSWORD];
+        return (bool) $this->loginSession && $this->userRole[CAN_CHANGE_PASSWORD];
     }
 
     /* function to check if user can remove session */
     protected function canRemoveSession(): bool {
-        return (bool) $this->userRole[CAN_REMOVE_SESSION];
+        return (bool) $this->loginSession && $this->userRole[CAN_REMOVE_SESSION];
     }
 
     /* function to check if user can remove enabler token */
     protected function canRemoveEnablerToken(): bool {
-        return (bool) $this->userRole[CAN_REMOVE_ENABLER_TOKEN];
+        return (bool) $this->loginSession && $this->userRole[CAN_REMOVE_ENABLER_TOKEN];
     }
 
     /* function to check if user can genaret rsa key pair */
     protected function canGenerateRsaKey(): bool {
-        return (bool) $this->userRole[CAN_GENERATE_RSA];
+        return (bool) $this->loginSession && $this->loginSession && $this->userRole[CAN_GENERATE_RSA];
     }
 
     /* function to check if user can genaret sitemap */
     protected function canGenerateSitemap(): bool {
-        return (bool) $this->userRole[CAN_GENERATE_SITEMAP];
+        return (bool) $this->loginSession && $this->userRole[CAN_GENERATE_SITEMAP];
     }
 
     /* function to check if user can change settings */
     protected function canChangeSettings(): bool {
-        return (bool) $this->userRole[CAN_CHANGE_SETTINGS];
+        return (bool) $this->loginSession && $this->userRole[CAN_CHANGE_SETTINGS];
     }
 
     /* function to check if user can send emails */
     protected function canSendEmails(): bool {
-        return (bool) $this->userRole[CAN_SEND_EMAIL];
+        return (bool) $this->loginSession && $this->userRole[CAN_SEND_EMAIL];
     }
 
     /* function to check if user can view tables */
     protected function canViewTables(): bool {
-        return (bool) $this->userRole[CAN_VIEW_TABLES];
+        return (bool) $this->loginSession && $this->userRole[CAN_VIEW_TABLES];
     }
 
     /* REDIRECT OR SEND FAIL FUNCTIONS */
 
     /* function to redirect or send fail if user is loggin */
-    protected function redirectOrFailIfLogin() {
+    protected function sendFailIfLogin() {
         if ($this->loginSession) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if client is not loggin */
-    protected function redirectOrFailIfNotLogin() {
+    protected function sendFailIfNotLogin() {
         if (!$this->loginSession) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if client is a simple user */
-    protected function redirectOrFailIfSimpleUser() {
-        $this->redirectOrFailIfNotLogin();
+    protected function sendFailIfSimpleUser() {
+        $this->sendFailIfNotLogin();
         if ($this->isSimpleUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if client is not admin user */
-    protected function redirectOrFailIfNotAdmin() {
-        $this->redirectOrFailIfNotLogin();
+    protected function sendFailIfNotAdmin() {
+        $this->sendFailIfNotLogin();
         if (!$this->isAdminUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if client is not loggin */
-    protected function redirectOrFailIfCanNotCreateUser() {
-        $this->redirectOrFailIfNotLogin();
+    protected function sendFailIfCanNotCreateUser() {
+        $this->sendFailIfNotLogin();
         if (!$this->canCreateUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if user can not update */
-    protected function redirectOrFailIfCanNotUpdateUser() {
-        $this->redirectOrFailIfNotLogin();
+    protected function sendFailIfCanNotUpdateUser() {
+        $this->sendFailIfNotLogin();
         if (!$this->canUpdateUser()) $this->switchFailResponse();
     }
 
     /* function to redirect or send fail if user can not delete */
-    protected function redirectOrFailIfCanNotDeleteUser() {
-        $this->redirectOrFailIfNotLogin();
+    protected function sendFailIfCanNotDeleteUser() {
+        $this->sendFailIfNotLogin();
         if (!$this->canDeleteUser()) $this->switchFailResponse();
     }
 
     /* funtion to redirect or send fail if email confirm is not require */
-    protected function redirectOrFailIfConfirmEmailNotRequire() {
+    protected function sendFailIfConfirmEmailNotRequire() {
         if (!$this->appConfig[UMS][REQUIRE_CONFIRM_EMAIL]) $this->switchFailResponse();
     }
 
     /* function to redirect if not XML HTTP request */
     protected function redirectIfNotXMLHTTPRequest(string $url = '/') {
         if (!isXmlhttpRequest()) {
-            $_SESSION[MESSAGE] = 'TO CONTINUE ENABLE JAVASCRIPT';
+            $_SESSION[MESSAGE] = 'FAIL';
             $_SESSION[SUCCESS] = FALSE;
             redirect($url);
         }
