@@ -124,15 +124,17 @@ function writeFileIni(array $data, string $filename): bool {
     return safeFileRewrite($filename, implode("\r\n", $res));
 }
 
-
+/* function format the regex for javascript */
 function modifyRegexJS(string $phpRegex) {
     return trim($phpRegex, '/');
 }
 
+/* function to convert a string to hexadecimal */
 function toHex(string $data): string {
     return strtoupper(bin2hex($data));
 }
 
+/* function to escape html special char from data to be view */
 function escapeHtmlDataView(array &$data, bool $escapeKey = FALSE) {
     $newData = [];
     foreach ($data as $key => $val) {
@@ -154,6 +156,7 @@ function escapeHtmlDataView(array &$data, bool $escapeKey = FALSE) {
     $data = $newData;
 }
 
+/* function to escape html special char from object */
 function escapeHtmlObjView(object &$object) {
     $newObj = new stdClass();
     foreach ($object as $key => $val) {
@@ -170,6 +173,7 @@ function escapeHtmlObjView(object &$object) {
     $object = $newObj;
 }
 
+/* function to get a content to be view */
 function view(string $view, array $data = []) {
     escapeHtmlDataView($data);
     extract($data);
@@ -181,10 +185,12 @@ function view(string $view, array $data = []) {
     return $content;
 }
 
+/* function to get routes */
 function getRoutes(): array {
     return require getPath(getcwd(), 'config', 'app.routes.php');
 }
 
+/* function to get configuration from file */
 function getConfig(string $section = NULL): array {
     $configApp = parse_ini_file(getPath(getcwd(), 'config', 'config.ini'), TRUE);
     if ($section === NULL) return $configApp;
@@ -193,7 +199,6 @@ function getConfig(string $section = NULL): array {
 
 /* function to genetate csrf token */
 function generateToken(string $name = CSRF): string {
-//     if (isset($_SESSION[$name])) return $_SESSION[$name];
     /* get token */
     $token = isset($_SESSION[$name]) ? $_SESSION[$name][TOKEN] : getSecureRandomString();
     /* set token on session */
@@ -204,10 +209,12 @@ function generateToken(string $name = CSRF): string {
     return $token;
 }
 
+/* function to get a secure random string */
 function getSecureRandomString(int $lenght=32): string {
     return bin2hex(random_bytes($lenght));
 }
 
+/* function to get a domani from url */
 function getDomain(string $url): string {
     $result = parse_url($url);
 
@@ -217,14 +224,17 @@ function getDomain(string $url): string {
     return $domain;
 }
 
+/* function to check if site map exists */
 function siteMapExists(): bool {
     return file_exists(getPath(getcwd(), 'public', 'sitemap.xml'));
 }
 
+/* function to get the path of views */
 function getViewsPath(): string {
     return getPath(getcwd(), 'app', 'views');
 }
 
+/* function to get the path of layouts */
 function getLayoutPath(): string {
     return getPath(getcwd(), 'layout');
 }
@@ -234,10 +244,9 @@ function isSimpleUser($roleId): bool {
     return $roleId === USER_ROLE_ID;
 }
 
-/* function to get  */
+/* function to remove null value from array  */
 function filterNullVal(array $array): array {
     return array_filter($array, function($val, $key) {
-//         var_dump($val !== NULL);
         return $val !== NULL;
     }, ARRAY_FILTER_USE_BOTH);
 }
