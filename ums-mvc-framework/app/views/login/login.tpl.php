@@ -3,7 +3,7 @@
     <form id="login-form" action="/<?=LOGIN_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=USER?>">Email/Username</label>
-    		<input id="<?=USER?>" name="<?=USER?>" placeholder="Email or Username" class="form-control evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
+    		<input id="<?=USER?>" name="<?=USER?>" placeholder="Email/Username" class="form-control evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
     	</div>
     	<div class="form-group text-md-left">
     		<label for="<?=PASSWORD?>">Password</label>

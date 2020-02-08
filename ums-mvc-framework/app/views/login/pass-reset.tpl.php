@@ -7,7 +7,7 @@
     	</div>
     	<div class="form-group text-md-left">
     		<label for="<?=CONFIRM_PASS?>"><?=${LANG}[CONFIRM_PASS]?></label>
-    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
+    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="<?=${LANG}[CONFIRM_PASS]?>" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-reset-pass" class="btn btn-success px-3 py-1" type="submit">

@@ -2,7 +2,7 @@
     <form id="change-pass-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=CURRENT_PASS?>"><?=${LANG}['current_pass']?></label>
-    		<input id="<?=CURRENT_PASS?>" name="<?=CURRENT_PASS?>"  placeholder="Old password" class="form-control evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">
+    		<input id="<?=CURRENT_PASS?>" name="<?=CURRENT_PASS?>"  placeholder="<?=${LANG}['current_pass']?>" class="form-control evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">
     	</div>
 		<div class="form-group text-md-left">
     		<label for="<?=PASSWORD?>">Password</label>
@@ -10,7 +10,7 @@
     	</div>
     	<div class="form-group text-md-left">
     		<label for="<?=CONFIRM_PASS?>"><?=${LANG}[CONFIRM_PASS]?></label>
-    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
+    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="<?=${LANG}[CONFIRM_PASS]?>" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-change" class="btn btn-success px-3 py-1" type="submit">

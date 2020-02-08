@@ -2,7 +2,7 @@
     <form id="user-update-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.UPDATE_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>"><?=${LANG}[NAME]?></label>
-    		<input id="<?=NAME?>" name="<?=NAME?>" value="<?=${USER}->{NAME}?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
+    		<input id="<?=NAME?>" name="<?=NAME?>" value="<?=${USER}->{NAME}?>" placeholder="<?=${LANG}[NAME]?>" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
     	</div>
     	<div class="form-group text-md-left">
     		<label for="<?=USERNAME?>">Username</label>
