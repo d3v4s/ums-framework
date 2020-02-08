@@ -296,7 +296,7 @@ class Controller {
                 case 'XMLHTTPREQUEST':
                     sendJsonResponse([
                         DOUBLE_LOGIN_REQUIRE => TRUE,
-                        MESSAGE => 'Double login require',
+                        MESSAGE => $this->lang[DATA]['double_login'],
                         SUCCESS => FALSE,
                         DOUBLE_LOGIN_DATA => [
                             ACTION => '/'.DOUBLE_LOGIN_ROUTE,

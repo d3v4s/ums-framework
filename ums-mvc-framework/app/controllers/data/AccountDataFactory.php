@@ -70,7 +70,7 @@ class AccountDataFactory extends DataFactory {
         return [
             TOKEN => generateToken(CSRF_CHANGE_PASS),
             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
-            LANG => $this->lang[DATA]
+            LANG => $this->langData
         ];
     }
 }
