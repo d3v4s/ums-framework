@@ -1,13 +1,8 @@
 ums-mvc-framework/public/sitemap.xml
 ums-mvc-framework/public/bootstrap/*
 ums-mvc-framework/public/fontawesome/*
-ums-mvc-framework/public/js/ckeditor/*
-ums-mvc-framework/public/js/crypt/*
 ums-mvc-framework/public/js/jquery/*
 ums-mvc-framework/public/css/technofriend/*
-ums-mvc-framework/layout/technofriend.tpl.php
-ums-mvc-framework/config/rsa/*
 ums-mvc-framework/.settings/*
-ums-mvc-framework/newsql.sql
 LICENSE
 README.md
