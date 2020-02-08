@@ -15,7 +15,6 @@ $(document).ready(function() {
 		try {
 			/* crypt and serialize passwords */
 			var data = cryptSerialize($cryptData);
-			console.log(data);
 		} catch (e) {
 			removeLoading($btn, txtBttn);
 			showMessage('Change passord failed', true);
