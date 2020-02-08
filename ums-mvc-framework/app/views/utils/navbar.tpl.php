@@ -11,7 +11,7 @@
 			<?php if ($this->loginSession): ?>
 				<?php if (!$this->isSimpleUser()): ?>
 					<li class="nav-item <?=$this->isUmsHome ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>">UMS</a>
+						<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>"><?=$this->lang[DATA]['menagement']?></a>
 					</li>
 				<?php
 				endif;

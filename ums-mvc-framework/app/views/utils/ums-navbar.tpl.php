@@ -11,27 +11,27 @@
 			<?php if ($this->loginSession): ?>
 				<?php if (!$this->isSimpleUser()): ?>
 					<li class="nav-item <?=$this->isUmsHome ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>">UMS</a>
+						<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>"><?=$this->lang[DATA]['menagement']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canViewTables()): ?>
 					<li class="nav-item <?=$this->isUsersList ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE?>">Tables</a>
+						<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE?>"><?=$this->lang[DATA]['ums_tables']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canCreateUser()): ?>
 					<li class="nav-item <?=$this->isNewUser ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE?>">New User</a>
+						<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE?>"><?=$this->lang[DATA]['new_user']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canSendEmails()): ?>
 					<li class="nav-item <?=$this->isNewEmail ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=NEW_EMAIL_ROUTE?>">Send Email</a>
+						<a class="nav-link" href="/<?=NEW_EMAIL_ROUTE?>"><?=$this->lang[DATA]['send_email']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canChangeSettings()): ?>
 					<li class="nav-item <?=$this->isSettings ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE?>">App Settings</a>
+						<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE?>"><?=$this->lang[DATA]['app_settings']?></a>
 					</li>
 				<?php
 				endif;
