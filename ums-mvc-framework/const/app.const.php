@@ -113,8 +113,6 @@ define('MESSAGE_LANG_SOURCES', 'msg');
 define('DATA_LANG_SOURCES', 'data');
 define('TABLE', 'tbl');
 define('ACTION', 'actn');
-// define('NAME_TOKEN', );
-// define('LOGIN_TOKEN', 'lgn_tkn');
 
 /* ROUTES CONSTANTS */
 define('HOME_ROUTE', '');
@@ -278,6 +276,7 @@ define('USER', 'usr');
 define('LINK', 'lnk');
 define('LANG', 'lang');
 define('UPDATE', 'updt');
+define('CURRENT_PASS', 'crnt_pss');
 define('EXPIRED_SESSION', 'exprd_ssn');
 define('IP_CHANGED', 'ip_chngd');
 define('ENABLE_JAVASCRIPT', 'enbl_js');

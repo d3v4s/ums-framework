@@ -147,12 +147,12 @@ INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_us
 -- INSERT USER --
 
 -- insert andrea serra user
-INSERT INTO `users` (`name`, `username`, `email`, `password`, `role_id`)
-	VALUES ('Andrea Serra', 'devas', 'test@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 0);
+INSERT INTO `users` (`name`, `username`, `email`, `password`, `role_id`, `enabled`)
+	VALUES ('Andrea Serra', 'devas', 'test@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 0, 1);
 
 -- insert admin user
-INSERT INTO `users` (`name`, `username`, `email`, `password`, `role_id`)
-	VALUES ('admin', 'admin', 'ums@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 0);
+INSERT INTO `users` (`name`, `username`, `email`, `password`, `role_id`, `enabled`)
+	VALUES ('admin', 'admin', 'ums@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 0, 1);
 
 -- ADD DB USER --
 

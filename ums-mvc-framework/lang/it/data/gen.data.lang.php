@@ -18,5 +18,7 @@ return [
     IP_ADDRESS => 'Indirizzo IP',
     REQUIRED => 'Obbligatorio',
     SIGNUP => 'Registrati',
-    ROWS_FOR_PAGE => 'Righe per pagina'
+    ROWS_FOR_PAGE => 'Righe per pagina',
+    'double_login' => 'Double login richiesto',
+    'insert_password' => 'Inserire la password',
 ];

@@ -18,5 +18,7 @@ return [
     IP_ADDRESS => 'IP Address',
     REQUIRED => 'Required',
     SIGNUP => 'Signup',
-    ROWS_FOR_PAGE => 'Rows for page'
+    ROWS_FOR_PAGE => 'Rows for page',
+    'double_login' => 'Double login require',
+    'insert_password' => 'Insert your password'
 ];
