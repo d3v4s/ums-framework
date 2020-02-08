@@ -16,7 +16,7 @@ return [
     REGISTRATION_DATETIME => 'Data di registrazione',
     SETTINGS => 'Impostazioni',
     IP_ADDRESS => 'Indirizzo IP',
-    REQUIRED => 'Richiesto',
+    REQUIRED => 'Obbligatorio',
     SIGNUP => 'Registrati',
     ROWS_FOR_PAGE => 'Righe per pagina'
 ];

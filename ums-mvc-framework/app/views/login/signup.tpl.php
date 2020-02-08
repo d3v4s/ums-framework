@@ -3,7 +3,7 @@
     <form id="signup-form" action="/<?=SIGNUP_ROUTE?>" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>"><?=${LANG}[NAME]?> <span class="text-red">*</span></label>
-    		<input id="<?=NAME?>" name="<?=NAME?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
+    		<input id="<?=NAME?>" name="<?=NAME?>" placeholder="<?=${LANG}[NAME]?>" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
     	</div>
     	<div class="form-group text-md-left">
     		<label for="<?=USERNAME?>">Username <span class="text-red">*</span></label>
@@ -19,7 +19,7 @@
     	</div>
     	<div class="form-group text-md-left">
     		<label for="<?=CONFIRM_PASS?>"><?=${LANG}[CONFIRM_PASS]?> <span class="text-red">*</span></label>
-    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="Confirm password" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
+    		<input id="<?=CONFIRM_PASS?>" name="<?=CONFIRM_PASS?>" placeholder="<?=${LANG}[CONFIRM_PASS]?>" class="form-control confirm-password-2 evidence-error send-ajax-crypt" type="password" required="required">
     	</div>
     	<input id="<?=GET_KEY_TOKEN?>" type="hidden" name="<?=CSRF_KEY_JSON?>" value="<?=${GET_KEY_TOKEN}?>">
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_SIGNUP?>" value="<?=${TOKEN}?>">
