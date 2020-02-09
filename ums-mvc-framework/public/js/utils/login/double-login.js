@@ -29,8 +29,6 @@ $(document).ready(function() {
 				showMessage(response.message, !response.success);
 				if (response.success) {
 					$redrct = $('#redirect_to');
-					console.log($redrct);
-					console.log($redrct.length);
 					var redirectTo = $redrct.length ? $redrct.val() : window.location.pathname;
 					setTimeout(redirect, 2000, redirectTo);
 				}
@@ -39,7 +37,6 @@ $(document).ready(function() {
 					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
-				console.log(e);
 				showMessage('Double login failed', true);
 			}
 		};

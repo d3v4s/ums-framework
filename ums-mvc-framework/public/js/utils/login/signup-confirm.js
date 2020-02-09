@@ -13,7 +13,6 @@ $(document).ready(function() {
 
     	/* success function */
     	funcSuccess = function(response) {
-    		console.log(response);
 			removeLoading($btn, 'Resend email');
 			try {
 				if (response.ntk !== undefined) $xf.val(response.ntk);

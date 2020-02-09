@@ -4,7 +4,7 @@
 	</a>
 	<ul id="dropdown-lang" class="dropdown-menu bg-dark">
 		<?php foreach (ACCEPT_LANG_LIST as $lang): ?>
-			<li class="p-2 text-xl-left text-lg-left text-md-left text-sm-center">
+			<li class="p-2 text-xl-left text-lg-left text-md-left text-sm-center text-center">
     			<button class="rounded btn btn-link" value="<?=$lang?>">
             		<img class="flag" src="/img/flags/<?=$lang?>_64.png" alt="<?=$lang?> flag">
             	</button>

@@ -37,7 +37,6 @@ $(document).ready(function() {
 					if (response.ntk !== undefined) $xf.val(response.ntk);
 				}
 			} catch (e) {
-				console.log(e);
 				showMessage('Login failed', true);
 			}
 		};

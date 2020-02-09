@@ -19,6 +19,11 @@ return [
     REQUIRED => 'Required',
     SIGNUP => 'Signup',
     ROWS_FOR_PAGE => 'Rows for page',
+    'menagement' => 'Menagement',
     'double_login' => 'Double login require',
-    'insert_password' => 'Insert your password'
+    'insert_password' => 'Insert your password',
+    'ums_tables' => 'Users tables',
+    'new_user' => 'New user',
+    'send_email' => 'Send email',
+    'app_settings' => 'App settings'
 ];

@@ -335,17 +335,18 @@ $(document).ready(function () {
 		closeMessage();
 	});
 
+	/* set position of message box when resize window */
 	$(window).resize(function() {
 		positionMessageBox();
 	});
 
+	/* set position of message box when scroll window */
 	$(window).scroll(function() {
 		positionMessageBox();
 	});
 
+	/* add listener to select language */
 	$('#dropdown-lang button').each(function(index, elem) {
-		console.log(elem);
-
 		var $elem = $(elem);
 		$elem.click(function() {
 			var lang = $elem.val();

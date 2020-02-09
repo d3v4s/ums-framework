@@ -19,6 +19,11 @@ return [
     REQUIRED => 'Obbligatorio',
     SIGNUP => 'Registrati',
     ROWS_FOR_PAGE => 'Righe per pagina',
+    'menagement' => 'Gestione',
     'double_login' => 'Double login richiesto',
     'insert_password' => 'Inserire la password',
+    'ums_tables' => 'Tabelle utenti',
+    'new_user' => 'Nuovo utente',
+    'send_email' => 'Invia email',
+    'app_settings' => 'Impostazioni app'
 ];
