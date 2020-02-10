@@ -5,6 +5,7 @@ use app\models\User;
 use \PDO;
 use app\controllers\verifiers\FakeUsersVerifier;
 use app\models\PendingUser;
+use app\core\Router;
 
 /**
  * Class controller for manage creation of fake users
@@ -50,7 +51,7 @@ class FakeUsersController extends UMSTablesBaseController {
         $onPending = isset($_POST[PENDING]);
 
         /* set redirect to */
-        $redirectTo = '/'.FAKE_USERS_ROUTE;
+        $redirectTo = Router::getRoute('app\controllers\FakeUsersController', 'showAddFakeUsers');
 
         /* get verifier instance, and check add fake users request */
         $verifier = FakeUsersVerifier::getInstance();
@@ -62,17 +63,19 @@ class FakeUsersController extends UMSTablesBaseController {
             $roleId = DEFAULT_ROLE;
             $usersAdded = 0;
 
+            /* init redirect to */
+            $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showTable');
             /* if pending is set */
             if ($onPending) {
                 /* init pending user model and set function name */
                 $model = new PendingUser($this->conn);
                 $funcAdder = 'savePendingUser';
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE;
+                $redirectTo = str_replace(':table', PENDING_USERS_TABLE, $redirectTo);
             } else {
                 /* init user model and set function name */
                 $model = new User($this->conn);
                 $funcAdder = 'saveUser';
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE;
+                $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
             }
             /* start loop fake user creator */
             while ($nFakeUsers-- > 0) {

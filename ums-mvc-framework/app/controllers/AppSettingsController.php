@@ -4,6 +4,7 @@ namespace app\controllers;
 use \PDO;
 use app\controllers\verifiers\AppSettingsVerifier;
 use app\controllers\data\AppSettingsDataFactory;
+use app\core\Router;
 
 /**
  * Class controller to mange update and view of app settings
@@ -113,7 +114,8 @@ class AppSettingsController extends SettingsBaseController {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.APP_SETTINGS_ROUTE.'/'.$data[SECTION]);
+            $redirect = Router::getRoute('app\controllers\AppSettingsController', 'showAppSettings').'/'.$data[SECTION];
+            redirect($redirect);
         };
 
         $this->switchResponse($dataOut, $resUpdate[GENERATE_TOKEN], $funcDefault, CSRF_SETTINGS);

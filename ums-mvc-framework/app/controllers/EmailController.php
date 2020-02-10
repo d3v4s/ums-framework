@@ -4,6 +4,7 @@ namespace app\controllers;
 use app\models\Email;
 use \PDO;
 use app\controllers\verifiers\EmailVerifier;
+use app\core\Router;
 
 /**
  * Class controller to manage the email sender
@@ -63,7 +64,7 @@ class EmailController extends UMSBaseController {
         if (!empty($subject)) $subject = $this->decryptData($subject);
 
         /* set redirect to */
-        $redirectTo = '/'.NEW_EMAIL_ROUTE;
+        $redirectTo = Router::getRoute('app\controllers\EmailController', 'showNewEmail');
 
         /* get verifier instance, and che send email request */
         $verifier = EmailVerifier::getInstance($this->lang[MESSAGE]);
@@ -84,7 +85,7 @@ class EmailController extends UMSBaseController {
             /* send email and set result */
             if ($resSendEmail[SUCCESS] = $email->send()) {
                 $resSendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$to;
-                $redirectTo = '/'.UMS_HOME_ROUTE;
+                $redirectTo = Router::getRoute('app\controllers\UMSBaseController', 'showUmsHome');
             } else  $resSendEmail[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
         }
 

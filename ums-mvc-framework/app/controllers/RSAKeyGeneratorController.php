@@ -1,8 +1,9 @@
 <?php
 namespace app\controllers;
 
-use \PDO;
 use app\controllers\verifiers\RSAVerifier;
+use \PDO;
+use app\core\Router;
 
 /**
  * Class controller to manger rsa key pair generator
@@ -73,7 +74,7 @@ class RSAKeyGeneratorController extends SettingsBaseController {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.RSA_GENERATOR_ROUTE);
+            redirect(Router::getRoute('app\controllers\RSAKeyGeneratorController', 'showRSAKeyGenerator'));
         };
 
         $this->switchResponse($dataOut, $resKeyGenerate[GENERATE_TOKEN], $funcDefault, CSRF_GEN_RSA);

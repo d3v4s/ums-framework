@@ -5,6 +5,7 @@ use \PDO;
 use \DOMDocument;
 use app\controllers\verifiers\SiteMapVerifier;
 use app\controllers\data\SiteMapDataFactory;
+use app\core\Router;
 
 /**
  * Class controller to manage the site map generation and updates
@@ -78,14 +79,14 @@ class SiteMapGeneratorController extends SettingsBaseController {
         $data = $_POST;
 
         /* set redirect to */
-        $redirectTo = '/'.SITE_MAP_GENERATOR_ROUTE;
+        $redirectTo = Router::getRoute('app\controllers\SiteMapGeneratorController', 'showSiteMapGenerator');
 
         /* get verifier instance, and check site map generation request */
         $resSiteMapGen = SiteMapVerifier::getInstance()->verifyGenerateSiteMap($urlServer, $data, $tokens);
         if ($resSiteMapGen[SUCCESS]) {
             /* if succcess save site map and save new result */
             if ($resSiteMapGen[SUCCESS] = $this->saveSiteMap($resSiteMapGen[ROUTES])) {
-                $redirectTo = '/'.SITE_MAP_UPDATE_ROUTE;
+                $redirectTo = Router::getRoute('app\controllers\SiteMapGeneratorController', 'showSiteMapUpdate');
                 $resSiteMapGen[MESSAGE] = 'Site map successfully generate';
             } else $resSiteMapGen[MESSAGE] = 'Generation site map failed';
         }

@@ -11,7 +11,7 @@ use app\controllers\Controller;
 class Router {
     protected $conn;
     protected $appConfig;
-    protected $routes = [
+    static protected $routes = [
         'GET' => [],
         'POST' => []
     ];
@@ -21,15 +21,20 @@ class Router {
         $this->appConfig = $appConfig;
     }
 
+    /* static function to get url from routes by class and method */
+    static public function getRoute(string $class, string $method, string $reqMethod='GET'): string {
+        return isset(Router::$routes[$reqMethod]) ? '/'.array_search("$class@$method", Router::$routes[$reqMethod]) : '/';
+    }
+
     /* ##################################### */
     /* GET AND SET */
     /* ##################################### */
 
     public function setRoutes(array $routes) {
-        $this->routes = $routes;
+        Router::$routes = $routes;
     }
     public function getRoutes(): array {
-        return $this->routes;
+        return Router::$routes;
     }
 
     /* ##################################### */
@@ -44,7 +49,7 @@ class Router {
         /* get request method */
         $method = $_SERVER['REQUEST_METHOD'];
         /* check if request is on routes, then return the controller  */
-        if (array_key_exists($method, $this->routes) && array_key_exists($url, $this->routes[$method])) return $this->route($this->routes[$method][$url]);
+        if (array_key_exists($method, Router::$routes) && array_key_exists($url, Router::$routes[$method])) return $this->route(Router::$routes[$method][$url]);
         /* else try to process a request */
         return $this->processQueue($url, $method);
     }
@@ -69,18 +74,19 @@ class Router {
 
     /* function to process a request */
     protected function processQueue(string $uri, string $method='GET'): Controller {
-        $routes = $this->routes[$method];
-        
-        foreach ($routes as $route => $callback) {
-            $subPattern = preg_replace('/:[a-zA-Z0-9\_\-]+/', '([a-zA-Z0-9\_\-]+)', $route);
-            $pattern = '@^'.$subPattern.'$@D';
-            $matches = array();
-            if (preg_match($pattern, $uri, $matches)) {
-                array_shift($matches);
-                return $this->route($callback, $matches);
+        if (isset(Router::$routes[$method])) {
+            $routes = Router::$routes[$method];
+            
+            foreach ($routes as $route => $callback) {
+                $subPattern = preg_replace('/:[a-zA-Z0-9\_\-]+/', '([a-zA-Z0-9\_\-]+)', $route);
+                $pattern = '@^'.$subPattern.'$@D';
+                $matches = array();
+                if (preg_match($pattern, $uri, $matches)) {
+                    array_shift($matches);
+                    return $this->route($callback, $matches);
+                }
             }
         }
-//         throw new Exception('Invalid request');
         return $this->route('app\controllers\Controller@switchFailResponse');
     }
     
