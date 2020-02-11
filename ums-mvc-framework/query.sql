@@ -21,6 +21,7 @@ CREATE TABLE `roles` (
 	`change_settings` bit(1) NOT NULL DEFAULT 0,
 	`send_email` bit(1) NOT NULL DEFAULT 0,
 	`view_tables` bit(1) NOT NULL DEFAULT 0,
+	`mange_real_estate` bit(1) NOT NULL DEFAULT b'0',
 
 	UNIQUE `role` (`role`)
 );
@@ -71,7 +72,7 @@ CREATE TABLE `password_reset_requests` (
 
 -- new table for pending new emails
 CREATE TABLE `pending_emails` (
-	`id_pending_emails` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id_pending_email` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`user_id` int(15) unsigned NOT NULL,
 	`new_email` varchar(64) NOT NULL,
 	`enabler_token` varchar(255) NULL,
@@ -114,7 +115,7 @@ CREATE TABLE `sessions` (
 
 -- create table for user locks
 CREATE TABLE `user_locks` (
-	`id_user_locks` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	`id_user_lock` int(15) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`user_id` int(15) unsigned NOT NULL,
 	`count_wrong_password` int(5) unsigned NOT NULL DEFAULT '0',
 	`expire_wrong_password` datetime NULL,
@@ -133,16 +134,16 @@ DELIMITER ;
 -- INSERT ROLES --
 
 -- insert admin role
-INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`, `mange_real_estate`)
+	VALUES (0, 'admin', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 
 -- insert editor role
-INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (1, 'editor', 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1);
+INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`, `mange_real_estate`)
+	VALUES (1, 'editor', 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1);
 
 -- insert user role
-INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`)
-	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_user`, `unlock_user`, `restore_user`, `change_pass`, `remove_session`, `remove_enabler_token`, `gen_rsa`, `gen_sitemap`, `change_settings`, `send_email`, `view_tables`, `mange_real_estate`)
+	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- INSERT USER --
 

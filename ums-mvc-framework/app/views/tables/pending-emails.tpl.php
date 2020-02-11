@@ -14,7 +14,7 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/<?=UMS_TABLES_ROUTE.'/'.PENDING_EMAILS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/ums/table/<?=PENDING_EMAILS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
 		<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -23,7 +23,7 @@
         <table class="table table-striped" id="pending-emails-table">
         	<thead>
         		<tr>
-        			<th colspan="9" class="text-center">
+        			<th colspan="5" class="text-center">
         				<span>TOTAL EMAILS <?=${TOT_PENDING_MAILS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
@@ -57,17 +57,17 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.$email->{PENDING_EMAIL_ID}?>">
+            	        		<a href="/ums/table/get/<?=PENDING_EMAILS_TABLE.'/'.$email->{PENDING_EMAIL_ID}?>">
             	        			<?=$email->{PENDING_EMAIL_ID}?>
             	        		</a>
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($email->{USERNAME})): ?>
-                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$email->{USER_ID}?>">
+                	        		<a href="/ums/table/get/<?=USERS_TABLE.'/'.$email->{USER_ID}?>">
         		        	        	<?=$email->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
-            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$email->{USER_ID_FRGN}?>" class="text-danger">
+            	        			<a href="/ums/table/get/<?=DELETED_USER_TABLE.'/'.$email->{USER_ID_FRGN}?>" class="text-danger">
         		        	        	DELETE: <?= $email->{USER_ID_FRGN}?>
                 	        		</a>
             	        		<?php endif; ?>
@@ -88,7 +88,7 @@
             	        </tr>
             	    <?php endforeach;
                 else: ?>
-            	    <tr><td colspan="9" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
+            	    <tr><td colspan="5" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
             <?php endif; ?>
         	</tbody>
         </table>

@@ -1,5 +1,5 @@
 <div class="container col-md-7 text-center p-3">
-    <form id="change-pass-form" action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE?>" method="post">
+    <form id="change-pass-form" action="/user/settings/password_update" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=CURRENT_PASS?>"><?=${LANG}['current_pass']?></label>
     		<input id="<?=CURRENT_PASS?>" name="<?=CURRENT_PASS?>"  placeholder="<?=${LANG}['current_pass']?>" class="form-control evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">

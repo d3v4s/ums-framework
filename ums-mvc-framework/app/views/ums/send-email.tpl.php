@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>New Email</h1>
-    <form id="send-email-form" action="/<?=SEND_EMAIL_ROUTE?>" method="post">
+    <form id="send-email-form" action="/ums/email/send" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=TO?>">To</label>
     		<input id="<?=TO?>" name="<?=TO?>" value="<?=${TO}?>" placeholder="To" class="form-control evidence-error send-ajax-crypt validate-email" type="email" required="required" autofocus="autofocus">
@@ -15,11 +15,6 @@
 	    		<textarea id="<?=CONTENT?>" name="<?=CONTENT?>" class="form-control evidence-error send-ajax-crypt" rows="10" required="required"></textarea>
     		</span>
     	</div>
-    	<noscript>
-    		<div class="container-fluid">
-    			<h3 class="text-danger">ENABLE JAVASCRIPT TO SEND EMAIL</h3>
-    		</div>
-    	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-send" class="btn btn-success px-3 py-1" type="submit">
 	    		<i class="ico-btn fas fa-paper-plane"></i>

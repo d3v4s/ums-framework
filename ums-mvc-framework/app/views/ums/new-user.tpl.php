@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>New User</h1>
-    <form id="new-user-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE?>" method="post">
+    <form id="new-user-form" action="/ums/table/action/<?=USERS_TABLE?>/new" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>">Full Name</label>
     		<input id="<?=NAME?>" name="<?=NAME?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
@@ -33,11 +33,6 @@
 			<input id="<?=PENDING?>" name="<?=PENDING?>" type="checkbox" class="custom-control-input send-ajax" value="true">
 			<label class="custom-control-label" for="<?=PENDING?>">Pending</label>
         </div>
-        <noscript>
-    		<div class="container-fluid">
-    			<h3 class="text-danger">ENABLE JAVASCRIPT TO ADD NEW USER</h3>
-    		</div>
-    	</noscript>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
 	    	<button id="btn-save" class="btn btn-success px-3 py-1" type="submit">
 	    		<i class="ico-btn fas fa-check"></i>

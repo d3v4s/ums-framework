@@ -12,7 +12,7 @@
     			<tr>
         			<td class="text-primary align-middle">Username</td>
         			<td class="align-middle">
-        				<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.${USER}->{USER_ID}?>"><?=${USER}->{USERNAME}?></a>
+        				<a href="/ums/table/get/<?=USERS_TABLE.'/'.${USER}->{USER_ID}?>"><?=${USER}->{USERNAME}?></a>
         			</td>
     			</tr>
     			<tr>
@@ -40,7 +40,7 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
 	    	<?php if (${CAN_UNLOCK_USER}): ?>
-	    		<form id="lock-user-reset-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USER_LOCK_TABLE.'/'.RESET_ROUTE?>" method="post">
+	    		<form id="lock-user-reset-form" action="/ums/table/action/<?=USER_LOCK_TABLE?>/reset" method="post">
     	    		<button id="btn-lock-user-reset" class="btn btn-warning mx-3 my-1" type="submit">
     	    			<i class="fas fa-undo ico-btn"></i>
         				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
@@ -50,7 +50,7 @@
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
     	    	</form>
 	    	<?php endif; ?>
-	    	<a class="btn btn-primary mx-3 my-1" href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.${USER}->{USER_ID_FRGN}?>"><i class="fas fa-user"></i> View User</a>
+	    	<a class="btn btn-primary mx-3 my-1" href="/ums/table/get/<?=USERS_TABLE.'/'.${USER}->{USER_ID_FRGN}?>"><i class="fas fa-user"></i> View User</a>
     	</div>
     </div>
 </div>

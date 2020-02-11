@@ -11,6 +11,7 @@ use \PDO;
 use app\models\Session;
 use app\models\PendingEmail;
 use app\models\PasswordResetRequest;
+use app\core\Router;
 
 /**
  * Class controller for users admin manage
@@ -168,7 +169,9 @@ class UMSActionsController extends UMSBaseController {
         }
 
         /* set redirect to */
-        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.UPDATE_ROUTE.'/'.$id;
+        $redirectTo = Router::getRoute('app\controllers\UMSActionsController', 'switchShowAction');
+        $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':action', 'update', $redirectTo)."/$id";
         /* get verifier instance, and check update user request */
         $resUpdate = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyUpdateUser($id, $name, $email, $username, $roletype, $tokens);
         /* if success */
@@ -186,7 +189,9 @@ class UMSActionsController extends UMSBaseController {
             /* if update success set success message and redirect to */
             if ($resUpdate[SUCCESS]){
                 $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][SUCCESS];
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+                $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+                $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+                $redirectTo = str_replace(':id', $id, $redirectTo);
             /* else set fail message */
             } else $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][FAIL];
         }
@@ -217,7 +222,9 @@ class UMSActionsController extends UMSBaseController {
         $this->sendFailIfCanNotChangePassword();
         /* set redirect to */
         $id = $_POST[USER_ID] ?? '';
-        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE.'/'.$id;
+        $redirectTo = Router::getRoute('app\controllers\UMSActionsController', 'switchShowAction');
+        $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':action', 'password_update', $redirectTo)."/$id";
         $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* require double login */
@@ -243,7 +250,9 @@ class UMSActionsController extends UMSBaseController {
             /* if update success set success message and redirect to */
             if ($resPass[SUCCESS]) {
                 $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][SUCCESS];
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+                $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+                $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+                $redirectTo = str_replace(':id', $id, $redirectTo);
             /* else set fail message */
             } else $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][FAIL];
         }
@@ -289,10 +298,15 @@ class UMSActionsController extends UMSBaseController {
             $resReset = array_merge($resReset, $user->lockUserReset($id));
             $resReset[MESSAGE] = $resReset[SUCCESS] ? $this->lang[MESSAGE][LOCK_USER_RESET][SUCCESS] : $this->lang[MESSAGE][LOCK_USER_RESET][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', USER_LOCK_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USER_LOCK_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resReset[SUCCESS],
             MESSAGE => $resReset[MESSAGE] ?? NULL,
         ];
@@ -314,7 +328,9 @@ class UMSActionsController extends UMSBaseController {
         /* redirects */
         $this->sendFailIfCanNotCreateUser();
         /* set redirect */
-        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE;
+        $redirectTo = Router::getRoute('app\controllers\UMSActionsController', 'switchShowAction');
+        $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':action', 'new', $redirectTo);
         $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens and post data */
@@ -346,6 +362,9 @@ class UMSActionsController extends UMSBaseController {
                 ENABLED => TRUE,
                 EXPIRE_DATETIME => getExpireDatetime(ENABLER_LINK_EXPIRE_TIME)
             ];
+
+            $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+
             /* if pending */
             if ($pending) {
                 /* init pending model and save user */
@@ -353,12 +372,14 @@ class UMSActionsController extends UMSBaseController {
                 $resUser = $pendModel->savePendingUser($usrData);
                 /* send enabler email */
                 $this->sendEnablerEmail($email, $resUser[TOKEN]);
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$resUser[USER_ID];
+                $redirectTo = str_replace(':table', PENDING_USERS_TABLE, $redirectTo);
+                $redirectTo = str_replace(':id', $resUser[USER_ID], $redirectTo);
             } else {
                 /* init user model and save user */
                 $user = new User($this->conn);
                 $resUser = $user->saveUser($usrData);
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$resUser[USER_ID];
+                $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+                $redirectTo = str_replace(':id', $resUser[USER_ID], $redirectTo);
             }
             /* set result */
             $resSignup = array_merge($resSignup, $resUser);
@@ -381,7 +402,7 @@ class UMSActionsController extends UMSBaseController {
             }
             redirect($data[REDIRECT_TO]);
         };
-        
+
         $this->switchResponse($dataOut, (!$resSignup[SUCCESS] && $resSignup[GENERATE_TOKEN]), $funcDefault, CSRF_NEW_USER);
     }
 
@@ -397,8 +418,11 @@ class UMSActionsController extends UMSBaseController {
         $tokens = $this->getPostSessionTokens(CSRF_DELETE_USER);
         $id = $_POST[USER_ID] ?? '';
 
-        /* ser redirect to */
-        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* get verifier instance, and check delete user request */
         $resDelete = Verifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyDelete($id, $tokens);
         if ($resDelete[SUCCESS]) {
@@ -420,11 +444,13 @@ class UMSActionsController extends UMSBaseController {
                 /* init session model and remove all user tokens */
                 $sessionModel = new Session($this->conn);
                 $sessionModel->removeAllLoginSessionTokens($id);
-                $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
+                $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+                $redirectTo = str_replace(':table', DELETED_USER_TABLE, $redirectTo);
+                $redirectTo = str_replace(':id', $id, $redirectTo);
             /* else set fail message */
             } else $resDelete[MESSAGE] = $this->lang[MESSAGE][USER_DELETE][FAIL];
         }
-        
+
         /* result data */
         $dataOut = [
             REDIRECT_TO => $redirectTo,
@@ -432,7 +458,7 @@ class UMSActionsController extends UMSBaseController {
             ERROR => $resDelete[ERROR] ?? NULL,
             MESSAGE => $resDelete[MESSAGE] ?? NULL
         ];
-        
+
         /* function for default response */
         $funcDefault = function($data) {
             if (isset($data[MESSAGE])) {
@@ -457,8 +483,12 @@ class UMSActionsController extends UMSBaseController {
         $tokens = $this->getPostSessionTokens(CSRF_RESTORE_USER);
         $id = $_POST[USER_ID] ?? '';
 
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', DELETED_USER_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* get verifier instance, and check reset wrong user locks request */
-        $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$id;
         $resRestore = UMSVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyRestoreUser($id, $tokens);
         if ($resRestore[SUCCESS]) {
             /* if success init user model, and set user data */
@@ -486,7 +516,9 @@ class UMSActionsController extends UMSBaseController {
                     /* send email with new random password */
                     $this->sendEmailNewRandomPassword($resRestore[USER]->{EMAIL}, $password);
                     /* set redirect to user */
-                    $redirectTo = '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$id;
+                    $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+                    $redirectTo = str_replace(':table', USERS_TABLE, $redirectTo);
+                    $redirectTo = str_replace(':id', $id, $redirectTo);
                     /* remove from delete users table */
                     $delUserModel = new DeletedUser($this->conn);
                     $delUserModel->removeDeleteUser($resRestore[USER]->{USER_ID});                    
@@ -544,9 +576,14 @@ class UMSActionsController extends UMSBaseController {
             } else $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
         }
 
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', PENDING_EMAILS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resResend[SUCCESS],
             MESSAGE => $resResend[MESSAGE] ?? NULL,
         ];
@@ -586,10 +623,15 @@ class UMSActionsController extends UMSBaseController {
                 /* set fail message */
             } else $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', PENDING_USERS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resResend[SUCCESS],
             MESSAGE => $resResend[MESSAGE] ?? NULL,
         ];
@@ -629,10 +671,15 @@ class UMSActionsController extends UMSBaseController {
                 /* set fail message */
             } else $resResend[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', PASSWORD_RESET_REQ_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resResend[SUCCESS],
             MESSAGE => $resResend[MESSAGE] ?? NULL,
         ];
@@ -671,10 +718,15 @@ class UMSActionsController extends UMSBaseController {
             if (($resRemove[SUCCESS] = $pendMailModel->removeEmailEnablerTokenById($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_EMAIL][SUCCESS];
             else $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_EMAIL][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', PENDING_EMAILS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resRemove[SUCCESS],
             MESSAGE => $resRemove[MESSAGE] ?? NULL,
         ];
@@ -711,10 +763,15 @@ class UMSActionsController extends UMSBaseController {
             if (($resRemove[SUCCESS] = $pendUserModel->removeAccountEnablerTokenById($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_USER][SUCCESS];
             else $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PENDING_USER][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', PENDING_USERS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resRemove[SUCCESS],
             MESSAGE => $resRemove[MESSAGE] ?? NULL,
         ];
@@ -752,10 +809,15 @@ class UMSActionsController extends UMSBaseController {
             if (($resRemove[SUCCESS] = $sessionModel->removeLoginSession($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][SUCCESS];
             else $resRemove[MESSAGE] = $this->lang[MESSAGE][REMOVE_SESSION][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', SESSIONS_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resRemove[SUCCESS],
             MESSAGE => $resRemove[MESSAGE] ?? NULL,
         ];
@@ -792,10 +854,15 @@ class UMSActionsController extends UMSBaseController {
             if (($resRemove[SUCCESS] = $passResetModel->removePasswordResetReqTokenById($id))) $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PASS_RES_REQ][SUCCESS];
             else $resRemove[MESSAGE] = $this->lang[MESSAGE][INVALIDATE_PASS_RES_REQ][FAIL];
         }
-        
+
+        /* set redirect to */
+        $redirectTo = Router::getRoute('app\controllers\UMSTablesController', 'showRow');
+        $redirectTo = str_replace(':table', PASSWORD_RESET_REQ_TABLE, $redirectTo);
+        $redirectTo = str_replace(':id', $id, $redirectTo);
+
         /* result data */
         $dataOut = [
-            REDIRECT_TO => '/'.UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.$id,
+            REDIRECT_TO => $redirectTo,
             SUCCESS => $resRemove[SUCCESS],
             MESSAGE => $resRemove[MESSAGE] ?? NULL,
         ];
@@ -820,13 +887,13 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch show action for user table */
     private function switchShowUserAction(string $action, string $id='') {
         switch ($action) {
-            case NEW_ROUTE:
+            case 'new':
                 $this->showNewUser();
                 break;
-            case UPDATE_ROUTE:
+            case 'update':
                 $this->showUserUpdate($id);
                 break;
-            case PASS_UPDATE_ROUTE:
+            case 'password_update':
                 $this->showPasswordUpdate($id);
                 break;
             default:
@@ -838,20 +905,17 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for user table */
     private function switchUserAction(string $action) {
         switch ($action) {
-            case NEW_ROUTE:
+            case 'new':
                 $this->newUser();
                 break;
-            case UPDATE_ROUTE:
+            case 'update':
                 $this->userUpdate();
                 break;
-            case DELETE_ROUTE:
+            case 'delete':
                 $this->deleteUser();
                 break;
-            case PASS_UPDATE_ROUTE:
+            case 'password_update':
                 $this->passwordUpdate();
-                break;
-            case LOCK_COUNTERS_RESET_ROUTE:
-                $this->lockCountersReset();
                 break;
             default:
                 $this->switchFailResponse($this->lang[MESSAGE][GENERIC][INVALID_ACTION]);
@@ -862,7 +926,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for user table */
     private function switchUserLockAction(string $action) {
         switch ($action) {
-            case RESET_ROUTE:
+            case 'reset':
                 $this->lockCountersReset();
                 break;
             default:
@@ -874,7 +938,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for deleted user table */
     private function switchDeletedUserAction(string $action) {
         switch ($action) {
-            case RESTORE_ROUTE:
+            case 'restore':
                 $this->restoreUser();
                 break;
             default:
@@ -885,10 +949,10 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for pending user table */
     private function switchPendingUserAction(string $action) {
         switch ($action) {
-            case RESEND_ROUTE:
+            case 'resend':
                 $this->resendEnablerAccount();
                 break;
-            case INVALIDATE_ROUTE:
+            case 'invalidate':
                 $this->invalidatePendingUser();
                 break;
             default:
@@ -900,10 +964,10 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for pending email table */
     private function switchPendingEmailAction(string $action) {
         switch ($action) {
-            case RESEND_ROUTE:
+            case 'resend':
                 $this->resendEnablerEmail();
                 break;
-            case INVALIDATE_ROUTE:
+            case 'invalidate':
                 $this->invalidatePendingEmail();
                 break;
             default:
@@ -915,10 +979,10 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for passwpord reset request table */
     private function switchPasResReqAction(string $action) {
         switch ($action) {
-            case RESEND_ROUTE:
+            case 'resend':
                 $this->resendPasswordReset();
                 break;
-            case INVALIDATE_ROUTE:
+            case 'invalidate':
                 $this->invalidatePasswordResetRequest();
                 break;
             default:
@@ -930,7 +994,7 @@ class UMSActionsController extends UMSBaseController {
     /* function to switch action for session table */
     private function switchSessionAction(string $action) {
         switch ($action) {
-            case INVALIDATE_ROUTE:
+            case 'invalidate':
                 $this->invalidateSession();
                 break;
             default:

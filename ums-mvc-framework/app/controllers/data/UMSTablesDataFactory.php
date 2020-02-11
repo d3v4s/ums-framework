@@ -11,6 +11,7 @@ use app\models\User;
 use app\models\Role;
 use \DateTime;
 use \PDO;
+use app\core\Router;
 
 /**
  * Class data factory, used for generate
@@ -19,9 +20,12 @@ use \PDO;
  * @author Andrea Serra (DevAS) https://devas.info
  */
 class UMSTablesDataFactory extends PaginationDataFactory {
+    private $umsTablesRoute;
 
     protected function __construct(array $langData, PDO $conn=NULL) {
         parent::__construct($langData, $conn);
+        $this->umsTablesRoute = Router::getRoute('UMSTablesController', 'showTable');
+        $this->umsTablesRoute = str_replace(':table', '', $this->umsTablesRoute);
     }
 
     /* ##################################### */
@@ -44,7 +48,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getSearchQuery($search);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.UMS_TABLES_ROUTE.'/'.USERS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, $this->umsTablesRoute.USERS_TABLE, $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], USERS_ORDER_BY_LIST, $searchQuery));
         /* get and merge search data */
@@ -75,7 +79,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getSearchQuery($search);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.UMS_TABLES_ROUTE.'/'.DELETED_USER_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, $this->umsTablesRoute.DELETED_USER_TABLE, $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(DELETED_USER_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], DELETED_USERS_ORDER_BY_LIST, $searchQuery));
         /* get and merge search data */
@@ -107,7 +111,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getSearchQuery($search);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, $this->umsTablesRoute.PENDING_USERS_TABLE, $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], PENDING_USERS_ORDER_BY_LIST, $searchQuery));
         /* get and merge search data */
@@ -139,7 +143,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getSearchQuery($search);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $mailsForPage, $totEmails, '/'.UMS_TABLES_ROUTE.'/'.PENDING_EMAILS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $mailsForPage, $totEmails, $this->umsTablesRoute.PENDING_EMAILS_TABLE, $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_EMAILS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], PENDING_EMAILS_ORDER_BY_LIST, $searchQuery));
         /* get and merge search data */
@@ -168,7 +172,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $rolesForPage, $totRoles, '/'.UMS_TABLES_ROUTE.'/'.ROLES_TABLE);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $rolesForPage, $totRoles, $this->umsTablesRoute.ROLES_TABLE);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(ROLES_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], ROLES_ORDER_BY_LIST));
         /* add user data */
@@ -196,7 +200,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getSearchQuery($search);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $sessionsForPage, $totSessions, '/'.UMS_TABLES_ROUTE.'/'.SESSIONS_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $sessionsForPage, $totSessions, $this->umsTablesRoute.SESSIONS_TABLE, $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(SESSIONS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], SESSIONS_ORDER_BY_LIST, $searchQuery));
         /* get and merge search data */
@@ -226,7 +230,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getSearchQuery($search);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $requestsForPage, $totReq, '/'.UMS_TABLES_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $requestsForPage, $totReq, $this->umsTablesRoute.PASSWORD_RESET_REQ_TABLE, $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(PASSWORD_RESET_REQ_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], PASS_RESET_REQ_ORDER_BY_LIST, $searchQuery));
         /* get and merge search data */
@@ -545,7 +549,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
         $closeUrl = "/$page/$rowsForPage$searchQuery";
         $data = [];
         foreach ($columnList as $col) {
-            $data[LINK_HEAD.$col] = '/'.UMS_TABLES_ROUTE."/$table/$col/";
+            $data[LINK_HEAD.$col] = "/ums/table/$table/$col/";
             $data[LINK_HEAD.$col] .= $orderBy === $col ? $orderDirRev : DESC;
             $data[LINK_HEAD.$col] .= $closeUrl;
             $data[CLASS_HEAD.$col] = $orderBy === $col ? "fas fa-sort-$orderDirClass" : '';

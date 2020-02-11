@@ -46,19 +46,19 @@
     				<td colspan="2" class="align-middle" <?=${USER}->{ENABLED} ? '' : ''?>>
     					<a
     						class="btn btn-primary m-2"
-    						href="/<?=ADVANCE_SEARCH_ROUTE.'/'.PENDING_USER_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.PENDING_EMAILS_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
+    						href="/ums/search/advance/<?=PENDING_USER_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.PENDING_EMAILS_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
 						>
 							Pending Emails
 						</a>
 						<a
     						class="btn btn-primary m-2"
-    						href="/<?=ADVANCE_SEARCH_ROUTE.'/'.SESSION_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.SESSIONS_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
+    						href="/ums/search/advance/<?=SESSION_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.SESSIONS_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
 						>
 							Sessions
 						</a>
 						<a
     						class="btn btn-primary m-2"
-    						href="/<?=ADVANCE_SEARCH_ROUTE.'/'.PASSWORD_RESET_REQ_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.PASSWORD_RESET_REQ_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
+    						href="/ums/search/advance/<?=PASSWORD_RESET_REQ_ID.'/'.DESC.'/1/'.DEFAULT_ROWS_FOR_PAGE.'?'.TABLE.'='.PASSWORD_RESET_REQ_TABLE.'&'.USER_ID_FRGN.'='.${USER}->{USER_ID} ?>"
 						>
 							Password Reset Requests 
 						</a>
@@ -70,10 +70,10 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
     	    <?php if (${CAN_UPDATE_USER}): ?>
-    	    	<a class="btn btn-warning mx-3 my-1" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.UPDATE_ROUTE.'/'.${USER}->{USER_ID}?>"><i class="fa fa-pen fa-xs"></i> Update</a>
+    	    	<a class="btn btn-warning mx-3 my-1" href="/ums/table/action/<?=USERS_TABLE.'/update/'.${USER}->{USER_ID}?>"><i class="fa fa-pen fa-xs"></i> Update</a>
     	    <?php endif; ?>
     	    <?php if (${CAN_DELETE_USER}): ?>
-    	    	<form id="delete-user-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.DELETE_ROUTE?>" method="post">
+    	    	<form id="delete-user-form" action="/ums/table/action/<?=USERS_TABLE?>/delete" method="post">
     	    		<button id="btn-delete-user" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i class="ico-btn fa fa-trash-alt fa-xs"></i>
 	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
@@ -83,9 +83,9 @@
     		    	<input name="<?=USER_ID?>" value="<?=${USER}->{USER_ID}?>" class="send-ajax" type="hidden">
     	    	</form>
     	    <?php endif; ?>
-	    	<a class="btn btn-primary mx-3 my-1" href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USER_LOCK_TABLE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-user-lock"></i> View Locks</a>
+	    	<a class="btn btn-primary mx-3 my-1" href="/ums/table/get/<?=USER_LOCK_TABLE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-user-lock"></i> View Locks</a>
 	    	<?php if (${IS_LOCK} && ${CAN_UNLOCK_USER}): ?>
-	    		<form id="lock-user-reset-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USER_LOCK_TABLE.'/'.RESET_ROUTE?>" method="post">
+	    		<form id="lock-user-reset-form" action="/ums/table/action/<?=USER_LOCK_TABLE?>/reset" method="post">
     	    		<button id="btn-lock-user-reset" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i class="ico-btn fas fa-unlock fa-xs"></i>
 	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>

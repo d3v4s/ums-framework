@@ -72,7 +72,7 @@
 						</li>
 						<?php foreach ($this->appSectionsList as $appSection): ?>
 							<li class="p-2 nav-item <?=$appSection === $this->section ? 'active' : ''?>">
-								<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE.'/'.$appSection?>"><?=ucfirst($appSection)?></a>
+								<a class="nav-link" href="/ums/app/settings/<?=$appSection?>"><?=ucfirst($appSection)?></a>
 							</li>
 						<?php endforeach; ?>
 					</ul>

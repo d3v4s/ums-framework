@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>Login</h1>
-    <form id="login-form" action="/<?=LOGIN_ROUTE?>" method="post">
+    <form id="login-form" action="/auth/login" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=USER?>">Email/Username</label>
     		<input id="<?=USER?>" name="<?=USER?>" placeholder="Email/Username" class="form-control evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
@@ -9,7 +9,7 @@
     		<label for="<?=PASSWORD?>">Password</label>
     		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>" placeholder="Password" class="form-control evidence-error send-ajax-crypt mb-1" type="password" required="required">
     		<div class="text-left mx-1">
-        		<a href="/<?=PASS_RESET_REQ_ROUTE?>" class="link-danger"><?=${LANG}['forgot_password']?></a>
+        		<a href="/auth/reset/password" class="link-danger"><?=${LANG}['forgot_password']?></a>
     		</div>
     	</div>
     	<input id="<?=TOKEN?>" type="hidden" name="<?=CSRF_LOGIN?>" value="<?=${TOKEN}?>">

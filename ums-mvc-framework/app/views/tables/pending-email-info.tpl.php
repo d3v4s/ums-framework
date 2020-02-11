@@ -13,9 +13,9 @@
         			<td class="text-primary align-middle">Username</td>
         			<td class="align-middle">
         				<?php if (isset(${PENDING}->{USERNAME})): ?>
-        					<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.${PENDING}->{USER_ID_FRGN}?>"><?=${PENDING}->{USERNAME}?></a>
+        					<a href="/ums/table/get/<?=USERS_TABLE.'/'.${PENDING}->{USER_ID_FRGN}?>"><?=${PENDING}->{USERNAME}?></a>
     					<?php else: ?>
-    						<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.${PENDING}->{USER_ID_FRGN}?>" class="text-danger">DELETE: <?=${PENDING}->{USER_ID_FRGN}?></a>
+    						<a href="/ums/table/get/<?=DELETED_USER_TABLE.'/'.${PENDING}->{USER_ID_FRGN}?>" class="text-danger">DELETE: <?=${PENDING}->{USER_ID_FRGN}?></a>
     					<?php endif; ?>
 					</td>
     			</tr>
@@ -62,7 +62,7 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
     		<?php if (${CAN_REMOVE_ENABLER_TOKEN} && ${IS_VALID}): ?>
-    	    	<form id="invalidate-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.INVALIDATE_ROUTE?>" method="post">
+    	    	<form id="invalidate-form" action="/ums/table/action/<?=PENDING_EMAILS_TABLE?>/invalidate" method="post">
     	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i class="fa fa-user-times ico-btn"></i>
 	    				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
@@ -73,7 +73,7 @@
     	    	</form>
     	    <?php endif; ?>
     		<?php if (${CAN_SEND_EMAIL} && ${IS_VALID}): ?>
-    	    	<form id="resend-email-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PENDING_EMAILS_TABLE.'/'.RESEND_ROUTE?>" method="post">
+    	    	<form id="resend-email-form" action="/ums/table/action/<?=PENDING_EMAILS_TABLE?>/resend" method="post">
     	    		<button id="btn-resend-email" class="btn btn-primary mx-3 my-1" type="submit">
     	    			<i class="ico-btn fa fa-paper-plane"></i>
 	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>

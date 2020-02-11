@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1><?=${LANG}['forgot_password']?></h1>
-    <form id="reset-pass-req-form" action="/<?=PASS_RESET_REQ_ROUTE?>" method="post">
+    <form id="reset-pass-req-form" action="/auth/reset/password" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=EMAIL?>">Email</label>
     		<input id="<?=EMAIL?>" placeholder="Email" class="form-control evidence-error send-ajax validate-email" type="text" name="<?=EMAIL?>" required="required" autofocus="autofocus">

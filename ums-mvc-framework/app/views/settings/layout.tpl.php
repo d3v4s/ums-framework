@@ -1,6 +1,6 @@
 <div class="container col-md-6 text-center">
     <h1 class="p-3">Layout Settings</h1>
-    <form id="settings-form" action="/<?=APP_SETTINGS_ROUTE.'/'.LAYOUT.'/'.UPDATE_ROUTE?>" method="post" class="p-3">
+    <form id="settings-form" action="/ums/app/settings/layout/update" method="post" class="p-3">
     	<?php foreach (${LAYOUT} as $key => $val): ?>
         	<div id="form-group-<?=$key?>" class="form-group justify-content-center row input-new-layout p-2">
         		<label for="<?=NAME_LAYOUT_DATA.$key?>" class="col-md-10">Layout <span class="text-primary"><?=$key?></span></label>

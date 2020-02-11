@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>Reset Password</h1>
-    <form id="reset-pass-form" action="/<?=PASS_RESET_ROUTE?>" method="post">
+    <form id="reset-pass-form" action="/user/reset/password" method="post">
 		<div class="form-group text-md-left">
     		<label for="<?=PASSWORD?>">Password</label>
     		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>"  placeholder="Password" class="form-control validate-password confirm-password-1 evidence-error send-ajax-crypt" type="password" required="required" autofocus="autofocus">

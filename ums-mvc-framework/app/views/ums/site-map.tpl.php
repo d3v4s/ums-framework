@@ -3,10 +3,10 @@
     <?php if (${SITE_MAP_EXISTS}): ?>
         <div class="container col-10 text-md-right text-center p-3">
         	<span class="text-danger h4 align-middle">Site map already exists</span>
-        	<a href="/<?=SITE_MAP_UPDATE_ROUTE?>" class="btn btn-primary mx-2 align-middle">Update site map</a>
+        	<a href="/ums/generator/site/map/update" class="btn btn-primary mx-2 align-middle">Update site map</a>
         </div>
     <?php endif; ?>
-    <form id="sitemap-generator-form" action="/<?=SITE_MAP_GENERATOR_ROUTE?>" method="post" class="p-3">
+    <form id="sitemap-generator-form" action="/ums/generator/site/map" method="post" class="p-3">
     	<div class="form-group justify-content-center row p-2">
     		<label for="<?=URL_SERVER?>" class="col-10">Url server</label>
     		<input id="<?=URL_SERVER?>" name="<?=URL_SERVER?>" value="<?=${URL_SERVER}?>" placeholder="Url server" class="form-control evidence-error send-ajax col-10 m-2" type="url" required="required">

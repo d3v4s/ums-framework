@@ -8,7 +8,7 @@
     			<tr>
         			<td class="text-primary align-middle">User ID</td>
         			<td class="align-middle">
-        				<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.${USER}->{USER_ID_FRGN}?>">
+        				<a href="/ums/table/get/<?=USERS_TABLE.'/'.${USER}->{USER_ID_FRGN}?>">
         					<?=${USER}->{USER_ID_FRGN}?>
     					</a>
     				</td>
@@ -58,7 +58,7 @@
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
     		<?php if (${CAN_REMOVE_ENABLER_TOKEN} && ${IS_VALID}): ?>
-    	    	<form id="invalidate-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PENDING_USERS_TABLE.'/'.INVALIDATE_ROUTE?>" method="post">
+    	    	<form id="invalidate-form" action="/ums/table/action/<?=PENDING_USERS_TABLE?>/invalidate" method="post">
     	    		<button id="btn-invalidate" class="btn btn-danger mx-3 my-1" type="submit">
     	    			<i class="ico-btn fa fa-user-times"></i>
 	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
@@ -69,7 +69,7 @@
     	    	</form>
     	    <?php endif; ?>
     	    <?php if (${CAN_SEND_EMAIL} && ${IS_VALID}): ?>
-    	    	<form id="resend-email-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.PENDING_USERS_TABLE.'/'.RESEND_ROUTE?>" method="post">
+    	    	<form id="resend-email-form" action="/ums/table/action/<?=PENDING_USERS_TABLE?>/resend" method="post">
     	    		<button id="btn-resend-email" class="btn btn-primary mx-3 my-1" type="submit">
     	    			<i class="ico-btn fa fa-paper-plane"></i>
 	    				<span class="spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>

@@ -14,7 +14,7 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/ums/table/<?=USERS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
     	<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -66,7 +66,7 @@
             	        <tr>
             	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$user->{USER_ID}?>">
+            	        		<a href="/ums/table/get/<?=USERS_TABLE.'/'.$user->{USER_ID}?>">
     		        	        	<?=$user->{USERNAME}?>
             	        		</a>
             	        	</td>
@@ -88,14 +88,14 @@
             	        	<td class="align-middle">
             	        		<div class="row">
             	        			<div class="col-lg-6 col-md-6 col-sm-7 col-xs-8 my-1">
-            	        				<a class="btn btn-warning text-cente" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.UPDATE_ROUTE.'/'.$user->{USER_ID}?>">Update</a>
+            	        				<a class="btn btn-warning text-cente" href="/ums/table/action/<?=USERS_TABLE.'/update/'.$user->{USER_ID}?>">Update</a>
             	        			</div>
             	        		</div>
             	        	</td>
             	        </tr>
             	    <?php endforeach;
                 else: ?>
-            	    <tr><td colspan="9" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
+            	    <tr><td colspan="7" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
             <?php endif; ?>
         	</tbody>
         </table>
@@ -103,7 +103,7 @@
     <?php require PAGINATION_TEMPLATE; ?>
     <?php if (FAKE_USERS): ?>
 		<div class="container text-left p-5 ml-5">
-    		<a class="btn btn-primary ml-5" href="/<?=FAKE_USERS_ROUTE?>">Add Fake Users</a>
+    		<a class="btn btn-primary ml-5" href="/ums/users/fake">Add Fake Users</a>
     	</div>
     <?php endif; ?>
 </div>

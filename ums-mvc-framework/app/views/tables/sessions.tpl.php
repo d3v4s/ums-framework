@@ -14,7 +14,7 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/<?=UMS_TABLES_ROUTE.'/'.SESSIONS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/ums/table/<?=SESSIONS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
 		<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -23,7 +23,7 @@
         <table class="table table-striped" id="sessions-table">
         	<thead>
         		<tr>
-        			<th colspan="9" class="text-center">
+        			<th colspan="5" class="text-center">
         				<span>TOTAL SESSIONS <?=${TOT_SESSIONS}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
@@ -57,18 +57,18 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.SESSIONS_TABLE.'/'.$session->{SESSION_ID}?>">
+            	        		<a href="/ums/table/get/<?=SESSIONS_TABLE.'/'.$session->{SESSION_ID}?>">
 	            	        		<?=$session->{SESSION_ID}?>
             	        		</a>
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($session->{USERNAME})): ?>
-                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$session->{USER_ID}?>">
-        		        	        	<?= $session->{USERNAME}?>
+                	        		<a href="/ums/table/get/<?=USERS_TABLE.'/'.$session->{USER_ID}?>">
+        		        	        	<?=$session->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
-            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$session->{USER_ID_FRGN}?>" class="text-danger">
-        		        	        	DELETE: <?= $session->{USER_ID_FRGN}?>
+            	        			<a href="/ums/table/get/<?=DELETED_USER_TABLE.'/'.$session->{USER_ID_FRGN}?>" class="text-danger">
+        		        	        	DELETE: <?=$session->{USER_ID_FRGN}?>
                 	        		</a>
             	        		<?php endif; ?>
             	        	</td>
@@ -84,7 +84,7 @@
             	        </tr>
             	    <?php endforeach;
                 else: ?>
-            	    <tr><td colspan="9" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
+            	    <tr><td colspan="5" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
             <?php endif; ?>
         	</tbody>
         </table>

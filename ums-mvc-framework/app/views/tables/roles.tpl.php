@@ -176,7 +176,7 @@
             	        </tr>
             	    <?php endforeach;
                 else: ?>
-            	    <tr><td colspan="9" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
+            	    <tr><td colspan="15" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
             <?php endif; ?>
         	</tbody>
         </table>

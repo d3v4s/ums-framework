@@ -72,11 +72,11 @@
 						</li>
 						<?php foreach (UMS_TABLES_LIST as $table => $name): ?>
 							<li class="p-2 nav-item <?=$table === $this->table ? 'active' : ''?>">
-								<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.$table?>"><?=ucfirst($name)?></a>
+								<a class="nav-link" href="/ums/table/<?=$table?>"><?=ucfirst($name)?></a>
 							</li>
 						<?php endforeach; ?>
 						<li class="p-2 nav-item <?=$this->isAdvanceSearch ? 'active' : ''?>">
-							<a class="nav-link" href="/<?=ADVANCE_SEARCH_ROUTE?>">Advance Search</a>
+							<a class="nav-link" href="/ums/search/advance">Advance Search</a>
 						</li>
 					</ul>
 				</div>

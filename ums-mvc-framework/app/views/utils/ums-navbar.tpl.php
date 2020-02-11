@@ -6,32 +6,32 @@
 	<div id="navbar-ums" class="collapse navbar-collapse">
 		<ul class="navbar-nav mr-auto">
 			<li class="nav-item <?=$this->isHome ? 'active' : ''?>">
-				<a class="nav-link" href="/<?=HOME_ROUTE?>">Home</a>
+				<a class="nav-link" href="/">Home</a>
 			</li>
 			<?php if ($this->loginSession): ?>
 				<?php if (!$this->isSimpleUser()): ?>
 					<li class="nav-item <?=$this->isUmsHome ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_HOME_ROUTE?>"><?=$this->lang[DATA]['menagement']?></a>
+						<a class="nav-link" href="/ums"><?=$this->lang[DATA]['menagement']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canViewTables()): ?>
 					<li class="nav-item <?=$this->isUsersList ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.USERS_TABLE?>"><?=$this->lang[DATA]['ums_tables']?></a>
+						<a class="nav-link" href="/ums/table/<?=USERS_TABLE?>"><?=$this->lang[DATA]['ums_tables']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canCreateUser()): ?>
 					<li class="nav-item <?=$this->isNewUser ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.NEW_ROUTE?>"><?=$this->lang[DATA]['new_user']?></a>
+						<a class="nav-link" href="/ums/table/action/<?=USERS_TABLE?>/new"><?=$this->lang[DATA]['new_user']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canSendEmails()): ?>
 					<li class="nav-item <?=$this->isNewEmail ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=NEW_EMAIL_ROUTE?>"><?=$this->lang[DATA]['send_email']?></a>
+						<a class="nav-link" href="/ums/email/new"><?=$this->lang[DATA]['send_email']?></a>
 					</li>
 				<?php endif; ?>
 				<?php if ($this->canChangeSettings()): ?>
 					<li class="nav-item <?=$this->isSettings ? 'active' : ''?>">
-						<a class="nav-link" href="/<?=APP_SETTINGS_ROUTE?>"><?=$this->lang[DATA]['app_settings']?></a>
+						<a class="nav-link" href="/ums/app/settings"><?=$this->lang[DATA]['app_settings']?></a>
 					</li>
 				<?php
 				endif;

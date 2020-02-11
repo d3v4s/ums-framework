@@ -10,6 +10,7 @@ use app\models\DeletedUser;
 use app\models\Session;
 use app\models\User;
 use \PDO;
+use app\core\Router;
 
 /**
  * Class controller to manage the account requests
@@ -179,7 +180,7 @@ class AccountController extends Controller {
         $id = $this->loginSession->{USER_ID};
 
         /* set redirect to */
-        $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE;
+        $redirectTo = Router::getRoute('app\controllers\AccountController', 'showAccountSettings');
 
         /* get verifier instance, and check update user request */
         $verifier = Verifier::getInstance($this->lang[MESSAGE], $this->conn);
@@ -214,7 +215,7 @@ class AccountController extends Controller {
                 /* if success set redirecy to account info */
                 if ($resUpdate[SUCCESS]) {
                     $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][SUCCESS];
-                    $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+                    $redirectTo = Router::getRoute('app\controllers\AccountController', 'showAccountInfo');
                 /* else set fail message */
                 } else $resUpdate[MESSAGE] = $this->lang[MESSAGE][USER_UPDATE][FAIL];
             }
@@ -245,7 +246,7 @@ class AccountController extends Controller {
         /* redirects */
         $this->sendFailIfNotLogin();
         /* set redirect to */
-        $redirectTo = '/'.ACCOUNT_SETTINGS_ROUTE.'/'.PASS_UPDATE_ROUTE;
+        $redirectTo = Router::getRoute('app\controllers\AccountController', 'changePassword');
         $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens and post data */
@@ -276,7 +277,7 @@ class AccountController extends Controller {
             /* if success set redirecy to account info */
             if ($resPass[SUCCESS]) {
                 $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][SUCCESS];
-                $redirectTo = '/'.ACCOUNT_INFO_ROUTE;
+                $redirectTo = Router::getRoute('app\controllers\AccountController', 'showAccountInfo');
                 /* else set fail message */
             } else $resPass[MESSAGE] = $this->lang[MESSAGE][CHANGE_PASS][FAIL];
 
@@ -339,7 +340,7 @@ class AccountController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.ACCOUNT_SETTINGS_ROUTE);
+            redirect(Router::getRoute('app\controllers\AccountController', 'showAccountInfo'));
         };
 
         $this->switchResponse($dataOut, (!$resDeleteEmail[SUCCESS] && $resDeleteEmail[GENERATE_TOKEN]), $funcDefault, CSRF_DELETE_NEW_EMAIL);
@@ -388,7 +389,7 @@ class AccountController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.ACCOUNT_SETTINGS_ROUTE);
+            redirect(Router::getRoute('app\controllers\AccountController', 'showAccountInfo'));
         };
 
         $this->switchResponse($dataOut, $resResendEmail[GENERATE_TOKEN], $funcDefault, CSRF_RESEND_ENABLER_EMAIL);
@@ -431,7 +432,7 @@ class AccountController extends Controller {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect('/'.ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE);
+            redirect(Router::getRoute('app\controllers\AccountController', 'showSessions'));
         };
 
         $this->switchResponse($dataOut, (!$resRemoveSess[SUCCESS] && $resRemoveSess[GENERATE_TOKEN]), $funcDefault, CSRF_INVALIDATE_SESSION);

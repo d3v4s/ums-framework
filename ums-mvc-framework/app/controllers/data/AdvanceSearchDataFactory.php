@@ -9,6 +9,7 @@ use app\models\PendingUser;
 use app\models\Session;
 use app\models\User;
 use \PDO;
+use app\core\Router;
 
 /**
  * Class data factory, used for generate
@@ -63,7 +64,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
     /* fuction to get default data */
     public function getDefaultData(): array {
         return array_merge($this->getPaginationDefaultData(),[
-            SEARCH_ACTION => '/'.ADVANCE_SEARCH_ROUTE,
+            SEARCH_ACTION => Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'),
             TOT_ROWS => 0,
             COLUMN_LIST => [],
             RESULT => [],
@@ -106,7 +107,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getAdvanceSearchQuery($dataQuery);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'), $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
@@ -158,7 +159,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getAdvanceSearchQuery($dataQuery);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'), $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(DELETED_USER_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
@@ -208,7 +209,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getAdvanceSearchQuery($queryData);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $usersForPage, $totUsers, Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'), $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_USERS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
@@ -255,7 +256,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getAdvanceSearchQuery($queryData);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $mailsForPage, $totEmails, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $mailsForPage, $totEmails, Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'), $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(PENDING_EMAILS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
@@ -302,7 +303,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getAdvanceSearchQuery($queryData);
 
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $sessionsForPage, $totSessions, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $sessionsForPage, $totSessions, Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'), $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(SESSIONS_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
@@ -349,7 +350,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
         $searchQuery = $this->getAdvanceSearchQuery($queryData);
         
         /* get pagination data */
-        $data = $this->getPaginationData($orderBy, $orderDir, $page, $requestsForPage, $totReq, '/'.ADVANCE_SEARCH_ROUTE, $searchQuery);
+        $data = $this->getPaginationData($orderBy, $orderDir, $page, $requestsForPage, $totReq, Router::getRoute('AdvanceSearchController', 'showAdvanceSearch'), $searchQuery);
         /* get and merge table head data */
         $data = array_merge($data, $this->getLinkAndClassHeadTable(PASSWORD_RESET_REQ_TABLE, $orderBy, $orderDir, $page, $data[ROWS_FOR_PAGE], $orderByList, $searchQuery));
         /* get and merge search data */
@@ -394,7 +395,7 @@ class AdvanceSearchDataFactory extends PaginationDataFactory {
             TABLE => $table
         ];
         foreach ($columnList as $col) {
-            $data[LINK_HEAD.$col] = '/'.ADVANCE_SEARCH_ROUTE."/$col/";
+            $data[LINK_HEAD.$col] = "/ums/search/advance/$col/";
             $data[LINK_HEAD.$col] .= $orderBy === $col ? $orderDirRev : DESC;
             $data[LINK_HEAD.$col] .= $closeUrl;
             $data[CLASS_HEAD.$col] = $orderBy === $col ? "fas fa-sort-$orderDirClass" : '';
