@@ -1,8 +1,8 @@
 <div class="container col-md-7 text-left">
     <h1 class="text-center p-3">App Settings</h1>
-    <form id="settings-form" action="/<?=APP_SETTINGS_ROUTE.'/'.APP.'/'.UPDATE_ROUTE?>" method="post" class="p-3">
+    <form id="settings-form" action="/ums/app/settings/app/update" method="post" class="p-3">
     	<div>
-    		<a href="/<?=SITE_MAP_GENERATOR_ROUTE?>" class="btn btn-primary">Site Map Generator</a>
+    		<a href="/ums/generator/site/map" class="btn btn-primary">Site Map Generator</a>
     	</div>
         <br><hr><br>
     	<div class="form-group">

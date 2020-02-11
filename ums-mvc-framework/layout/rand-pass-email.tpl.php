@@ -7,7 +7,7 @@
     		This is the your new password: <?=${PASSWORD}?>
 		</p>
 		<p>
-			<a href="/<?=LOGIN_ROUTE?>">Login</a> on your account and change the password.
+			<a href="/auth/login">Login</a> on your account and change the password.
 		</p>
 	</body>
 </html>

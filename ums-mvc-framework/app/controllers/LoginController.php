@@ -221,7 +221,9 @@ class LoginController extends Controller {
     public function login() {
         /* redirects */
         $this->sendFailIfLogin();
-        $this->redirectIfNotXMLHTTPRequest('/'.LOGIN_ROUTE);
+        /* set url to redirect */
+        $redirectTo = Router::getRoute('app\controllers\LoginController', 'showLogin');
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
         
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_LOGIN);
@@ -233,8 +235,6 @@ class LoginController extends Controller {
         /* get verifier instance, and check the login request */
         $resLogin = LoginVerifier::getInstance($this->lang[MESSAGE], $this->conn)->verifyLogin($username, $pass, $tokens);
 
-        /* set url to redirect */
-        $redirectTo = Router::getRoute('app\controllers\LoginController', 'showLogin');
         /* if success */
         if($resLogin[SUCCESS]) {
             /* init user model and create a login session */
@@ -270,7 +270,9 @@ class LoginController extends Controller {
     public function signup() {
         /* redirects */
         $this->sendFailIfLogin();
-        $this->redirectIfNotXMLHTTPRequest('/'.SIGNUP_ROUTE);
+        /* set url to redirect */
+        $redirectTo = Router::getRoute('app\controllers\LoginController', 'showSignup');
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
         
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_SIGNUP);
@@ -286,8 +288,6 @@ class LoginController extends Controller {
         /* get verifier instance, and check the signup request */
         $resSignup = Verifier::getInstance($this->lang[MESSAGE], $this->conn)->verifySignup($name, $email, $username, $pass, $cpass, $tokens);
 
-        /* set url to redirect */
-        $redirectTo = Router::getRoute('app\controllers\LoginController', 'showSignup');;
         /* if succcess */
         if($resSignup[SUCCESS]) {
             $userData = [

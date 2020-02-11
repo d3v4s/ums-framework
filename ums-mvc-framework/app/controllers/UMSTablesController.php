@@ -165,7 +165,7 @@ class UMSTablesController extends UMSTablesBaseController {
         $search = $_GET[SEARCH] ?? '';
 
         /* get data from data factory and show page */
-        $data = UMSTablesDataFactory::getInstance($this->conn)->getPendingEmailsListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canSendEmails());
+        $data = UMSTablesDataFactory::getInstance($this->lang[DATA], $this->conn)->getPendingEmailsListData($orderBy, $orderDir, $page, $usersForPage, $search, $this->canSendEmails());
         $this->content = view(getPath('tables','pending-emails'), $data);
     }
 
@@ -303,7 +303,7 @@ class UMSTablesController extends UMSTablesBaseController {
         array_push($this->jsSrcs,
             [SOURCE => '/js/utils/ums/locks-reset.js']
         );
-        
+
         /* show page */
         $this->content = view(getPath('tables','locks-info'), $data);
     }

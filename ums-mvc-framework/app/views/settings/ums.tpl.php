@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-left">
     <h1 class="text-center p-3">UMS Settings</h1>
-    <form id="settings-form" action="/<?=APP_SETTINGS_ROUTE.'/'.UMS.'/'.UPDATE_ROUTE?>" method="post" class="p-3">
+    <form id="settings-form" action="/ums/app/settings/ums/update" method="post" class="p-3">
     	<div class="form-group">
     		<label for="<?=DOMAIN_URL_LINK?>">Domain url used for enabler links</label>
     		<input id="<?=DOMAIN_URL_LINK?>" name="<?=DOMAIN_URL_LINK?>" value="<?=${DOMAIN_URL_LINK}?>" placeholder="Domain URL" class="form-control evidence-error send-ajax" type="url" required="required">

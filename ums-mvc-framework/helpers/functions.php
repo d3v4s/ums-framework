@@ -33,7 +33,7 @@ function isSecureConnection(): bool {
 }
 
 /* function to redirect at new url */
-function redirect(string $url='/'.HOME_ROUTE) {
+function redirect(string $url='/') {
     header('Location: '.$url);
     exit;
 }
@@ -102,7 +102,7 @@ function sendJsonResponse(array $data) {
 
 /* function to get a sender email link */
 function getSendEmailLink(bool $canSendEmail): string {
-    return $canSendEmail ? '/'.NEW_EMAIL_ROUTE.'?to=' : 'mailto:';
+    return $canSendEmail ? '/ums/email/new?to=' : 'mailto:';
 }
 
 /* function to verify if a number is in a range */

@@ -14,7 +14,7 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/<?=UMS_TABLES_ROUTE.'/'.DELETED_USER_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/ums/table/<?=DELETED_USER_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
     	<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -68,7 +68,7 @@
             	        <tr>
             	        	<td class="align-middle"><?=$user->{USER_ID}?></td>
             	        	<td class="align-middle">
-            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$user->{USER_ID}?>">
+            	        		<a href="/ums/table/get/<?=DELETED_USER_TABLE.'/'.$user->{USER_ID}?>">
     		        	        	<?= $user->{USERNAME}?>
             	        		</a>
             	        	</td>
@@ -86,7 +86,7 @@
             	        </tr>
             	    <?php endforeach;
                 else: ?>
-            	    <tr><td colspan="9" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
+            	    <tr><td colspan="7" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
             <?php endif; ?>
         	</tbody>
         </table>

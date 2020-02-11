@@ -1,6 +1,6 @@
 <div class="container col-md-6 text-center">
     <h1 class="p-4">Add Fake Users</h1>
-    <form id="fakeusr-generator-form" action="/<?=FAKE_USERS_ROUTE?>" method="post">
+    <form id="fakeusr-generator-form" action="/ums/users/fake" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=N_USERS?>">N. fake users</label>
     		<input id="<?=N_USERS?>" name="<?=N_USERS?>" value="1" placeholder="N. Fake Users" class="form-control send-ajax evidence-error" type="number" required="required" autofocus="autofocus" min="1" max="<?=MAX_FAKE_USERS?>">

@@ -153,7 +153,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
 
     /* function to redirect if sitemap not exists */
     private function redirectIfSiteMapNotExists() {
-        if (!siteMapExists()) redirect('/'.SITE_MAP_GENERATOR_ROUTE);
+        if (!siteMapExists()) redirect('/ums/generator/site/map');
     }
 
     /* function to redirect if user can not generate site map */

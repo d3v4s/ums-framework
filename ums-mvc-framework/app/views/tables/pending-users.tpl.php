@@ -14,7 +14,7 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/<?=UMS_TABLES_ROUTE.'/'.PENDING_USERS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/ums/table/<?=PENDING_USERS_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
 		<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -75,13 +75,13 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-            	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PENDING_USERS_TABLE.'/'.$user->{PENDING_USER_ID}?>">
+            	        		<a href="/ums/table/get/<?=PENDING_USERS_TABLE.'/'.$user->{PENDING_USER_ID}?>">
 	            	        		<?=$user->{PENDING_USER_ID}?>
             	        		</a>
             	        	</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($user->{USER_ID_FRGN})): ?>
-            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$user->{USER_ID_FRGN}?>">
+            	        			<a href="/ums/table/get/<?=USERS_TABLE.'/'.$user->{USER_ID_FRGN}?>">
                 	        			<?=$user->{USER_ID_FRGN}?>
             	        			</a>                	        			
             	        		<?php else: ?>

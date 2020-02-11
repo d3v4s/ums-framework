@@ -47,7 +47,7 @@
 					<?php endforeach; ?>
 				</div>
 				<button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-				<a href="/<?=ADVANCE_SEARCH_ROUTE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+				<a href="/ums/search/advance/" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
     	<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -78,7 +78,7 @@
     					<?php foreach (${COLUMN_LIST} as $count => $col): ?>
             	        	<td class="align-middle">
         	        			<?php if ($count === 0): ?>
-                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.${TABLE}.'/'.$row->$col?>"><?=$row->$col?></a>
+                	        		<a href="/ums/table/get/<?=${TABLE}.'/'.$row->$col?>"><?=$row->$col?></a>
         	        			<?php
                                 else:
                                     echo $row->$col;

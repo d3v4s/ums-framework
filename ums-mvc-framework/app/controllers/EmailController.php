@@ -49,7 +49,8 @@ class EmailController extends UMSBaseController {
     public function sendEmail() {
         /* redirects */
         $this->sendFailIfCanNotSendEmail();
-        $this->redirectIfNotXMLHTTPRequest('/'.NEW_EMAIL_ROUTE);
+        $redirectTo = Router::getRoute('app\controllers\EmailController', 'showNewEmail');
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens and post data */
         $tokens = $this->getPostSessionTokens(CSRF_NEW_EMAIL);

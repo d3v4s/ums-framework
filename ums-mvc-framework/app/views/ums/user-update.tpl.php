@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1>User: <?=${USER}->{USERNAME}?></h1>
-    <form id="user-update-form" action="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.UPDATE_ROUTE?>" method="post">
+    <form id="user-update-form" action="/ums/table/action/<?=USERS_TABLE?>/update" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>">Full Name</label>
     		<input id="<?=NAME?>" name="<?=NAME?>" value="<?=${USER}->{NAME}?>" placeholder="Full name" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">
@@ -28,9 +28,9 @@
             </div>
     	<?php endif; ?>
     	<div class="form-group text-md-right mr-md-4 mt-md-4">
-    		<a class="btn btn-primary px-3 py-1 mx-2 my-2" href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-info"></i> Info</a>
+    		<a class="btn btn-primary px-3 py-1 mx-2 my-2" href="/ums/table/get/<?=USERS_TABLE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-info"></i> Info</a>
     		<?php if (${CAN_CHANGE_PASSWORD}): ?>
-    			<a class="btn btn-warning px-3 py-1 mx-2 my-2" href="/<?=UMS_TABLES_ROUTE.'/'.ACTION_ROUTE.'/'.USERS_TABLE.'/'.PASS_UPDATE_ROUTE.'/'.${USER}->{USER_ID}?>"><i class="fas fa-key"></i> Change Password</a>
+    			<a class="btn btn-warning px-3 py-1 mx-2 my-2" href="/ums/table/action/<?=USERS_TABLE.'/password_update/'.${USER}->{USER_ID}?>"><i class="fas fa-key"></i> Change Password</a>
 			<?php endif; ?>
 	    	<button id="btn-update" class="btn btn-success px-3 py-1 mx-2 my-2" type="submit">
 	    		<i class="ico-btn fas fa-check"></i>

@@ -9,6 +9,7 @@ use app\models\Role;
 use \DateTime;
 use \Exception;
 use \PDO;
+use app\core\Router;
 
 /**
  * Class base controller that implement principal properties and functions
@@ -194,7 +195,7 @@ class Controller {
     /* function to view the home page */
     public function showDoubleLogin() { 
         /* if already double login session redirect */
-        if ($this->isDoubleLoginSession()) redirect($_GET[REDIRECT_TO] ?? '/'.HOME_ROUTE);
+        if ($this->isDoubleLoginSession()) redirect($_GET[REDIRECT_TO] ?? '/');
 
         /* add javascript source */
         array_push($this->jsSrcs,
@@ -204,8 +205,10 @@ class Controller {
         $data = [
             REDIRECT_TO => $_GET[REDIRECT_TO] ?? NULL,
             TOKEN => generateToken(CSRF_DOUBLE_LOGIN),
-            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON)
+            GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
+            LANG => $this->lang[DATA]
         ];
+//         dd($data);
         /* show page */
         $this->content = view(getPath('login', 'double-login'), $data);
     }
@@ -299,7 +302,7 @@ class Controller {
                         MESSAGE => $this->lang[DATA]['double_login'],
                         SUCCESS => FALSE,
                         DOUBLE_LOGIN_DATA => [
-                            ACTION => '/'.DOUBLE_LOGIN_ROUTE,
+                            ACTION => Router::getRoute('app\controllers\Controller', 'showDoubleLogin'),
                             TOKEN => generateToken(CSRF_DOUBLE_LOGIN),
                             TOKEN_NAME => CSRF_DOUBLE_LOGIN,
                             GET_KEY_TOKEN => generateToken(CSRF_KEY_JSON),
@@ -319,6 +322,7 @@ class Controller {
 
     /* function to get tokens of session and post */
     protected function getPostSessionTokens(string $nameToken=CSRF): array {
+//         $postToken = $_POST[$postTokenName] ?? 'tkn';
         /* reformat name token for header */
         $headerToken = str_replace('-', '_', $nameToken);
         $headerToken = mb_strtoupper($headerToken);
@@ -627,8 +631,9 @@ class Controller {
         /* get url domain from configurations */
         $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
         /* append source path and token */
-        $link .= $newEmail ? '/validate/new/email/' : '/account/enable/';
-        $link .= $token;
+        $route .= Router::getRoute('app\controllers\LoginController', $newEmail ? 'enableNewEmail' : 'enableAccount');
+        $route = str_replace(':token', $token, $route);
+        $link .= $route;
 
         /* insert link on session if on DEV mode */
         if (DEV) $_SESSION[LINK] = $link;
@@ -652,7 +657,9 @@ class Controller {
     protected function sendEmailResetPassword(string $to, string $token, string $message = 'RESET YOUR PASSWORD'): bool {
         /* get domain url from configuration, next append source path and token */
         $link = $this->appConfig[UMS][DOMAIN_URL_LINK];
-        $link .= '/'.PASS_RESET_ROUTE.'/'.$token;
+        $route = Router::getRoute('app\controllers\LoginController', 'showPasswordReset');
+        $route = str_replace(':token', $token, $route);
+        $link .= $route;
 
         /* insert link on session if on DEV mode */
         if (DEV) $_SESSION[LINK] = $link;

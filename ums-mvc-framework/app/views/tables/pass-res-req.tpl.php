@@ -14,7 +14,7 @@
         		>
 
                 <button class="btn btn-outline-success m-2 my-sm-0" type="submit">Search</button>
-                <a href="/<?=UMS_TABLES_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
+                <a href="/ums/table/<?=PASSWORD_RESET_REQ_TABLE?>" class="btn btn-outline-warning m-2 my-sm-0">Reset</a>
     		</form>
     	</nav>
 		<?php require_once ROWS_FOR_PAGE_TEMPLATE; ?>
@@ -23,7 +23,7 @@
         <table class="table table-striped" id="pass-res-req-table">
         	<thead>
         		<tr>
-        			<th colspan="9" class="text-center">
+        			<th colspan="5" class="text-center">
         				<span>TOTAL REQUESTS <?=${TOT_REQ}?> - Page <?=${PAGE}?>/<?=${MAX_PAGES}?></span>
     				</th>
     			</tr>
@@ -57,17 +57,17 @@
             	    ?>
             	        <tr>
             	        	<td class="align-middle">
-                	        	<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.PASSWORD_RESET_REQ_TABLE.'/'.$req->{PASSWORD_RESET_REQ_ID}?>">
+                	        	<a href="/ums/table/get/<?=PASSWORD_RESET_REQ_TABLE.'/'.$req->{PASSWORD_RESET_REQ_ID}?>">
                 	        		<?=$req->{PASSWORD_RESET_REQ_ID}?>
                 	        	</a>
         	        		</td>
             	        	<td class="align-middle">
             	        		<?php if (isset($req->{USERNAME})): ?>
-                	        		<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.USERS_TABLE.'/'.$req->{USER_ID}?>">
+                	        		<a href="/ums/table/get/<?=USERS_TABLE.'/'.$req->{USER_ID}?>">
         		        	        	<?= $req->{USERNAME}?>
                 	        		</a>
             	        		<?php else: ?>
-            	        			<a href="/<?=UMS_TABLES_ROUTE.'/'.GET_ROUTE.'/'.DELETED_USER_TABLE.'/'.$req->{USER_ID_FRGN}?>" class="text-danger">
+            	        			<a href="/ums/table/get/<?=DELETED_USER_TABLE.'/'.$req->{USER_ID_FRGN}?>" class="text-danger">
         		        	        	DELETE: <?= $req->{USER_ID_FRGN}?>
                 	        		</a>
             	        		<?php endif; ?>
@@ -84,7 +84,7 @@
             	        </tr>
             	    <?php endforeach;
                 else: ?>
-            	    <tr><td colspan="9" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
+            	    <tr><td colspan="5" class="text-center"><h2>ERR 404!!<br>No records found</h2></td></tr>
             <?php endif; ?>
         	</tbody>
         </table>

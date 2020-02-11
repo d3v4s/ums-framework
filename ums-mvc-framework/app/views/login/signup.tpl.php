@@ -1,6 +1,6 @@
 <div class="container col-md-7 text-center">
     <h1><?=${LANG}[SIGNUP]?></h1>
-    <form id="signup-form" action="/<?=SIGNUP_ROUTE?>" method="post">
+    <form id="signup-form" action="/auth/signup" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=NAME?>"><?=${LANG}[NAME]?> <span class="text-red">*</span></label>
     		<input id="<?=NAME?>" name="<?=NAME?>" placeholder="<?=${LANG}[NAME]?>" class="form-control validate-name evidence-error send-ajax" type="text" required="required" autofocus="autofocus">

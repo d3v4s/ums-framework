@@ -24,7 +24,7 @@
             				<?php endif; ?>
         				</td>
             			<td class="align-middle">
-            				<form action="/<?=ACCOUNT_SETTINGS_ROUTE.'/'.SESSIONS_ROUTE.'/'.INVALIDATE_ROUTE?>" method="post" class="remove-session">
+            				<form action="/user/settings/sessions/invalidate" method="post" class="remove-session">
             					<button class="btn btn-warning" type="submit">
             						<i class="fas fa-minus-circle ico-btn"></i>
                 					<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
@@ -40,7 +40,7 @@
     </div>
     <div class="text-center container-fluid mx-auto my-3">
     	<div class="row justify-content-center">
-	    	<a class="btn btn-warning mx-3 my-1 text-right" href="/<?=ACCOUNT_SETTINGS_ROUTE?>"><i class="fa fa-pen fa-xs"></i> <?=${LANG}[SETTINGS]?></a>
+	    	<a class="btn btn-warning mx-3 my-1 text-right" href="/user/settings"><i class="fa fa-pen fa-xs"></i> <?=${LANG}[SETTINGS]?></a>
     	</div>
     </div>
 </div>

@@ -1,7 +1,7 @@
 <div class="container col-md-7 text-center">
 	<h3><?=${LANG}['double_login']?></h3>
     <h4><?=${LANG}['insert_password']?></h4>
-    <form id="double-login-form" action="/<?=DOUBLE_LOGIN_ROUTE?>" method="post">
+    <form id="double-login-form" action="/account/double_login" method="post">
     	<div class="form-group text-md-left">
     		<label for="<?=PASSWORD?>">Password</label>
     		<input id="<?=PASSWORD?>" name="<?=PASSWORD?>" placeholder="Password" class="form-control evidence-error send-ajax-crypt mb-1" type="password" required="required" autofocus="autofocus">

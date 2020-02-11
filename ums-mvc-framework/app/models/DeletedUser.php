@@ -107,10 +107,10 @@ class DeletedUser extends DbModel {
             $searchData = [
                 DELETED_USER_ID => $searchData[DELETED_USER_ID]
             ];
-        } else if (isset($searchData[USER_ID_FRGN])) {
-            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+        } else if (isset($searchData[USER_ID])) {
+            $sql .= USER_ID.'=:'.USER_ID;
             $searchData = [
-                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+                USER_ID => $searchData[USER_ID]
             ];
         } else {
             $and = count($searchData)-1;
@@ -218,10 +218,10 @@ class DeletedUser extends DbModel {
             $searchData = [
                 DELETED_USER_ID => $searchData[DELETED_USER_ID]
             ];
-        } else if (isset($searchData[USER_ID_FRGN])) {
-            $sql .= USER_ID_FRGN.'=:'.USER_ID_FRGN;
+        } else if (isset($searchData[USER_ID])) {
+            $sql .= USER_ID.'=:'.USER_ID;
             $searchData = [
-                USER_ID_FRGN => $searchData[USER_ID_FRGN]
+                USER_ID => $searchData[USER_ID]
             ];
         } else {
             $and = count($searchData)-1;
@@ -251,7 +251,7 @@ class DeletedUser extends DbModel {
         /* disable foreign key check */
         $sql = 'SET FOREIGN_KEY_CHECKS=0;';
         /* delete query */
-        $sql .= 'DELETE FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID_FRGN.'=:id;';
+        $sql .= 'DELETE FROM '.DELETED_USER_TABLE.' WHERE '.USER_ID.'=:id;';
         /* enable foreign key check */
         $sql .= 'SET FOREIGN_KEY_CHECKS=1';
         /* execute sql query */
@@ -264,7 +264,7 @@ class DeletedUser extends DbModel {
             $result[MESSAGE] = 'Deleted user remove successfully';
             /* else set error info */
         } else $result[ERROR_INFO] = $stmt->errorInfo();
-        
+
         return $result;
     }
 }

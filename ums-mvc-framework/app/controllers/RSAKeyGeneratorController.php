@@ -40,7 +40,8 @@ class RSAKeyGeneratorController extends SettingsBaseController {
     public function generateRsaKey() {
         /* redirects */
         $this->sendFailIfCanNotGenerateRsaKey();
-        $this->redirectIfNotXMLHTTPRequest('/'.RSA_GENERATOR_ROUTE);
+        $redirectTo = Router::getRoute('app\controllers\RSAKeyGeneratorController', 'showRSAKeyGenerator');
+        $this->redirectIfNotXMLHTTPRequest($redirectTo);
 
         /* get tokens */
         $tokens = $this->getPostSessionTokens(CSRF_GEN_RSA);
@@ -65,7 +66,8 @@ class RSAKeyGeneratorController extends SettingsBaseController {
         $dataOut = [
             SUCCESS => $resKeyGenerate[SUCCESS],
             MESSAGE => $resKeyGenerate[MESSAGE] ?? NULL,
-            KEY_PAIR => $keyPair ?? NULL
+            KEY_PAIR => $keyPair ?? NULL,
+            REDIRECT_TO => $redirectTo
         ];
 
         /* function to default response */
@@ -74,7 +76,7 @@ class RSAKeyGeneratorController extends SettingsBaseController {
                 $_SESSION[MESSAGE] = $data[MESSAGE];
                 $_SESSION[SUCCESS] = $data[SUCCESS];
             }
-            redirect(Router::getRoute('app\controllers\RSAKeyGeneratorController', 'showRSAKeyGenerator'));
+            redirect($data[REDIRECT_TO]);
         };
 
         $this->switchResponse($dataOut, $resKeyGenerate[GENERATE_TOKEN], $funcDefault, CSRF_GEN_RSA);
