@@ -69,7 +69,7 @@
     	    	</form>
     	    <?php endif; ?>
     	    <?php if (${CAN_SEND_EMAIL} && ${IS_VALID}): ?>
-    	    	<form id="resend-email-form" action="/ums/table/action/<?=PASSWORD_RESET_REQ_TABL?>resend" method="post">
+    	    	<form id="resend-email-form" action="/ums/table/action/<?=PASSWORD_RESET_REQ_TABLE?>/resend" method="post">
     	    		<button id="btn-resend-email" class="btn btn-primary mx-3 my-1" type="submit">
     	    			<i class="fa fa-paper-plane ico-btn"></i>
 	    				<span class="spinner-border spinner-border-sm d-none spinner" role="status" aria-hidden="true"></span>
