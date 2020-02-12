@@ -436,7 +436,7 @@ class LoginController extends Controller {
         $this->sendFailIfLogin();
 
         /* manage resend lock */
-        $this->handlerResendLock();
+//         $this->handlerResendLock();
 
         /* get tokens and email */
         $tokens = $this->getPostSessionTokens(CSRF_PASS_RESET_REQ);
@@ -455,19 +455,19 @@ class LoginController extends Controller {
             $passResReq->removePasswordResetReqForUser($resPassResetReq[USER]->{USER_ID});
             /* calc expire datae time add a new request */
             $expireDatetime = getExpireDatetime(PASS_RESET_EXPIRE_TIME);
-            $res = $passResReq->newPasswordResetReq($resPassResetReq[USER]->{USER_ID}, $_SERVER['REMOTE_ADDR'], $expireDatetime);
+            $resPassResetReq = array_merge($resPassResetReq, $passResReq->newPasswordResetReq($resPassResetReq[USER]->{USER_ID}, $_SERVER['REMOTE_ADDR'], $expireDatetime));
             /* if success send email and set result, and if it success */
-            if ($res[SUCCESS] && $res[SUCCESS] = $this->sendEmailResetPassword($email, $res[TOKEN])) {
+            if ($resPassResetReq[SUCCESS] && ($resPassResetReq[SUCCESS] = $this->sendEmailResetPassword($email, $resPassResetReq[TOKEN]))) {
                 /* set success message and the redirect */
-                $res[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$email;
+                $resPassResetReq[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][SUCCESS].$email;
                 $redirectTo = Router::getRoute('app\controllers\LoginController', 'showLogin');
-                /*  set resebd lock */
+                /*  set resend lock */
                 $this->setResendLock();
-            } else $res[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
+            } else $resPassResetReq[MESSAGE] = $this->lang[MESSAGE][SEND_EMAIL][FAIL];
 
-            /* set success and messsage */
-            $resPassResetReq[SUCCESS] = $res[SUCCESS];
-            $resPassResetReq[MESSAGE] = $res[MESSAGE];
+//             /* set success and messsage */
+//             $resPassResetReq[SUCCESS] = $$resPassResetReq[SUCCESS];
+//             $resPassResetReq[MESSAGE] = $$resPassResetReq[MESSAGE];
         }
 
         /* function for default response */

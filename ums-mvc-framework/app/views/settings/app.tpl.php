@@ -2,7 +2,7 @@
     <h1 class="text-center p-3">App Settings</h1>
     <form id="settings-form" action="/ums/app/settings/app/update" method="post" class="p-3">
     	<div>
-    		<a href="/ums/generator/site/map" class="btn btn-primary">Site Map Generator</a>
+    		<a href="/ums/generator/site_map" class="btn btn-primary">Site Map Generator</a>
     	</div>
         <br><hr><br>
     	<div class="form-group">

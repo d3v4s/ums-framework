@@ -64,6 +64,7 @@ CREATE TABLE `password_reset_requests` (
 	`id_password_reset_request` int(15) NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	`user_id` int(15) unsigned NOT NULL,
 	`password_reset_token` varchar(255) NULL,
+	`ip_address` varchar(45) NOT NULL,
 	`expire_datetime` datetime NOT NULL,
 
 	FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE NO ACTION,
@@ -146,10 +147,6 @@ INSERT INTO `roles` (`id_role`, `role`, `create_user`, `update_user`, `delete_us
 	VALUES (2, 'user', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 -- INSERT USER --
-
--- insert andrea serra user
-INSERT INTO `users` (`name`, `username`, `email`, `password`, `role_id`, `enabled`)
-	VALUES ('Andrea Serra', 'devas', 'test@ums.ums', '$2y$10$ESXw8SyNrP5Cj.7FxqnZruTnBHGPuOVON4b5bOqlWtIX4HRKWk2Pq', 0, 1);
 
 -- insert admin user
 INSERT INTO `users` (`name`, `username`, `email`, `password`, `role_id`, `enabled`)

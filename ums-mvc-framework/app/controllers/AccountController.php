@@ -206,6 +206,8 @@ class AccountController extends Controller {
                 /* if success send email and set success result */
                 $resUpdate[SUCCESS] = $resUpdate[SUCCESS] && $this->sendEnablerEmail($email, $resUpdate[TOKEN], 'ENABLE YOUR EMAIL', TRUE);
             }
+
+            /* if success, then update user */
             if ($resUpdate[SUCCESS]) {
                 /* init user model */
                 $userModel = new User($this->conn);

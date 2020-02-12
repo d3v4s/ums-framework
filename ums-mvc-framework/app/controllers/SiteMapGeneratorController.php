@@ -51,7 +51,7 @@ class SiteMapGeneratorController extends SettingsBaseController {
 
         /* add javascript sources */
         array_push($this->jsSrcs,
-            [SOURCE => '/js/utils/ums/adm-site-map.js']
+            [SOURCE => '/js/utils/ums/site-map.js']
         );
 
         /* get data form data factory */
