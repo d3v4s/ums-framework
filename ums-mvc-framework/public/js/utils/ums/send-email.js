@@ -6,9 +6,9 @@ $(document).ready(function(){
 //		});
 //	} catch (e) {}
 
+	reqPublicKey();
 	/* submit event on send email form to send XML HTTP request */
 	$('#send-email-form').on('submit', function(event) {
-		reqPublicKey();
 		/* get button, token, and serialize data */
 		const $xf = $(this).find('#_xf'),
 			$btn = $(this).find('#btn-send'),
