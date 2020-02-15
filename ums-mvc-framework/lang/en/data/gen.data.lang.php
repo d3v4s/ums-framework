@@ -25,5 +25,10 @@ return [
     'ums_tables' => 'Users tables',
     'new_user' => 'New user',
     'send_email' => 'Send email',
-    'app_settings' => 'App settings'
+    'app_settings' => 'App settings',
+    USERS_TABLE => 'Utenti',
+    DELETED_USER_TABLE => 'Utenti eliminati',
+    PENDING_USERS_TABLE => 'Utenti in attesa',
+    PENDING_EMAILS_TABLE => 'Email in attesa',
+    SESSIONS_TABLE => 'Sessioni'
 ];

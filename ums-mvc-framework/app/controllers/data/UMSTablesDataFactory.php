@@ -24,7 +24,7 @@ class UMSTablesDataFactory extends PaginationDataFactory {
 
     protected function __construct(array $langData, PDO $conn=NULL) {
         parent::__construct($langData, $conn);
-        $this->umsTablesRoute = Router::getRoute('UMSTablesController', 'showTable');
+        $this->umsTablesRoute = Router::getRoute('app\controllers\UMSTablesController', 'showTable');
         $this->umsTablesRoute = str_replace(':table', '', $this->umsTablesRoute);
     }
 
