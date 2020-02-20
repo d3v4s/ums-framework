@@ -30,10 +30,13 @@
     background-color: #3c3c3c;
 }
 
-#dropdown-lang li {
-	/* width: 10%; */
-	/* width: 50%; */
-	/* justify-content: initial; */
+div.toogle-lang > a {
+	color: rgba(255,255,255,.5);
+}
+
+div.toogle-lang > a:focus,
+div.toogle-lang > a:hover {
+	color: rgba(255,255,255,.75);
 }
 
 html, body {

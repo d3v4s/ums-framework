@@ -1,4 +1,4 @@
-<div class="dropdown m-2">
+<div class="dropdown m-2 toogle-lang">
 	<a class="dropdown-toggle rounded" href="#" data-toggle="dropdown" data-target="#dropdwon-lang">
 		<img class="flag" src="/img/flags/<?=$this->langCli?>_64.png" alt="<?=$this->langCli?> flag">
 	</a>
