@@ -36,7 +36,7 @@ class Session extends DbModel {
         $sessTkn = $this->getNewLoginSessionToken();
         $stmt->execute([
             'user_id' => $userId,
-            'token' => $sessTkn,
+            'token' => hash('sha512', $sessTkn),
             'ip_addr' => $ipAddress,
             'expire_datetime' => $expireDatetime
         ]);
@@ -178,7 +178,7 @@ class Session extends DbModel {
         $sql .= USERS_TABLE.' ON '.USER_ID_FRGN.'='.USER_ID;
         $sql .= ' WHERE '.SESSION_TOKEN.'=:token';
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(['token' => $token]);
+        $stmt->execute(['token' => hash('sha512', $token)]);
 
         /* if find user chech if session is expire */
         if ($stmt && ($user = $stmt->fetch(PDO::FETCH_OBJ))) {
@@ -186,6 +186,7 @@ class Session extends DbModel {
             if ($unsetPassword) unset($user->password);
             return $user;
         }
+
         /* else return false */
         return FALSE;
     }
