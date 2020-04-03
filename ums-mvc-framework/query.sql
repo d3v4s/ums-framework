@@ -21,7 +21,6 @@ CREATE TABLE `roles` (
 	`change_settings` bit(1) NOT NULL DEFAULT 0,
 	`send_email` bit(1) NOT NULL DEFAULT 0,
 	`view_tables` bit(1) NOT NULL DEFAULT 0,
-	`mange_real_estate` bit(1) NOT NULL DEFAULT b'0',
 
 	UNIQUE `role` (`role`)
 );
