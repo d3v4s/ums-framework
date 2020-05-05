@@ -2,8 +2,6 @@
 
 UMS-Framework (User Management System) is a framework to develop a PHP (7) Web App, which requires a user management system. 
 
-## ALERT!!! This project is under development 
-
 This framework implements:
 - MVC (Model View Controlller) design pattern
 - CSP (Content Security Policy)
